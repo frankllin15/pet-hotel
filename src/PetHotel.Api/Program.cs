@@ -36,6 +36,20 @@ builder.Services.AddSingleton<ITenantConnectionResolver>(new SharedTenantConnect
 // --- Erros padronizados (ProblemDetails, RFC 9457, docs/02) ---
 builder.Services.AddProblemDetails();
 
+// --- Documentação da API (OpenAPI) ---
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, _, _) =>
+    {
+        document.Info.Title = "PetHotel API";
+        document.Info.Version = "v1";
+        document.Info.Description =
+            "API do Hotel de Pets. Monólito modular (DDD + Hexagonal). " +
+            "Operações tenant-scoped exigem o tenant resolvido do token de autenticação.";
+        return Task.CompletedTask;
+    });
+});
+
 // Enums trafegam como string no JSON (entrada e saída).
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -77,6 +91,13 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
+
+// OpenAPI + Swagger UI apenas em desenvolvimento.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.UseSwaggerUI(options => options.SwaggerEndpoint("/openapi/v1.json", "PetHotel API v1"));
+}
 
 // Liveness: o processo está de pé.
 app.MapHealthChecks("/health", new HealthCheckOptions { Predicate = _ => false });
