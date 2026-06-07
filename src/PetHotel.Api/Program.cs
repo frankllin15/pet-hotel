@@ -71,6 +71,7 @@ builder.Host.UseWolverine(opts =>
     // Descoberta de handlers nos assemblies de Application de cada módulo.
     opts.Discovery.IncludeAssembly(typeof(PetHotel.Tenancy.Application.AssemblyReference).Assembly);
     opts.Discovery.IncludeAssembly(typeof(PetHotel.Registry.Application.AssemblyReference).Assembly);
+    opts.Discovery.IncludeAssembly(typeof(PetHotel.Health.Application.AssemblyReference).Assembly);
 });
 
 // --- Observabilidade (OpenTelemetry, docs/05) ---
@@ -110,6 +111,7 @@ app.MapHealthChecks("/ready", new HealthCheckOptions
 // --- Endpoints por módulo (docs/02) ---
 app.MapTenancyEndpoints();
 app.MapRegistryEndpoints();
+app.MapHealthEndpoints();
 
 app.Run();
 

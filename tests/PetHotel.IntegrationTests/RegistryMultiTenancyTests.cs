@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PetHotel.BuildingBlocks.Persistence;
+using PetHotel.IntegrationTests.Support;
 using PetHotel.Registry.Domain.Tutors;
 using PetHotel.Registry.Infrastructure.Persistence;
 using PetHotel.SharedKernel;
@@ -13,11 +14,10 @@ namespace PetHotel.IntegrationTests;
 /// </summary>
 public sealed class RegistryMultiTenancyTests : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:17")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:17")
         .Build();
 
-    private readonly MutableTenantContext _tenant = new();
+    private readonly TestTenantContext _tenant = new();
 
     public async Task InitializeAsync()
     {
@@ -86,21 +86,9 @@ public sealed class RegistryMultiTenancyTests : IAsyncLifetime
     {
         var options = new DbContextOptionsBuilder<RegistryDbContext>()
             .UseNpgsql(_postgres.GetConnectionString())
-            .AddInterceptors(new TenantAuditingInterceptor(_tenant, new NoCurrentUser(), TimeProvider.System))
+            .AddInterceptors(new TenantAuditingInterceptor(_tenant, new TestCurrentUser(), TimeProvider.System))
             .Options;
 
         return new RegistryDbContext(options, _tenant);
-    }
-
-    /// <summary>Tenant context mutável para alternar o tenant entre asserts.</summary>
-    private sealed class MutableTenantContext : ITenantContext
-    {
-        public TenantId Current { get; set; }
-        public bool HasTenant => Current.Value != Guid.Empty;
-    }
-
-    private sealed class NoCurrentUser : ICurrentUser
-    {
-        public string? UserId => "integration-test";
     }
 }
