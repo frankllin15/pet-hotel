@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using PetHotel.BuildingBlocks.Auditing;
-using PetHotel.BuildingBlocks.Multitenancy;
 using PetHotel.SharedKernel;
 
 namespace PetHotel.BuildingBlocks.Persistence;

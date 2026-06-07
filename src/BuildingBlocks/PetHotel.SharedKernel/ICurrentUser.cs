@@ -1,4 +1,4 @@
-namespace PetHotel.BuildingBlocks.Auditing;
+namespace PetHotel.SharedKernel;
 
 /// <summary>
 /// Usuário corrente do request (para auditoria). Populado a partir do token.

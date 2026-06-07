@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using PetHotel.BuildingBlocks.Auditing;
+using PetHotel.SharedKernel;
 
 namespace PetHotel.Api.Adapters;
 

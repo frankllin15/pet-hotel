@@ -1,10 +1,8 @@
-using PetHotel.SharedKernel;
-
-namespace PetHotel.BuildingBlocks.Multitenancy;
+namespace PetHotel.SharedKernel;
 
 /// <summary>
 /// Tenant corrente do request, populado a partir do token de autenticação.
-/// Nunca lido de URL/query string (docs/04).
+/// Nunca lido de URL/query string (docs/04). Porta pura usada por Application e Infrastructure.
 /// </summary>
 public interface ITenantContext
 {

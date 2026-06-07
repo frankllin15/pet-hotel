@@ -1,6 +1,5 @@
-using System.Linq.Expressions;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using PetHotel.BuildingBlocks.Multitenancy;
 using PetHotel.SharedKernel;
 
 namespace PetHotel.BuildingBlocks.Persistence;
@@ -11,28 +10,28 @@ namespace PetHotel.BuildingBlocks.Persistence;
 /// </summary>
 public static class TenantModelBuilderExtensions
 {
-    public static ModelBuilder ApplyTenantQueryFilter(this ModelBuilder modelBuilder, ITenantContext tenantContext)
+    private static readonly MethodInfo SetFilterMethod = typeof(TenantModelBuilderExtensions)
+        .GetMethod(nameof(SetTenantFilter), BindingFlags.NonPublic | BindingFlags.Static)!;
+
+    public static ModelBuilder ApplyTenantQueryFilter(this ModelBuilder modelBuilder, ModuleDbContext context)
     {
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            if (!typeof(IHasTenant).IsAssignableFrom(entityType.ClrType))
+            if (typeof(IHasTenant).IsAssignableFrom(entityType.ClrType))
             {
-                continue;
+                SetFilterMethod.MakeGenericMethod(entityType.ClrType).Invoke(null, [modelBuilder, context]);
             }
-
-            // e => e.TenantId.Value == tenantContext.Current.Value
-            var parameter = Expression.Parameter(entityType.ClrType, "e");
-            var entityTenantValue = Expression.Property(
-                Expression.Property(parameter, nameof(IHasTenant.TenantId)),
-                nameof(TenantId.Value));
-            var currentTenantValue = Expression.Property(
-                Expression.Property(Expression.Constant(tenantContext), nameof(ITenantContext.Current)),
-                nameof(TenantId.Value));
-
-            var filter = Expression.Lambda(Expression.Equal(entityTenantValue, currentTenantValue), parameter);
-            modelBuilder.Entity(entityType.ClrType).HasQueryFilter(filter);
         }
 
         return modelBuilder;
+    }
+
+    // O lambda captura o DbContext: o EF reavalia CurrentTenant a cada consulta.
+    // Compara o TenantId inteiro (tem value converter) — comparar e.TenantId.Value
+    // não é traduzível para SQL.
+    private static void SetTenantFilter<TEntity>(ModelBuilder modelBuilder, ModuleDbContext context)
+        where TEntity : class, IHasTenant
+    {
+        modelBuilder.Entity<TEntity>().HasQueryFilter(e => e.TenantId == context.CurrentTenant);
     }
 }

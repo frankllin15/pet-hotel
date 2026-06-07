@@ -1,4 +1,3 @@
-using PetHotel.BuildingBlocks.Multitenancy;
 using PetHotel.SharedKernel;
 
 namespace PetHotel.Api.Adapters;
