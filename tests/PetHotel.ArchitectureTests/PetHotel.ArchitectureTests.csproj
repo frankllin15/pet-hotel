@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BuildingBlocks\PetHotel.SharedKernel\PetHotel.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\PetHotel.BuildingBlocks\PetHotel.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\src\PetHotel.Api\PetHotel.Api.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\PetHotel.Tenancy.Domain\PetHotel.Tenancy.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Tenancy\PetHotel.Tenancy.Application\PetHotel.Tenancy.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Registry\PetHotel.Registry.Domain\PetHotel.Registry.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Registry\PetHotel.Registry.Application\PetHotel.Registry.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Health\PetHotel.Health.Domain\PetHotel.Health.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Health\PetHotel.Health.Application\PetHotel.Health.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Booking\PetHotel.Booking.Domain\PetHotel.Booking.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Booking\PetHotel.Booking.Application\PetHotel.Booking.Application.csproj" />
+  </ItemGroup>
+
+</Project>

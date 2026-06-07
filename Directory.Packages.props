@@ -1,0 +1,44 @@
+<Project>
+
+  <!-- Gerenciamento centralizado de versões de pacotes (CPM). -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- EF Core + PostgreSQL (docs/04) -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.8" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
+
+    <!-- Wolverine: mediator + outbox (docs/05) -->
+    <PackageVersion Include="WolverineFx" Version="6.5.1" />
+    <PackageVersion Include="WolverineFx.Http" Version="6.5.1" />
+    <PackageVersion Include="WolverineFx.EntityFrameworkCore" Version="6.5.1" />
+    <PackageVersion Include="WolverineFx.Postgresql" Version="6.5.1" />
+    <PackageVersion Include="WolverineFx.RuntimeCompilation" Version="6.5.1" />
+
+    <!-- Validação e mapeamento (docs/02) -->
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+    <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
+
+    <!-- Observabilidade e resiliência (docs/05) -->
+    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
+    <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+    <PackageVersion Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.6.0" />
+
+    <!-- Testes (docs/06) -->
+    <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.12.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+  </ItemGroup>
+
+</Project>
