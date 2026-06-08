@@ -5,9 +5,16 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\PetHotel.BuildingBlocks\PetHotel.BuildingBlocks.csproj" />
   </ItemGroup>
 
+  <!-- Identity usa tipos do framework ASP.NET Core (SignInManager, token providers, data protection). -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="WolverineFx.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

@@ -13,7 +13,7 @@ public static class TenantModelBuilderExtensions
     private static readonly MethodInfo SetFilterMethod = typeof(TenantModelBuilderExtensions)
         .GetMethod(nameof(SetTenantFilter), BindingFlags.NonPublic | BindingFlags.Static)!;
 
-    public static ModelBuilder ApplyTenantQueryFilter(this ModelBuilder modelBuilder, ModuleDbContext context)
+    public static ModelBuilder ApplyTenantQueryFilter(this ModelBuilder modelBuilder, ITenantScopedDbContext context)
     {
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
@@ -29,7 +29,7 @@ public static class TenantModelBuilderExtensions
     // O lambda captura o DbContext: o EF reavalia CurrentTenant a cada consulta.
     // Compara o TenantId inteiro (tem value converter) — comparar e.TenantId.Value
     // não é traduzível para SQL.
-    private static void SetTenantFilter<TEntity>(ModelBuilder modelBuilder, ModuleDbContext context)
+    private static void SetTenantFilter<TEntity>(ModelBuilder modelBuilder, ITenantScopedDbContext context)
         where TEntity : class, IHasTenant
     {
         modelBuilder.Entity<TEntity>().HasQueryFilter(e => e.TenantId == context.CurrentTenant);

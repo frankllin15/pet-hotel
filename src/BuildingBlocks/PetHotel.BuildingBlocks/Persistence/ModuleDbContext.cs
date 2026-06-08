@@ -7,7 +7,7 @@ namespace PetHotel.BuildingBlocks.Persistence;
 /// Base de DbContext por módulo (docs/04). Expõe o tenant corrente para o global
 /// query filter e aplica o filtro a toda entidade <see cref="IHasTenant"/>.
 /// </summary>
-public abstract class ModuleDbContext : DbContext
+public abstract class ModuleDbContext : DbContext, ITenantScopedDbContext
 {
     private readonly ITenantContext _tenantContext;
 

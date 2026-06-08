@@ -1,5 +1,10 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -11,6 +16,7 @@ using PetHotel.Booking.Infrastructure;
 using PetHotel.Health.Infrastructure;
 using PetHotel.Registry.Infrastructure;
 using PetHotel.Tenancy.Infrastructure;
+using PetHotel.Tenancy.Infrastructure.Auth;
 using Serilog;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
@@ -36,6 +42,33 @@ builder.Services.AddSingleton<ITenantConnectionResolver>(new SharedTenantConnect
 // --- Erros padronizados (ProblemDetails, RFC 9457, docs/02) ---
 builder.Services.AddProblemDetails();
 
+// --- Autenticação/Autorização (JWT, memória onboarding-and-auth) ---
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+    ?? throw new InvalidOperationException("Seção 'Jwt' não configurada.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwt.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwt.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
+            ValidateLifetime = true,
+            NameClaimType = "sub",
+            RoleClaimType = "role"
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy("TenantAdmin", policy => policy.RequireRole("Owner", "Manager")));
+
 // --- Documentação da API (OpenAPI) ---
 builder.Services.AddOpenApi(options =>
 {
@@ -46,6 +79,25 @@ builder.Services.AddOpenApi(options =>
         document.Info.Description =
             "API do Hotel de Pets. Monólito modular (DDD + Hexagonal). " +
             "Operações tenant-scoped exigem o tenant resolvido do token de autenticação.";
+
+        // Esquema Bearer para o botão Authorize do Swagger.
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "Cole o JWT do /v1/auth/login (sem o prefixo 'Bearer ')."
+        };
+
+        document.Security ??= [];
+        document.Security.Add(new OpenApiSecurityRequirement
+        {
+            [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+        });
+
         return Task.CompletedTask;
     });
 });
@@ -93,6 +145,9 @@ var app = builder.Build();
 app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 // OpenAPI + Swagger UI apenas em desenvolvimento.
 if (app.Environment.IsDevelopment())
 {
@@ -109,6 +164,10 @@ app.MapHealthChecks("/ready", new HealthCheckOptions
 });
 
 // --- Endpoints por módulo (docs/02) ---
+app.MapProvisioningEndpoints();
+app.MapAuthEndpoints();
+app.MapInvitationsEndpoints();
+app.MapSetupEndpoints();
 app.MapTenancyEndpoints();
 app.MapRegistryEndpoints();
 app.MapHealthEndpoints();

@@ -18,7 +18,7 @@ public static class HealthEndpoints
 
     public static IEndpointRouteBuilder MapHealthEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/v1/pets/{petId:guid}").WithTags("Health");
+        var group = app.MapGroup("/v1/pets/{petId:guid}").WithTags("Health").RequireAuthorization();
 
         group.MapPost("/vaccinations",
                 async (Guid petId, RegisterVaccinationRequest body, IMessageBus bus, CancellationToken ct) =>

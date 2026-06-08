@@ -1,21 +1,23 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using PetHotel.BuildingBlocks.Persistence;
 using PetHotel.Tenancy.Application.Abstractions;
-using PetHotel.Tenancy.Application.Tenants.RegisterTenant;
-using PetHotel.Tenancy.Application.Users.RegisterUser;
+using PetHotel.Tenancy.Application.Auth;
+using PetHotel.Tenancy.Application.Configuration;
+using PetHotel.Tenancy.Application.Invitations;
+using PetHotel.Tenancy.Application.Provisioning;
 using PetHotel.Tenancy.Domain.Ports;
+using PetHotel.Tenancy.Infrastructure.Auth;
+using PetHotel.Tenancy.Infrastructure.Identity;
 using PetHotel.Tenancy.Infrastructure.Persistence;
 using PetHotel.Tenancy.Infrastructure.Persistence.Repositories;
 
 namespace PetHotel.Tenancy.Infrastructure;
 
-/// <summary>
-/// Ponto único de registro DI do módulo Tenancy (docs/02). Portas registradas
-/// pelo módulo que as implementa.
-/// </summary>
+/// <summary>Ponto único de registro DI do módulo Tenancy (docs/02).</summary>
 public static class TenancyModuleExtensions
 {
     public static IServiceCollection AddTenancyModule(this IServiceCollection services, string connectionString)
@@ -28,15 +30,37 @@ public static class TenancyModuleExtensions
                     npgsql.MigrationsHistoryTable("__EFMigrationsHistory", TenancyDbContext.Schema))
                 .AddInterceptors(serviceProvider.GetRequiredService<TenantAuditingInterceptor>()));
 
-        // O DbContext é a Unit of Work do módulo (docs/04), exposto por adaptador concreto.
-        services.AddScoped<IUnitOfWork, TenancyUnitOfWork>();
+        // ASP.NET Core Identity sobre o TenancyDbContext.
+        services
+            .AddIdentityCore<ApplicationUser>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = 8;
+                options.SignIn.RequireConfirmedAccount = false;
+            })
+            .AddRoles<ApplicationRole>()
+            .AddEntityFrameworkStores<TenancyDbContext>()
+            .AddDefaultTokenProviders();
 
+        // Tokens de ativação/convite válidos por 3 dias (single-use via security stamp).
+        services.Configure<DataProtectionTokenProviderOptions>(options =>
+            options.TokenLifespan = TimeSpan.FromDays(3));
+
+        services.AddScoped<IUnitOfWork, TenancyUnitOfWork>();
         services.AddScoped<ITenantRepository, TenantRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ITenantConfigurationRepository, TenantConfigurationRepository>();
         services.AddScoped<ITenantQueries, TenantQueries>();
 
-        services.AddScoped<IValidator<RegisterTenant>, RegisterTenantValidator>();
-        services.AddScoped<IValidator<RegisterUser>, RegisterUserValidator>();
+        // Identidade/auth (portas implementadas com Identity).
+        services.AddScoped<IUserAccountService, UserAccountService>();
+        services.AddScoped<IUserDirectory, UserDirectory>();
+        services.AddSingleton<IJwtTokenIssuer, JwtTokenIssuer>();
+
+        services.AddScoped<IValidator<ProvisionTenant>, ProvisionTenantValidator>();
+        services.AddScoped<IValidator<ActivateAccount>, ActivateAccountValidator>();
+        services.AddScoped<IValidator<Login>, LoginValidator>();
+        services.AddScoped<IValidator<InviteUser>, InviteUserValidator>();
+        services.AddScoped<IValidator<UpdateTenantConfiguration>, UpdateTenantConfigurationValidator>();
 
         return services;
     }

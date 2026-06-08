@@ -18,7 +18,7 @@ public static class RegistryEndpoints
 {
     public static IEndpointRouteBuilder MapRegistryEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/v1").WithTags("Registry");
+        var group = app.MapGroup("/v1").WithTags("Registry").RequireAuthorization();
 
         group.MapPost("/tutors", async (RegisterTutor command, IMessageBus bus, CancellationToken ct) =>
             {
