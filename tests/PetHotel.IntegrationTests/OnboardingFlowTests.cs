@@ -8,6 +8,7 @@ using PetHotel.Registry.Infrastructure.Persistence;
 using PetHotel.Tenancy.Application.Abstractions;
 using PetHotel.Tenancy.Application.Provisioning;
 using PetHotel.Tenancy.Infrastructure.Persistence;
+using PetHotel.IntegrationTests.Support;
 using Testcontainers.PostgreSql;
 
 namespace PetHotel.IntegrationTests;
@@ -16,6 +17,7 @@ namespace PetHotel.IntegrationTests;
 /// Fluxo de onboarding ponta a ponta via host real (WebApplicationFactory) contra um
 /// PostgreSQL efêmero: provisionar → ativar → login → usar o JWT em endpoint protegido.
 /// </summary>
+[Collection(WebApplicationCollection.Name)]
 public sealed class OnboardingFlowTests : IAsyncLifetime
 {
     private const string PlatformKey = "test-platform-key";

@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PetHotel.Booking.Application\PetHotel.Booking.Application.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\PetHotel.BuildingBlocks\PetHotel.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\Health\PetHotel.Health.Application\PetHotel.Health.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

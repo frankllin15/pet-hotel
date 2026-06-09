@@ -124,6 +124,7 @@ builder.Host.UseWolverine(opts =>
     opts.Discovery.IncludeAssembly(typeof(PetHotel.Tenancy.Application.AssemblyReference).Assembly);
     opts.Discovery.IncludeAssembly(typeof(PetHotel.Registry.Application.AssemblyReference).Assembly);
     opts.Discovery.IncludeAssembly(typeof(PetHotel.Health.Application.AssemblyReference).Assembly);
+    opts.Discovery.IncludeAssembly(typeof(PetHotel.Booking.Application.AssemblyReference).Assembly);
 });
 
 // --- Observabilidade (OpenTelemetry, docs/05) ---
@@ -171,6 +172,7 @@ app.MapSetupEndpoints();
 app.MapTenancyEndpoints();
 app.MapRegistryEndpoints();
 app.MapHealthEndpoints();
+app.MapBookingEndpoints();
 
 app.Run();
 
