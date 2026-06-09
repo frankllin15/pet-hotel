@@ -4,6 +4,16 @@ import { RequireAuth } from "@/shared/auth/guards";
 import { PlaceholderPage } from "@/shared/ui/placeholder-page";
 import { LoginPage } from "@/features/auth/pages/login-page";
 import { DashboardHomePage } from "@/features/dashboard/pages/dashboard-page";
+import { TutorsListPage } from "@/features/registry/pages/tutors-list-page";
+import { TutorFormPage } from "@/features/registry/pages/tutor-form-page";
+import { TutorDetailPage } from "@/features/registry/pages/tutor-detail-page";
+import { PetsListPage } from "@/features/registry/pages/pets-list-page";
+import { PetFormPage } from "@/features/registry/pages/pet-form-page";
+import { PetDetailPage } from "@/features/registry/pages/pet-detail-page";
+import { ReservationsPage } from "@/features/booking/pages/reservations-page";
+import { ReservationFormPage } from "@/features/booking/pages/reservation-form-page";
+import { AccommodationsPage } from "@/features/booking/pages/accommodations-page";
+import { OccupancyPage } from "@/features/booking/pages/occupancy-page";
 
 /**
  * Árvore de rotas + guards (docs/08 §Estrutura). Rotas por feature, espelhando
@@ -18,10 +28,16 @@ export const routes: RouteObject[] = [
         element: <AppLayout />,
         children: [
           { index: true, element: <DashboardHomePage /> },
-          { path: "registry/tutors", element: <PlaceholderPage title="Tutores" phase="Fase 1 — Registry" /> },
-          { path: "registry/pets", element: <PlaceholderPage title="Pets" phase="Fase 1 — Registry" /> },
-          { path: "health", element: <PlaceholderPage title="Saúde" phase="Fase 1 — Health" /> },
-          { path: "booking/occupancy", element: <PlaceholderPage title="Ocupação" phase="Fase 1 — Booking" /> },
+          { path: "registry/tutors", element: <TutorsListPage /> },
+          { path: "registry/tutors/new", element: <TutorFormPage /> },
+          { path: "registry/tutors/:id", element: <TutorDetailPage /> },
+          { path: "registry/pets", element: <PetsListPage /> },
+          { path: "registry/pets/new", element: <PetFormPage /> },
+          { path: "registry/pets/:id", element: <PetDetailPage /> },
+          { path: "booking/reservations", element: <ReservationsPage /> },
+          { path: "booking/reservations/new", element: <ReservationFormPage /> },
+          { path: "booking/accommodations", element: <AccommodationsPage /> },
+          { path: "booking/occupancy", element: <OccupancyPage /> },
           { path: "*", element: <PlaceholderPage title="Página não encontrada" /> },
         ],
       },

@@ -1,9 +1,11 @@
 using PetHotel.Api.Http;
 using PetHotel.Registry.Application.Pets;
 using PetHotel.Registry.Application.Pets.GetPetById;
+using PetHotel.Registry.Application.Pets.ListPets;
 using PetHotel.Registry.Application.Pets.RegisterPet;
 using PetHotel.Registry.Application.Tutors;
 using PetHotel.Registry.Application.Tutors.GetTutorById;
+using PetHotel.Registry.Application.Tutors.ListTutors;
 using PetHotel.Registry.Application.Tutors.RegisterTutor;
 using PetHotel.SharedKernel;
 using Wolverine;
@@ -33,6 +35,19 @@ public static class RegistryEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        group.MapGet("/tutors", async (
+                string? search, string? cursor, int? limit, IMessageBus bus, CancellationToken ct) =>
+            {
+                var query = new ListTutors(search, cursor, limit ?? 20);
+                var result = await bus.InvokeAsync<Result<CursorPage<TutorDto>>>(query, ct);
+                return result.ToHttpResult(Results.Ok);
+            })
+            .WithName("ListTutors")
+            .WithSummary("Lista tutores do tenant corrente (paginado por cursor).")
+            .WithDescription("Filtro opcional por nome (search). Use o nextCursor para a próxima página.")
+            .Produces<CursorPage<TutorDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
+
         group.MapGet("/tutors/{id:guid}", async (Guid id, IMessageBus bus, CancellationToken ct) =>
             {
                 var result = await bus.InvokeAsync<Result<TutorDto>>(new GetTutorById(id), ct);
@@ -55,6 +70,19 @@ public static class RegistryEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("/pets", async (
+                string? search, Guid? tutorId, string? cursor, int? limit, IMessageBus bus, CancellationToken ct) =>
+            {
+                var query = new ListPets(search, tutorId, cursor, limit ?? 20);
+                var result = await bus.InvokeAsync<Result<CursorPage<PetDto>>>(query, ct);
+                return result.ToHttpResult(Results.Ok);
+            })
+            .WithName("ListPets")
+            .WithSummary("Lista pets do tenant corrente (paginado por cursor).")
+            .WithDescription("Filtros opcionais por nome (search) e tutorId. Use o nextCursor para a próxima página.")
+            .Produces<CursorPage<PetDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapGet("/pets/{id:guid}", async (Guid id, IMessageBus bus, CancellationToken ct) =>
             {

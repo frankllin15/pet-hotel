@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { CalendarDays, LayoutDashboard, PawPrint, ShieldCheck, Users } from "lucide-react";
+import { CalendarCheck, CalendarDays, LayoutDashboard, PawPrint, Users } from "lucide-react";
 import { useAuth } from "@/shared/auth/auth-context";
 import { type Role } from "@/shared/auth/roles";
 import { FeatureErrorBoundary } from "@/shared/ui/error-boundary";
@@ -19,7 +19,7 @@ const NAV: NavItem[] = [
   { to: "/", label: "Painel", icon: LayoutDashboard },
   { to: "/registry/tutors", label: "Tutores", icon: Users },
   { to: "/registry/pets", label: "Pets", icon: PawPrint },
-  { to: "/health", label: "Saúde", icon: ShieldCheck },
+  { to: "/booking/reservations", label: "Reservas", icon: CalendarCheck },
   { to: "/booking/occupancy", label: "Ocupação", icon: CalendarDays },
 ];
 

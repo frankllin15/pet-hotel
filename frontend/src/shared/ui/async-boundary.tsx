@@ -1,9 +1,20 @@
 import { type ReactNode } from "react";
-import type { UseQueryResult } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
 import { ApiError } from "@/shared/lib/problem-details";
 import { Button } from "./button";
 import { Spinner } from "./spinner";
+
+/**
+ * Forma mínima compartilhada por useQuery e useInfiniteQuery — deixa o
+ * AsyncBoundary servir aos dois (listas por cursor inclusive).
+ */
+export interface QueryLike<T> {
+  isPending: boolean;
+  isError: boolean;
+  error: unknown;
+  data: T | undefined;
+  refetch: () => unknown;
+}
 
 /**
  * Wrapper único sobre o resultado do Query (docs/08 §Estados padronizados):
@@ -11,7 +22,7 @@ import { Spinner } from "./spinner";
  * seu próprio spinner ou estado de erro.
  */
 interface AsyncBoundaryProps<T> {
-  query: UseQueryResult<T>;
+  query: QueryLike<T>;
   children: (data: T) => ReactNode;
   /** Conteúdo do estado vazio. Default: mensagem genérica. */
   empty?: ReactNode;
@@ -33,10 +44,12 @@ export function AsyncBoundary<T>({
   if (query.isError) {
     return <ErrorState error={query.error} onRetry={() => query.refetch()} />;
   }
-  if (isEmpty(query.data)) {
+  // Após os guards de pending/error, data está presente.
+  const data = query.data as T;
+  if (isEmpty(data)) {
     return <>{empty ?? <EmptyState />}</>;
   }
-  return <>{children(query.data)}</>;
+  return <>{children(data)}</>;
 }
 
 function defaultIsEmpty(data: unknown): boolean {

@@ -1,11 +1,14 @@
 using PetHotel.Api.Http;
 using PetHotel.Booking.Application.Abstractions;
+using PetHotel.Booking.Application.Accommodations;
 using PetHotel.Booking.Application.Reservations;
 using PetHotel.Booking.Application.Accommodations.CreateAccommodation;
+using PetHotel.Booking.Application.Accommodations.ListAccommodations;
 using PetHotel.Booking.Application.Reservations.CancelReservation;
 using PetHotel.Booking.Application.Reservations.ConfirmReservation;
 using PetHotel.Booking.Application.Reservations.CreateReservation;
 using PetHotel.Booking.Application.Reservations.GetOccupancy;
+using PetHotel.Booking.Application.Reservations.ListReservations;
 using PetHotel.Booking.Domain.Ports;
 using PetHotel.SharedKernel;
 using Wolverine;
@@ -32,6 +35,15 @@ public static class BookingEndpoints
             .Produces<CreatedResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        group.MapGet("/accommodations", async (IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<IReadOnlyList<AccommodationDto>>>(new ListAccommodations(), ct);
+                return result.ToHttpResult(Results.Ok);
+            })
+            .WithName("ListAccommodations")
+            .WithSummary("Lista as acomodações do tenant corrente.")
+            .Produces<IReadOnlyList<AccommodationDto>>(StatusCodes.Status200OK);
 
         group.MapPost("/reservations", async (CreateReservation command, IMessageBus bus, CancellationToken ct) =>
             {
@@ -76,6 +88,16 @@ public static class BookingEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapGet("/reservations", async (string? status, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<IReadOnlyList<ReservationDto>>>(new ListReservations(status), ct);
+                return result.ToHttpResult(Results.Ok);
+            })
+            .WithName("ListReservations")
+            .WithSummary("Lista reservas do tenant corrente (filtro opcional por status).")
+            .Produces<IReadOnlyList<ReservationDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapGet("/occupancy", async (DateOnly from, DateOnly to, IMessageBus bus, CancellationToken ct) =>
             {

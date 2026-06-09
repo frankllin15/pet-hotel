@@ -30,6 +30,8 @@ public static class BookingModuleExtensions
         services.AddScoped<IAccommodationRepository, AccommodationRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IOccupancyQueries, OccupancyQueries>();
+        services.AddScoped<IAccommodationQueries, AccommodationQueries>();
+        services.AddScoped<IReservationQueries, ReservationQueries>();
 
         // Adaptador do gateway sobre o contrato público do Health.
         services.AddScoped<IHealthClearanceGateway, BookingHealthClearanceGateway>();

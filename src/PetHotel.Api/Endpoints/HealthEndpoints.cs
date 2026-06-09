@@ -27,7 +27,7 @@ public static class HealthEndpoints
                     var result = await bus.InvokeAsync<Result<Guid>>(command, ct);
                     return result.ToHttpResult(id => Results.Created($"/v1/pets/{petId}/vaccinations/{id}", new CreatedResponse(id)));
                 })
-            .WithName("RegisterVaccination")
+            .WithName("RegisterVaccination") 
             .WithSummary("Registra uma vacinação na ficha do pet.")
             .WithDescription("Cria a ficha de saúde se ainda não existir. Requer tenant no contexto.")
             .Produces<CreatedResponse>(StatusCodes.Status201Created)
