@@ -54,9 +54,9 @@ public static class CreateReservationHandler
             return Error.Conflict("accommodation.inactive", "Acomodação indisponível.");
         }
 
-        if (await reservations.HasConfirmedOverlapAsync(accommodationId, period, null, cancellationToken))
+        if (await reservations.HasActiveOverlapAsync(accommodationId, period, null, cancellationToken))
         {
-            return Error.Conflict("accommodation.unavailable", "Já há reserva confirmada para o período nessa acomodação.");
+            return Error.Conflict("accommodation.unavailable", "Já há reserva para o período nessa acomodação.");
         }
 
         var result = Reservation.Request(tenantContext.Current, new PetReference(command.PetId), accommodationId, period);

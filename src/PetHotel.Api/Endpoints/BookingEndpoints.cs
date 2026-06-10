@@ -5,6 +5,8 @@ using PetHotel.Booking.Application.Reservations;
 using PetHotel.Booking.Application.Accommodations.CreateAccommodation;
 using PetHotel.Booking.Application.Accommodations.ListAccommodations;
 using PetHotel.Booking.Application.Reservations.CancelReservation;
+using PetHotel.Booking.Application.Reservations.CheckInReservation;
+using PetHotel.Booking.Application.Reservations.CheckOutReservation;
 using PetHotel.Booking.Application.Reservations.ConfirmReservation;
 using PetHotel.Booking.Application.Reservations.CreateReservation;
 using PetHotel.Booking.Application.Reservations.GetOccupancy;
@@ -74,6 +76,28 @@ public static class BookingEndpoints
                 })
             .WithName("ConfirmReservation")
             .WithSummary("Confirma a reserva (bloqueia se vacina obrigatória ausente/vencida).")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPost("/reservations/{id:guid}/check-in", async (Guid id, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(new CheckInReservation(id), ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("CheckInReservation")
+            .WithSummary("Registra o check-in (entrada) de uma reserva confirmada.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPost("/reservations/{id:guid}/check-out", async (Guid id, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(new CheckOutReservation(id), ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("CheckOutReservation")
+            .WithSummary("Registra o check-out (saída) de uma reserva em estadia.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);

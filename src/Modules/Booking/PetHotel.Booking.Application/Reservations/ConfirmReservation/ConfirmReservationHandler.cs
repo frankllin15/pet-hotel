@@ -36,7 +36,7 @@ public static class ConfirmReservationHandler
             return Error.NotFound("reservation.not_found", "Reserva não encontrada.");
         }
 
-        if (await reservations.HasConfirmedOverlapAsync(
+        if (await reservations.HasActiveOverlapAsync(
                 reservation.AccommodationId, reservation.Period, reservation.Id, cancellationToken))
         {
             return Error.Conflict("accommodation.unavailable", "Já há reserva confirmada para o período nessa acomodação.");

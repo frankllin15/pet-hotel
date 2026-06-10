@@ -8,18 +8,18 @@ Legenda: `[B]` backend · `[F]` frontend · sem marca = ambos.
 
 ## Fundação (pré-fases — habilita tudo)
 
-- [ ] Solução .NET 10 + estrutura modular hexagonal (`docs/01`)
-- [ ] `SharedKernel`: Entity, AggregateRoot, ValueObject, IDomainEvent, Result, Error, Ids tipados `[B]`
-- [ ] `BuildingBlocks`: ITenantContext, interceptor de tenant + auditoria `[B]`
-- [ ] Wolverine + EF Core + Outbox no PostgreSQL (`docs/05`) `[B]`
-- [ ] Schema do Wolverine isolado (ex.: `wolverine`) `[B]`
-- [ ] Testes de arquitetura (NetArchTest) travando a regra de dependência `[B]`
-- [ ] CI/CD com aplicação de migrations via bundle/migrator (não no startup) `[B]`
-- [ ] App Vite + React + TS, shell, router, providers, TanStack Query (`docs/08`) `[F]`
-- [ ] Geração do client TS a partir do OpenAPI `[F]`
-- [ ] Design tokens, `AsyncBoundary`, arquétipos de tela base, shadcn/ui `[F]`
-- [ ] Observabilidade: Serilog + OpenTelemetry + correlation id; Sentry no front
-- [ ] Health checks `/health` (liveness) e `/ready` (readiness) `[B]`
+- [x] Solução .NET 10 + estrutura modular hexagonal (`docs/01`)
+- [x] `SharedKernel`: Entity, AggregateRoot, ValueObject, IDomainEvent, Result, Error, Ids tipados `[B]`
+- [x] `BuildingBlocks`: ITenantContext, interceptor de tenant + auditoria `[B]`
+- [x] Wolverine + EF Core + Outbox no PostgreSQL (`docs/05`) `[B]`
+- [x] Schema do Wolverine isolado (ex.: `wolverine`) `[B]`
+- [x] Testes de arquitetura (NetArchTest) travando a regra de dependência `[B]`
+- [ ] CI/CD com aplicação de migrations via bundle/migrator (não no startup) `[B]` — _migrations aplicadas manualmente em dev; pipeline ainda não montado_
+- [x] App Vite + React + TS, shell, router, providers, TanStack Query (`docs/08`) `[F]`
+- [x] Geração do client TS a partir do OpenAPI `[F]`
+- [x] Design tokens, `AsyncBoundary`, arquétipos de tela base, shadcn/ui `[F]`
+- [ ] Observabilidade: Serilog + OpenTelemetry + correlation id; Sentry no front — _Serilog+OTel+correlation id no back e `X-Correlation-Id` no front prontos; **Sentry no front pendente**_
+- [x] Health checks `/health` (liveness) e `/ready` (readiness) `[B]`
 
 ---
 
@@ -28,36 +28,36 @@ Legenda: `[B]` backend · `[F]` frontend · sem marca = ambos.
 Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" para hotelagem.
 
 ### Tenancy & Acesso
-- [ ] Provisionamento de tenant (Tenant + admin + TenantConfiguration default, atômico)
-- [ ] Autenticação (Identity/IdP) com claims de tenant e papel (RBAC)
-- [ ] Convite de usuário (token único, expiração) + definição de senha no 1º acesso
-- [ ] Wizard de onboarding (tipos de acomodação, preços, regras de vacina, horários)
-- [ ] Guards de rota por papel `[F]`
+- [x] Provisionamento de tenant (Tenant + admin + TenantConfiguration default, atômico)
+- [x] Autenticação (Identity/IdP) com claims de tenant e papel (RBAC)
+- [x] Convite de usuário (token único, expiração) + definição de senha no 1º acesso — _**e-mail real pendente**: token volta no corpo (MVP)_
+- [x] Wizard de onboarding (tipos de acomodação, preços, regras de vacina, horários)
+- [x] Guards de rota por papel `[F]`
 
 ### Registry (Cadastros)
-- [ ] Cadastro de tutor (dados, faturamento, contatos de emergência, autorizados a retirar)
-- [ ] Múltiplos pets por tutor
-- [ ] Cadastro de pet (raça, idade, porte, sexo, castração, foto, microchip)
+- [ ] Cadastro de tutor (dados, faturamento, contatos de emergência, autorizados a retirar) — _parcial: nome/e-mail/telefone prontos; faturamento, contatos de emergência e autorizados a retirar pendentes_
+- [x] Múltiplos pets por tutor
+- [ ] Cadastro de pet (raça, idade, porte, sexo, castração, foto, microchip) — _parcial: nome/espécie/raça/nascimento/notas prontos; porte, sexo, castração, foto e microchip pendentes_
 - [ ] Avaliação comportamental (sociabilidade, reatividade, medo, destrutividade)
 - [ ] Rotina alimentar (ração, quantidade, horários, restrições, origem da ração)
 - [ ] Pertences trazidos (checklist de conferência)
 - [ ] Estado de chegada com foto; termo/consentimento LGPD
 
 ### Health (Saúde)
-- [ ] Carteira de vacinação com upload de foto e validade
-- [ ] Contrato público de *clearance* (vacina em dia?) consumível pelo Booking
+- [ ] Carteira de vacinação com upload de foto e validade — _parcial: tipo/aplicação/validade prontos; **upload de foto pendente**_
+- [x] Contrato público de *clearance* (vacina em dia?) consumível pelo Booking
 - [ ] Controle de parasitas (antipulgas/vermífugo)
 - [ ] Contato do veterinário particular
 
 ### Booking (Reservas — hotelagem)
-- [ ] Tipos de acomodação configuráveis por tenant
-- [ ] Calendário visual de ocupação (com virtualização) `[F]`
-- [ ] Criar reserva (pet, período, acomodação, serviços adicionais)
-- [ ] **Bloqueio/alerta por vacina vencida** no fluxo de reserva
-- [ ] Concorrência otimista (xmin) contra overbooking `[B]`
+- [ ] Tipos de acomodação configuráveis por tenant — _parcial: `AccommodationType` no wizard + CRUD de acomodações; vínculo tipo→acomodação a amadurecer_
+- [x] Calendário visual de ocupação (com virtualização) `[F]` — _calendário pronto (estilo Google Agenda); **virtualização pendente** (docs/08 só exige em escala)_
+- [ ] Criar reserva (pet, período, acomodação, serviços adicionais) — _parcial: pet/período/acomodação prontos; serviços adicionais pendentes_
+- [x] **Bloqueio/alerta por vacina vencida** no fluxo de reserva
+- [x] Concorrência otimista (xmin) contra overbooking `[B]`
 - [ ] Gestão de matilhas (compatibilidade comportamental) — critério objetivo a definir
 - [ ] Precificação por porte/necessidade/feriado/alta temporada
-- [ ] Check-in / check-out (horários, regra de diária/late checkout)
+- [x] Check-in / check-out — _ciclo `Confirmed→CheckedIn→CheckedOut` com horários reais carimbados; **regra de diária/late-checkout pendente**_
 
 ---
 

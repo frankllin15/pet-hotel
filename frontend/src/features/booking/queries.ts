@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   cancelReservation,
+  checkInReservation,
+  checkOutReservation,
   confirmReservation,
   createAccommodation,
   createReservation,
@@ -55,6 +57,22 @@ export function useConfirmReservation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => confirmReservation(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
+  });
+}
+
+export function useCheckInReservation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => checkInReservation(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
+  });
+}
+
+export function useCheckOutReservation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => checkOutReservation(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
   });
 }

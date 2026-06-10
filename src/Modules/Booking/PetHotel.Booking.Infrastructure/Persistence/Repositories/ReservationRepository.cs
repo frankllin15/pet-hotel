@@ -11,15 +11,18 @@ public sealed class ReservationRepository(BookingDbContext dbContext) : IReserva
     public Task<Reservation?> FindAsync(ReservationId id, CancellationToken cancellationToken = default) =>
         dbContext.Reservations.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
-    public Task<bool> HasConfirmedOverlapAsync(
+    public Task<bool> HasActiveOverlapAsync(
         AccommodationId accommodationId,
         DateRange period,
         ReservationId? excluding = null,
         CancellationToken cancellationToken = default)
     {
+        // Ocupa a acomodação tudo que não seja apenas solicitado nem cancelado
+        // (Confirmed / CheckedIn / CheckedOut) — evita overbooking mesmo após o check-in.
         var query = dbContext.Reservations.Where(r =>
             r.AccommodationId == accommodationId &&
-            r.Status == ReservationStatus.Confirmed &&
+            r.Status != ReservationStatus.Requested &&
+            r.Status != ReservationStatus.Cancelled &&
             r.Period.Start < period.End &&
             period.Start < r.Period.End);
 

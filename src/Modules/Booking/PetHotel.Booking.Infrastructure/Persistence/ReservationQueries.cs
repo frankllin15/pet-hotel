@@ -31,7 +31,9 @@ public sealed class ReservationQueries(BookingDbContext dbContext) : IReservatio
                 r.AccommodationId.Value,
                 r.Period.Start,
                 r.Period.End,
-                r.Status.ToString()))
+                r.Status.ToString(),
+                r.CheckedInAt,
+                r.CheckedOutAt))
             .ToList();
     }
 }

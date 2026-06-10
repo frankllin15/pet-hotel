@@ -7,7 +7,9 @@ public sealed record ReservationDto(
     Guid AccommodationId,
     DateOnly CheckIn,
     DateOnly CheckOut,
-    string Status);
+    string Status,
+    DateTimeOffset? CheckedInAt,
+    DateTimeOffset? CheckedOutAt);
 
 /// <summary>Linha do calendário de ocupação (reservas confirmadas).</summary>
 public sealed record OccupancyEntryDto(

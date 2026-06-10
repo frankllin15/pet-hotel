@@ -81,6 +81,17 @@ Wrapper único sobre o resultado do Query, com loading/erro/vazio/sucesso iguais
 </AsyncBoundary>
 ```
 
+### 5. Ações com consequência *(confirmação didática)*
+Toda ação que **muda estado de forma relevante ou irreversível** (transições de máquina de estado, exclusões, envios ao mundo externo) **não dispara direto no clique** — passa pelo primitivo único `ConfirmDialog`, com uma mensagem que **explica o efeito antes de o usuário confirmar**. Regras:
+
+- **Contexto, não genérico:** a mensagem nomeia os dados concretos da ação (pet, acomodação, período), não um texto abstrato tipo "Tem certeza?".
+- **Consequência explícita:** dizer o que muda e, principalmente, o que **não dá para desfazer** ou o que fica **bloqueado** depois (ex.: "após o check-in a reserva não pode mais ser cancelada"; "confirmar valida a aptidão sanitária e bloqueia se a vacina estiver vencida").
+- **Antecipa o erro do backend:** quando uma invariante do domínio pode barrar a ação (`docs/03`), o aviso a explica *antes*, em vez de só mostrar o 409 depois.
+- **Visual casa com o risco:** ação destrutiva usa `confirmVariant="destructive"`; rótulos sem ambiguidade ("Cancelar reserva" vs. "Voltar").
+- **Reúso:** texto por ação centralizado (mapa de metadados + um componente de conteúdo por feature), nunca espalhado em cada botão.
+
+Referência: `features/booking/pages/reservations-page.tsx` (`ACTION_META` + `ReservationActionInfo`) sobre `shared/ui/confirm-dialog.tsx`. Leituras e ações triviais/reversíveis (filtrar, navegar, abrir form) **não** pedem confirmação — o atrito é reservado para o que importa.
+
 ## Performance
 
 - Code-splitting por rota/feature (o tratador não baixa o módulo financeiro).
@@ -125,7 +136,7 @@ Wrapper único sobre o resultado do Query, com loading/erro/vazio/sucesso iguais
 ## Enforcement (não deixar a consistência decair)
 
 - **Lint** bloqueando valores arbitrários / forçando token — falha mecânica, não revisão manual.
-- **Este documento** como catálogo para o Claude Code: toda tela nova encaixa num arquétipo; todo dado usa `AsyncBoundary`.
+- **Este documento** como catálogo para o Claude Code: toda tela nova encaixa num arquétipo; todo dado usa `AsyncBoundary`; toda ação com consequência usa `ConfirmDialog` com mensagem didática (§5).
 - **Storybook** + regressão visual: introduzir quando a biblioteca de componentes estabilizar, não no dia 1.
 
 ## Ordem de implementação

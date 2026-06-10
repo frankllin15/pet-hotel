@@ -26,6 +26,14 @@ export async function confirmReservation(id: string): Promise<void> {
   unwrap(await apiClient.POST("/v1/reservations/{id}/confirm", { params: { path: { id } } }));
 }
 
+export async function checkInReservation(id: string): Promise<void> {
+  unwrap(await apiClient.POST("/v1/reservations/{id}/check-in", { params: { path: { id } } }));
+}
+
+export async function checkOutReservation(id: string): Promise<void> {
+  unwrap(await apiClient.POST("/v1/reservations/{id}/check-out", { params: { path: { id } } }));
+}
+
 export async function cancelReservation(id: string): Promise<void> {
   unwrap(await apiClient.POST("/v1/reservations/{id}/cancel", { params: { path: { id } } }));
 }

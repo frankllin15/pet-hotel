@@ -19,9 +19,17 @@ export const reservationFormSchema = z
 export type ReservationFormInput = z.infer<typeof reservationFormSchema>;
 
 /** Rótulos pt-BR dos status (valores batem com ReservationStatus do backend). */
-export const RESERVATION_STATUS = ["Requested", "Confirmed", "Cancelled"] as const;
+export const RESERVATION_STATUS = [
+  "Requested",
+  "Confirmed",
+  "CheckedIn",
+  "CheckedOut",
+  "Cancelled",
+] as const;
 export const RESERVATION_STATUS_LABELS: Record<string, string> = {
   Requested: "Solicitada",
   Confirmed: "Confirmada",
+  CheckedIn: "Em estadia",
+  CheckedOut: "Finalizada",
   Cancelled: "Cancelada",
 };

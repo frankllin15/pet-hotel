@@ -16,6 +16,12 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
     public DateRange Period { get; private set; } = null!;
     public ReservationStatus Status { get; private set; }
 
+    /// <summary>Momento real do check-in (entrada do pet). Nulo enquanto não houve check-in.</summary>
+    public DateTimeOffset? CheckedInAt { get; private set; }
+
+    /// <summary>Momento real do check-out (saída do pet). Nulo enquanto não houve check-out.</summary>
+    public DateTimeOffset? CheckedOutAt { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
@@ -77,11 +83,48 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
         return Result.Success();
     }
 
+    /// <summary>
+    /// Registra a entrada do pet (check-in). Só a partir de <see cref="ReservationStatus.Confirmed"/>:
+    /// não se faz check-in de reserva apenas solicitada, já em estadia ou encerrada/cancelada.
+    /// </summary>
+    public Result CheckIn(DateTimeOffset now)
+    {
+        if (Status != ReservationStatus.Confirmed)
+        {
+            return Error.Conflict("reservation.invalid_state", "Só é possível fazer check-in de uma reserva confirmada.");
+        }
+
+        Status = ReservationStatus.CheckedIn;
+        CheckedInAt = now;
+        Raise(new ReservationCheckedIn(Id, TenantId, Pet, now));
+        return Result.Success();
+    }
+
+    /// <summary>Registra a saída do pet (check-out). Só a partir de <see cref="ReservationStatus.CheckedIn"/>.</summary>
+    public Result CheckOut(DateTimeOffset now)
+    {
+        if (Status != ReservationStatus.CheckedIn)
+        {
+            return Error.Conflict("reservation.invalid_state", "Só é possível fazer check-out de uma reserva em estadia (com check-in).");
+        }
+
+        Status = ReservationStatus.CheckedOut;
+        CheckedOutAt = now;
+        Raise(new ReservationCheckedOut(Id, TenantId, Pet, now));
+        return Result.Success();
+    }
+
     public Result Cancel()
     {
         if (Status == ReservationStatus.Cancelled)
         {
             return Error.Conflict("reservation.already_cancelled", "A reserva já está cancelada.");
+        }
+
+        // Uma vez iniciada a estadia (check-in), a reserva não é mais cancelável — segue para check-out.
+        if (Status is ReservationStatus.CheckedIn or ReservationStatus.CheckedOut)
+        {
+            return Error.Conflict("reservation.invalid_state", "Não é possível cancelar uma reserva já em estadia ou encerrada.");
         }
 
         Status = ReservationStatus.Cancelled;

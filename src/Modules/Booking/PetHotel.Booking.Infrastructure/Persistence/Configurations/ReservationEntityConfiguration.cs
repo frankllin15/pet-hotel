@@ -41,6 +41,9 @@ public sealed class ReservationEntityConfiguration : IEntityTypeConfiguration<Re
 
         builder.Property(r => r.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
 
+        builder.Property(r => r.CheckedInAt).HasColumnName("checked_in_at");
+        builder.Property(r => r.CheckedOutAt).HasColumnName("checked_out_at");
+
         builder.Property(r => r.CreatedAt).IsRequired();
         builder.Property(r => r.CreatedBy).HasMaxLength(200);
         builder.Property(r => r.UpdatedBy).HasMaxLength(200);
