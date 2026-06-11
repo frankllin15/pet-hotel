@@ -141,7 +141,8 @@ export interface paths {
         };
         /** Busca um tutor por Id no tenant corrente. */
         get: operations["GetTutorById"];
-        put?: never;
+        /** Edita um tutor existente no tenant corrente. */
+        put: operations["UpdateTutor"];
         post?: never;
         delete?: never;
         options?: never;
@@ -182,7 +183,8 @@ export interface paths {
         };
         /** Busca um pet por Id no tenant corrente. */
         get: operations["GetPetById"];
-        put?: never;
+        /** Edita um pet existente no tenant corrente. */
+        put: operations["UpdatePet"];
         post?: never;
         delete?: never;
         options?: never;
@@ -382,6 +384,14 @@ export interface components {
             token: string;
             password: string;
         };
+        AuthorizedPickupDto: {
+            name: string;
+            document: null | string;
+        };
+        AuthorizedPickupInput: {
+            name: string;
+            document: null | string;
+        };
         CreateAccommodation: {
             name: string;
         };
@@ -414,6 +424,16 @@ export interface components {
             displayName: string;
             status: string;
             roles: string[];
+        };
+        EmergencyContactDto: {
+            name: string;
+            phone: string;
+            relationship: null | string;
+        };
+        EmergencyContactInput: {
+            name: string;
+            phone: string;
+            relationship: null | string;
         };
         Invitation: {
             /** Format: uuid */
@@ -451,7 +471,16 @@ export interface components {
             breed: null | string;
             /** Format: date */
             birthDate: null | string;
+            size: null | string;
+            sex: null | string;
+            neutered: null | boolean;
+            microchipCode: null | string;
             notes: null | string;
+            sociability: null | string;
+            reactivity: null | string;
+            fear: null | string;
+            destructiveness: null | string;
+            behaviorNotes: null | string;
             /** Format: date-time */
             createdAt: string;
         };
@@ -462,6 +491,8 @@ export interface components {
             pendencies: string[];
             vaccinations: components["schemas"]["VaccinationDto"][];
         };
+        /** @enum {unknown} */
+        PetSize: "Small" | "Medium" | "Large" | "Giant" | null;
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -491,12 +522,18 @@ export interface components {
             breed: null | string;
             /** Format: date */
             birthDate: null | string;
+            size: null | components["schemas"]["PetSize"];
+            sex: null | components["schemas"]["Sex"];
+            neutered: null | boolean;
+            microchipCode: null | string;
             notes: null | string;
         };
         RegisterTutor: {
             fullName: string;
             email: string;
             phone: string;
+            emergencyContacts?: null | components["schemas"]["EmergencyContactInput"][];
+            authorizedPickups?: null | components["schemas"]["AuthorizedPickupInput"][];
         };
         RegisterVaccinationRequest: {
             type: components["schemas"]["VaccineType"];
@@ -523,6 +560,10 @@ export interface components {
             checkedOutAt: null | string;
         };
         /** @enum {unknown} */
+        Sex: "Male" | "Female" | null;
+        /** @enum {unknown} */
+        BehaviorLevel: "Low" | "Medium" | "High" | null;
+        /** @enum {unknown} */
         Species: "Dog" | "Cat" | "Other";
         TenantConfigurationDto: {
             accommodationTypes: components["schemas"]["AccommodationTypeDto"][];
@@ -548,8 +589,29 @@ export interface components {
             fullName: string;
             email: string;
             phone: string;
+            emergencyContacts: components["schemas"]["EmergencyContactDto"][];
+            authorizedPickups: components["schemas"]["AuthorizedPickupDto"][];
             /** Format: date-time */
             createdAt: string;
+        };
+        UpdatePet: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            species: components["schemas"]["Species"];
+            breed: null | string;
+            /** Format: date */
+            birthDate: null | string;
+            size: null | components["schemas"]["PetSize"];
+            sex: null | components["schemas"]["Sex"];
+            neutered: null | boolean;
+            microchipCode: null | string;
+            notes: null | string;
+            sociability?: null | components["schemas"]["BehaviorLevel"];
+            reactivity?: null | components["schemas"]["BehaviorLevel"];
+            fear?: null | components["schemas"]["BehaviorLevel"];
+            destructiveness?: null | components["schemas"]["BehaviorLevel"];
+            behaviorNotes?: null | string;
         };
         UpdateTenantConfiguration: {
             accommodationTypes: components["schemas"]["AccommodationTypeInput"][];
@@ -558,6 +620,15 @@ export interface components {
             checkInTime: string;
             /** Format: time */
             checkOutTime: string;
+        };
+        UpdateTutor: {
+            /** Format: uuid */
+            id: string;
+            fullName: string;
+            email: string;
+            phone: string;
+            emergencyContacts?: null | components["schemas"]["EmergencyContactInput"][];
+            authorizedPickups?: null | components["schemas"]["AuthorizedPickupInput"][];
         };
         VaccinationDto: {
             /** Format: uuid */
@@ -992,6 +1063,57 @@ export interface operations {
             };
         };
     };
+    UpdateTutor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTutor"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     ListPets: {
         parameters: {
             query?: {
@@ -1095,6 +1217,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PetDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdatePet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePet"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
             /** @description Not Found */

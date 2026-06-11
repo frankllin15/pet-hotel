@@ -22,9 +22,12 @@ export function TutorDetailPage() {
           title={tutor.fullName}
           description="Ficha do tutor"
           actions={
-            <Button variant="outline" onClick={() => navigate("/registry/tutors")}>
-              Voltar
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => navigate(`/registry/tutors/${tutor.id}/edit`)}>Editar</Button>
+              <Button variant="outline" onClick={() => navigate("/registry/tutors")}>
+                Voltar
+              </Button>
+            </div>
           }
           sidePanel={
             <Card>
@@ -39,6 +42,50 @@ export function TutorDetailPage() {
             </Card>
           }
         >
+          {(tutor.emergencyContacts.length > 0 || tutor.authorizedPickups.length > 0) && (
+            <div className="mb-6 grid gap-4 sm:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Contatos de emergência</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {tutor.emergencyContacts.length === 0 ? (
+                    <p className="text-muted-foreground">Nenhum.</p>
+                  ) : (
+                    tutor.emergencyContacts.map((c, i) => (
+                      <div key={i} className="flex justify-between gap-4">
+                        <span className="font-medium">
+                          {c.name}
+                          {c.relationship && (
+                            <span className="ml-1 font-normal text-muted-foreground">({c.relationship})</span>
+                          )}
+                        </span>
+                        <span className="text-right text-muted-foreground">{c.phone}</span>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Autorizados a retirar</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {tutor.authorizedPickups.length === 0 ? (
+                    <p className="text-muted-foreground">Nenhum.</p>
+                  ) : (
+                    tutor.authorizedPickups.map((p, i) => (
+                      <div key={i} className="flex justify-between gap-4">
+                        <span className="font-medium">{p.name}</span>
+                        <span className="text-right text-muted-foreground">{p.document ?? "—"}</span>
+                      </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Pets</h2>

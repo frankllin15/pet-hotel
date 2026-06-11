@@ -61,5 +61,22 @@ public sealed class PetQueries(RegistryDbContext dbContext) : IPetQueries
     }
 
     private static PetDto ToDto(Pet pet) =>
-        new(pet.Id.Value, pet.TutorId.Value, pet.Name, pet.Species.ToString(), pet.Breed, pet.BirthDate, pet.Notes, pet.CreatedAt);
+        new(
+            pet.Id.Value,
+            pet.TutorId.Value,
+            pet.Name,
+            pet.Species.ToString(),
+            pet.Breed,
+            pet.BirthDate,
+            pet.Size?.ToString(),
+            pet.Sex?.ToString(),
+            pet.Neutered,
+            pet.MicrochipCode,
+            pet.Notes,
+            pet.Sociability?.ToString(),
+            pet.Reactivity?.ToString(),
+            pet.Fear?.ToString(),
+            pet.Destructiveness?.ToString(),
+            pet.BehaviorNotes,
+            pet.CreatedAt);
 }

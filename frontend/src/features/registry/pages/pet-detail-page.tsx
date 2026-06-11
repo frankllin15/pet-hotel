@@ -8,7 +8,19 @@ import { DetailPage } from "@/shared/ui/archetypes/detail-page";
 import { TabBar } from "@/shared/ui/tabs";
 import { PetHealthPanel } from "@/features/health/components/pet-health-panel";
 import { usePet } from "../queries";
-import { SPECIES_LABELS } from "../schemas";
+import {
+  BEHAVIOR_LEVEL_LABELS,
+  BEHAVIOR_TRAITS,
+  PET_SIZE_LABELS,
+  SEX_LABELS,
+  SPECIES_LABELS,
+} from "../schemas";
+
+const labelOf = (map: Record<string, string>, value: string | null | undefined) =>
+  value ? (map[value] ?? value) : "—";
+
+const neuteredLabel = (value: boolean | null | undefined) =>
+  value === null || value === undefined ? "—" : value ? "Sim" : "Não";
 
 type Tab = "general" | "health";
 
@@ -31,6 +43,7 @@ export function PetDetailPage() {
           description={SPECIES_LABELS[pet.species as keyof typeof SPECIES_LABELS] ?? pet.species}
           actions={
             <div className="flex gap-2">
+              <Button onClick={() => navigate(`/registry/pets/${pet.id}/edit`)}>Editar</Button>
               <Button variant="outline" onClick={() => navigate(`/registry/tutors/${pet.tutorId}`)}>
                 Ver tutor
               </Button>
@@ -48,20 +61,43 @@ export function PetDetailPage() {
               <CardContent className="space-y-2 text-sm">
                 <InfoRow label="Raça" value={pet.breed ?? "—"} />
                 <InfoRow label="Nascimento" value={formatDate(pet.birthDate)} />
+                <InfoRow label="Porte" value={labelOf(PET_SIZE_LABELS, pet.size)} />
+                <InfoRow label="Sexo" value={labelOf(SEX_LABELS, pet.sex)} />
+                <InfoRow label="Castrado" value={neuteredLabel(pet.neutered)} />
+                <InfoRow label="Microchip" value={pet.microchipCode ?? "—"} />
                 <InfoRow label="Cadastrado em" value={formatDate(pet.createdAt)} />
               </CardContent>
             </Card>
           }
         >
           {tab === "general" ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Observações</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                {pet.notes ?? "Sem observações."}
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Observações</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  {pet.notes ?? "Sem observações."}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Avaliação comportamental</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {BEHAVIOR_TRAITS.map((trait) => (
+                    <InfoRow
+                      key={trait.key}
+                      label={trait.label}
+                      value={labelOf(BEHAVIOR_LEVEL_LABELS, pet[trait.key])}
+                    />
+                  ))}
+                  {pet.behaviorNotes && (
+                    <p className="border-t pt-2 text-muted-foreground">{pet.behaviorNotes}</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           ) : (
             <PetHealthPanel petId={pet.id} />
           )}

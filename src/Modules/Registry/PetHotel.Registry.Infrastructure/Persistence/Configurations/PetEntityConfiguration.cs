@@ -37,7 +37,17 @@ public sealed class PetEntityConfiguration : IEntityTypeConfiguration<Pet>
 
         builder.Property(p => p.Breed).HasMaxLength(120);
         builder.Property(p => p.BirthDate);
+        builder.Property(p => p.Size).HasConversion<string>().HasMaxLength(20);
+        builder.Property(p => p.Sex).HasConversion<string>().HasMaxLength(10);
+        builder.Property(p => p.Neutered);
+        builder.Property(p => p.MicrochipCode).HasMaxLength(50);
         builder.Property(p => p.Notes).HasMaxLength(2000);
+
+        builder.Property(p => p.Sociability).HasConversion<string>().HasMaxLength(10);
+        builder.Property(p => p.Reactivity).HasConversion<string>().HasMaxLength(10);
+        builder.Property(p => p.Fear).HasConversion<string>().HasMaxLength(10);
+        builder.Property(p => p.Destructiveness).HasConversion<string>().HasMaxLength(10);
+        builder.Property(p => p.BehaviorNotes).HasMaxLength(2000);
 
         builder.Property(p => p.CreatedAt).IsRequired();
         builder.Property(p => p.CreatedBy).HasMaxLength(200);

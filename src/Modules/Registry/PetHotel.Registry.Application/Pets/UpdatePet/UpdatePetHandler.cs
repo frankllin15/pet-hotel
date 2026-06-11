@@ -3,22 +3,17 @@ using PetHotel.Registry.Application.Abstractions;
 using PetHotel.Registry.Application.Validation;
 using PetHotel.Registry.Domain.Pets;
 using PetHotel.Registry.Domain.Ports;
-using PetHotel.Registry.Domain.Tutors;
 using PetHotel.SharedKernel;
 
-namespace PetHotel.Registry.Application.Pets.RegisterPet;
+namespace PetHotel.Registry.Application.Pets.UpdatePet;
 
-/// <summary>
-/// Cria um pet. Verifica (consistência entre agregados) que o tutor existe no
-/// tenant corrente antes de delegar a criação ao agregado Pet (docs/03).
-/// </summary>
-public static class RegisterPetHandler
+/// <summary>Carrega o pet do tenant corrente, aplica a edição e persiste (docs/03).</summary>
+public static class UpdatePetHandler
 {
-    public static async Task<Result<Guid>> Handle(
-        RegisterPet command,
-        IValidator<RegisterPet> validator,
+    public static async Task<Result> Handle(
+        UpdatePet command,
+        IValidator<UpdatePet> validator,
         ITenantContext tenantContext,
-        ITutorRepository tutors,
         IPetRepository pets,
         IUnitOfWork unitOfWork,
         TimeProvider clock,
@@ -35,17 +30,15 @@ public static class RegisterPetHandler
             return Error.Forbidden("tenant.required", "A operação exige um tenant no contexto.");
         }
 
-        var tutorId = new TutorId(command.TutorId);
-        if (!await tutors.ExistsAsync(tutorId, cancellationToken))
+        var pet = await pets.FindAsync(new PetId(command.Id), cancellationToken);
+        if (pet is null)
         {
-            return Error.NotFound("tutor.not_found", "Tutor não encontrado neste hotel.");
+            return Error.NotFound("pet.not_found", "Pet não encontrado neste hotel.");
         }
 
         var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
 
-        var result = Pet.Register(
-            tenantContext.Current,
-            tutorId,
+        var result = pet.Update(
             command.Name,
             command.Species,
             command.Breed,
@@ -55,6 +48,11 @@ public static class RegisterPetHandler
             command.Neutered,
             command.MicrochipCode,
             command.Notes,
+            command.Sociability,
+            command.Reactivity,
+            command.Fear,
+            command.Destructiveness,
+            command.BehaviorNotes,
             today);
 
         if (result.IsFailure)
@@ -62,9 +60,7 @@ public static class RegisterPetHandler
             return result.Error;
         }
 
-        pets.Add(result.Value);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return result.Value.Id.Value;
+        return Result.Success();
     }
 }

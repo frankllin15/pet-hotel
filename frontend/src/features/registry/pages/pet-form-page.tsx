@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ApiError } from "@/shared/lib/problem-details";
 import { Button } from "@/shared/ui/button";
@@ -8,53 +9,141 @@ import { Field } from "@/shared/ui/field";
 import { FormPage } from "@/shared/ui/archetypes/form-page";
 import { Input } from "@/shared/ui/input";
 import { Select } from "@/shared/ui/select";
+import { Spinner } from "@/shared/ui/spinner";
 import { Textarea } from "@/shared/ui/textarea";
-import { listTutors } from "../api";
-import { registryKeys, useRegisterPet } from "../queries";
-import { petFormSchema, SPECIES, SPECIES_LABELS, type PetFormInput } from "../schemas";
+import { getPet, listTutors, type Species } from "../api";
+import { registryKeys, useRegisterPet, useUpdatePet } from "../queries";
+import {
+  petFormSchema,
+  BEHAVIOR_LEVELS,
+  BEHAVIOR_LEVEL_LABELS,
+  BEHAVIOR_TRAITS,
+  PET_SIZES,
+  PET_SIZE_LABELS,
+  SEXES,
+  SEX_LABELS,
+  SPECIES,
+  SPECIES_LABELS,
+  type PetFormInput,
+} from "../schemas";
 
 export function PetFormPage() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = !!id;
   const [searchParams] = useSearchParams();
   const presetTutorId = searchParams.get("tutorId") ?? "";
-  const mutation = useRegisterPet();
 
-  // Quando não há tutor pré-selecionado, carrega a primeira página para o seletor.
+  const registerMutation = useRegisterPet();
+  const updateMutation = useUpdatePet(id ?? "");
+  const mutation = isEdit ? updateMutation : registerMutation;
+
+  // Em edição, carrega o pet para pré-preencher; o seletor de tutor não aparece.
+  const petQuery = useQuery({ queryKey: registryKeys.pet(id ?? ""), queryFn: () => getPet(id!), enabled: isEdit });
+
+  // Sem tutor pré-selecionado (e criação), carrega a primeira página para o seletor.
   const tutorsQuery = useQuery({
     queryKey: [...registryKeys.tutors(), "selector"],
     queryFn: () => listTutors({ limit: 100 }),
-    enabled: presetTutorId === "",
+    enabled: !isEdit && presetTutorId === "",
   });
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<PetFormInput>({
     resolver: zodResolver(petFormSchema),
-    defaultValues: { tutorId: presetTutorId, species: "Dog", breed: "", birthDate: "", notes: "" },
+    defaultValues: {
+      tutorId: presetTutorId,
+      species: "Dog",
+      breed: "",
+      birthDate: "",
+      size: "",
+      sex: "",
+      neutered: "",
+      microchipCode: "",
+      notes: "",
+      sociability: "",
+      reactivity: "",
+      fear: "",
+      destructiveness: "",
+      behaviorNotes: "",
+    },
   });
 
-  const submit = handleSubmit((values) =>
-    mutation.mutate(
-      {
-        tutorId: values.tutorId,
-        name: values.name,
-        species: values.species,
-        breed: values.breed ? values.breed : null,
-        birthDate: values.birthDate ? values.birthDate : null,
-        notes: values.notes ? values.notes : null,
-      },
-      { onSuccess: ({ id }) => navigate(`/registry/pets/${id}`, { replace: true }) },
-    ),
-  );
+  // Pré-preenche o formulário quando o pet é carregado (edição).
+  useEffect(() => {
+    const pet = petQuery.data;
+    if (!pet) return;
+    reset({
+      tutorId: pet.tutorId,
+      name: pet.name,
+      species: pet.species as Species,
+      breed: pet.breed ?? "",
+      birthDate: pet.birthDate ?? "",
+      size: (pet.size ?? "") as PetFormInput["size"],
+      sex: (pet.sex ?? "") as PetFormInput["sex"],
+      neutered: pet.neutered === null || pet.neutered === undefined ? "" : pet.neutered ? "yes" : "no",
+      microchipCode: pet.microchipCode ?? "",
+      notes: pet.notes ?? "",
+      sociability: (pet.sociability ?? "") as PetFormInput["sociability"],
+      reactivity: (pet.reactivity ?? "") as PetFormInput["reactivity"],
+      fear: (pet.fear ?? "") as PetFormInput["fear"],
+      destructiveness: (pet.destructiveness ?? "") as PetFormInput["destructiveness"],
+      behaviorNotes: pet.behaviorNotes ?? "",
+    });
+  }, [petQuery.data, reset]);
+
+  const submit = handleSubmit((values) => {
+    const common = {
+      name: values.name,
+      species: values.species,
+      breed: values.breed ? values.breed : null,
+      birthDate: values.birthDate ? values.birthDate : null,
+      size: values.size ? values.size : null,
+      sex: values.sex ? values.sex : null,
+      neutered: values.neutered === "" ? null : values.neutered === "yes",
+      microchipCode: values.microchipCode ? values.microchipCode : null,
+      notes: values.notes ? values.notes : null,
+    };
+
+    if (isEdit) {
+      updateMutation.mutate(
+        {
+          id: id!,
+          ...common,
+          sociability: values.sociability ? values.sociability : null,
+          reactivity: values.reactivity ? values.reactivity : null,
+          fear: values.fear ? values.fear : null,
+          destructiveness: values.destructiveness ? values.destructiveness : null,
+          behaviorNotes: values.behaviorNotes ? values.behaviorNotes : null,
+        },
+        { onSuccess: () => navigate(`/registry/pets/${id}`, { replace: true }) },
+      );
+    } else {
+      registerMutation.mutate(
+        { tutorId: values.tutorId, ...common },
+        { onSuccess: ({ id: newId }) => navigate(`/registry/pets/${newId}`, { replace: true }) },
+      );
+    }
+  });
 
   const formError = mutation.error instanceof ApiError ? mutation.error.message : null;
 
+  if (isEdit && petQuery.isPending) {
+    return (
+      <div className="flex justify-center py-16">
+        <Spinner />
+      </div>
+    );
+  }
+
   return (
     <FormPage
-      title="Novo pet"
-      description="Cadastre um pet para um tutor existente."
+      title={isEdit ? "Editar pet" : "Novo pet"}
+      description={isEdit ? "Atualize os dados do pet." : "Cadastre um pet para um tutor existente."}
       onSubmit={submit}
       footer={
         <>
@@ -67,7 +156,7 @@ export function PetFormPage() {
         </>
       }
     >
-      {presetTutorId === "" ? (
+      {!isEdit && presetTutorId === "" ? (
         <Field label="Tutor" htmlFor="tutorId" error={errors.tutorId?.message}>
           <Select id="tutorId" aria-invalid={!!errors.tutorId} defaultValue="" {...register("tutorId")}>
             <option value="" disabled>
@@ -106,9 +195,71 @@ export function PetFormPage() {
         <Input id="birthDate" type="date" {...register("birthDate")} />
       </Field>
 
+      <Field label="Porte" htmlFor="size" error={errors.size?.message}>
+        <Select id="size" {...register("size")}>
+          <option value="">Não informado</option>
+          {PET_SIZES.map((s) => (
+            <option key={s} value={s}>
+              {PET_SIZE_LABELS[s]}
+            </option>
+          ))}
+        </Select>
+      </Field>
+
+      <Field label="Sexo" htmlFor="sex" error={errors.sex?.message}>
+        <Select id="sex" {...register("sex")}>
+          <option value="">Não informado</option>
+          {SEXES.map((s) => (
+            <option key={s} value={s}>
+              {SEX_LABELS[s]}
+            </option>
+          ))}
+        </Select>
+      </Field>
+
+      <Field label="Castrado" htmlFor="neutered" error={errors.neutered?.message}>
+        <Select id="neutered" {...register("neutered")}>
+          <option value="">Não informado</option>
+          <option value="yes">Sim</option>
+          <option value="no">Não</option>
+        </Select>
+      </Field>
+
+      <Field label="Microchip" htmlFor="microchipCode" error={errors.microchipCode?.message}>
+        <Input id="microchipCode" {...register("microchipCode")} />
+      </Field>
+
       <Field label="Observações" htmlFor="notes" error={errors.notes?.message}>
         <Textarea id="notes" {...register("notes")} />
       </Field>
+
+      {isEdit && (
+        <div className="space-y-3 rounded-lg border p-4">
+          <div>
+            <h3 className="text-sm font-semibold">Avaliação comportamental</h3>
+            <p className="text-xs text-muted-foreground">
+              Observada durante a estadia — base para a compatibilidade em matilhas.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {BEHAVIOR_TRAITS.map((trait) => (
+              <Field key={trait.key} label={trait.label} htmlFor={trait.key}>
+                <Select id={trait.key} {...register(trait.key)}>
+                  <option value="">Não informado</option>
+                  {BEHAVIOR_LEVELS.map((level) => (
+                    <option key={level} value={level}>
+                      {BEHAVIOR_LEVEL_LABELS[level]}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            ))}
+          </div>
+          <Field label="Notas comportamentais" htmlFor="behaviorNotes" error={errors.behaviorNotes?.message}>
+            <Textarea id="behaviorNotes" {...register("behaviorNotes")} />
+          </Field>
+        </div>
+      )}
 
       {formError && <p className="text-sm text-destructive">{formError}</p>}
     </FormPage>

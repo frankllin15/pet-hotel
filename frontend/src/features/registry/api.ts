@@ -7,6 +7,8 @@ export type PetDto = components["schemas"]["PetDto"];
 export type Species = components["schemas"]["Species"];
 export type RegisterTutorBody = components["schemas"]["RegisterTutor"];
 export type RegisterPetBody = components["schemas"]["RegisterPet"];
+export type UpdateTutorBody = components["schemas"]["UpdateTutor"];
+export type UpdatePetBody = components["schemas"]["UpdatePet"];
 type TutorPage = components["schemas"]["CursorPageOfTutorDto"];
 type PetPage = components["schemas"]["CursorPageOfPetDto"];
 
@@ -35,6 +37,10 @@ export async function registerTutor(body: RegisterTutorBody): Promise<{ id: stri
   return unwrap(await apiClient.POST("/v1/tutors", { body }));
 }
 
+export async function updateTutor(id: string, body: UpdateTutorBody): Promise<void> {
+  unwrap(await apiClient.PUT("/v1/tutors/{id}", { params: { path: { id } }, body }));
+}
+
 export async function listPets(params: ListPetsParams): Promise<PetPage> {
   return unwrap(await apiClient.GET("/v1/pets", { params: { query: params } }));
 }
@@ -45,4 +51,8 @@ export async function getPet(id: string): Promise<PetDto> {
 
 export async function registerPet(body: RegisterPetBody): Promise<{ id: string }> {
   return unwrap(await apiClient.POST("/v1/pets", { body }));
+}
+
+export async function updatePet(id: string, body: UpdatePetBody): Promise<void> {
+  unwrap(await apiClient.PUT("/v1/pets/{id}", { params: { path: { id } }, body }));
 }

@@ -3,10 +3,12 @@ using PetHotel.Registry.Application.Pets;
 using PetHotel.Registry.Application.Pets.GetPetById;
 using PetHotel.Registry.Application.Pets.ListPets;
 using PetHotel.Registry.Application.Pets.RegisterPet;
+using PetHotel.Registry.Application.Pets.UpdatePet;
 using PetHotel.Registry.Application.Tutors;
 using PetHotel.Registry.Application.Tutors.GetTutorById;
 using PetHotel.Registry.Application.Tutors.ListTutors;
 using PetHotel.Registry.Application.Tutors.RegisterTutor;
+using PetHotel.Registry.Application.Tutors.UpdateTutor;
 using PetHotel.SharedKernel;
 using Wolverine;
 
@@ -58,6 +60,18 @@ public static class RegistryEndpoints
             .Produces<TutorDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        group.MapPut("/tutors/{id:guid}", async (Guid id, UpdateTutor command, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(command with { Id = id }, ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("UpdateTutor")
+            .WithSummary("Edita um tutor existente no tenant corrente.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         group.MapPost("/pets", async (RegisterPet command, IMessageBus bus, CancellationToken ct) =>
             {
                 var result = await bus.InvokeAsync<Result<Guid>>(command, ct);
@@ -92,6 +106,17 @@ public static class RegistryEndpoints
             .WithName("GetPetById")
             .WithSummary("Busca um pet por Id no tenant corrente.")
             .Produces<PetDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPut("/pets/{id:guid}", async (Guid id, UpdatePet command, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(command with { Id = id }, ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("UpdatePet")
+            .WithSummary("Edita um pet existente no tenant corrente.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
         return app;

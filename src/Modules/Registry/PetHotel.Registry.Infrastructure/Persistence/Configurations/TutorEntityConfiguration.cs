@@ -37,6 +37,10 @@ public sealed class TutorEntityConfiguration : IEntityTypeConfiguration<Tutor>
             .HasMaxLength(20)
             .IsRequired();
 
+        // Coleções persistidas como JSON dentro da linha (mesmo padrão de AccommodationType).
+        builder.OwnsMany(t => t.EmergencyContacts, owned => owned.ToJson());
+        builder.OwnsMany(t => t.AuthorizedPickups, owned => owned.ToJson());
+
         builder.Property(t => t.CreatedAt).IsRequired();
         builder.Property(t => t.CreatedBy).HasMaxLength(200);
         builder.Property(t => t.UpdatedBy).HasMaxLength(200);

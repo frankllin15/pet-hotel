@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using PetHotel.BuildingBlocks.Persistence;
 using PetHotel.Registry.Application.Abstractions;
 using PetHotel.Registry.Application.Pets.RegisterPet;
+using PetHotel.Registry.Application.Pets.UpdatePet;
 using PetHotel.Registry.Application.Tutors.RegisterTutor;
+using PetHotel.Registry.Application.Tutors.UpdateTutor;
 using PetHotel.Registry.Domain.Ports;
 using PetHotel.Registry.Infrastructure.Persistence;
 using PetHotel.Registry.Infrastructure.Persistence.Repositories;
@@ -34,6 +36,8 @@ public static class RegistryModuleExtensions
 
         services.AddScoped<IValidator<RegisterTutor>, RegisterTutorValidator>();
         services.AddScoped<IValidator<RegisterPet>, RegisterPetValidator>();
+        services.AddScoped<IValidator<UpdateTutor>, UpdateTutorValidator>();
+        services.AddScoped<IValidator<UpdatePet>, UpdatePetValidator>();
 
         return services;
     }

@@ -5,14 +5,17 @@ using PetHotel.Registry.Domain.Ports;
 using PetHotel.Registry.Domain.Tutors;
 using PetHotel.SharedKernel;
 
-namespace PetHotel.Registry.Application.Tutors.RegisterTutor;
+namespace PetHotel.Registry.Application.Tutors.UpdateTutor;
 
-/// <summary>Cria um tutor no tenant corrente (resolvido pelo token, docs/04).</summary>
-public static class RegisterTutorHandler
+/// <summary>
+/// Carrega o tutor do tenant corrente, aplica a edição e persiste. Garante unicidade
+/// de e-mail por hotel quando o e-mail muda (ignorando o próprio tutor, docs/03).
+/// </summary>
+public static class UpdateTutorHandler
 {
-    public static async Task<Result<Guid>> Handle(
-        RegisterTutor command,
-        IValidator<RegisterTutor> validator,
+    public static async Task<Result> Handle(
+        UpdateTutor command,
+        IValidator<UpdateTutor> validator,
         ITenantContext tenantContext,
         ITutorRepository tutors,
         IUnitOfWork unitOfWork,
@@ -29,7 +32,13 @@ public static class RegisterTutorHandler
             return Error.Forbidden("tenant.required", "A operação exige um tenant no contexto.");
         }
 
-        // Monta os value objects das coleções; o primeiro inválido aborta o cadastro.
+        var tutor = await tutors.FindAsync(new TutorId(command.Id), cancellationToken);
+        if (tutor is null)
+        {
+            return Error.NotFound("tutor.not_found", "Tutor não encontrado neste hotel.");
+        }
+
+        // Monta os value objects das coleções; o primeiro inválido aborta a edição.
         var emergencyContacts = new List<EmergencyContact>();
         foreach (var input in command.EmergencyContacts ?? [])
         {
@@ -54,23 +63,26 @@ public static class RegisterTutorHandler
             authorizedPickups.Add(pickup.Value);
         }
 
-        var result = Tutor.Register(
-            tenantContext.Current, command.FullName, command.Email, command.Phone, emergencyContacts, authorizedPickups);
+        // Unicidade de e-mail só importa quando o e-mail muda (compara normalizado).
+        var emailResult = Email.Create(command.Email);
+        if (emailResult.IsFailure)
+        {
+            return emailResult.Error;
+        }
+
+        if (emailResult.Value.Value != tutor.Email.Value
+            && await tutors.EmailExistsAsync(emailResult.Value, cancellationToken))
+        {
+            return Error.Conflict("tutor.email_taken", "Já existe um tutor com esse e-mail neste hotel.");
+        }
+
+        var result = tutor.Update(command.FullName, command.Email, command.Phone, emergencyContacts, authorizedPickups);
         if (result.IsFailure)
         {
             return result.Error;
         }
 
-        var tutor = result.Value;
-
-        if (await tutors.EmailExistsAsync(tutor.Email, cancellationToken))
-        {
-            return Error.Conflict("tutor.email_taken", "Já existe um tutor com esse e-mail neste hotel.");
-        }
-
-        tutors.Add(tutor);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return tutor.Id.Value;
+        return Result.Success();
     }
 }

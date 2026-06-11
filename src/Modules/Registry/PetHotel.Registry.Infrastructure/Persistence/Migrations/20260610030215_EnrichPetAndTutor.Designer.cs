@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PetHotel.Registry.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using PetHotel.Registry.Infrastructure.Persistence;
 namespace PetHotel.Registry.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(RegistryDbContext))]
-    partial class RegistryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260610030215_EnrichPetAndTutor")]
+    partial class EnrichPetAndTutor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,10 +31,6 @@ namespace PetHotel.Registry.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("BehaviorNotes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
-
                     b.Property<DateOnly?>("BirthDate")
                         .HasColumnType("date");
 
@@ -45,14 +44,6 @@ namespace PetHotel.Registry.Infrastructure.Persistence.Migrations
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
-
-                    b.Property<string>("Destructiveness")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<string>("Fear")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
 
                     b.Property<string>("MicrochipCode")
                         .HasMaxLength(50)
@@ -70,10 +61,6 @@ namespace PetHotel.Registry.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
-                    b.Property<string>("Reactivity")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
                     b.Property<string>("Sex")
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
@@ -81,10 +68,6 @@ namespace PetHotel.Registry.Infrastructure.Persistence.Migrations
                     b.Property<string>("Size")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
-
-                    b.Property<string>("Sociability")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
 
                     b.Property<string>("Species")
                         .IsRequired()

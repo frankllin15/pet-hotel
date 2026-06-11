@@ -11,9 +11,13 @@ import {
   listTutors,
   registerPet,
   registerTutor,
+  updatePet,
+  updateTutor,
   type ListPetsParams,
   type RegisterPetBody,
   type RegisterTutorBody,
+  type UpdatePetBody,
+  type UpdateTutorBody,
 } from "./api";
 
 const PAGE_SIZE = 20;
@@ -74,6 +78,26 @@ export function useRegisterPet() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: RegisterPetBody) => registerPet(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: registryKeys.all });
+    },
+  });
+}
+
+export function useUpdateTutor(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdateTutorBody) => updateTutor(id, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: registryKeys.all });
+    },
+  });
+}
+
+export function useUpdatePet(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdatePetBody) => updatePet(id, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: registryKeys.all });
     },

@@ -9,4 +9,8 @@ public sealed record RegisterPet(
     Species Species,
     string? Breed,
     DateOnly? BirthDate,
+    PetSize? Size,
+    Sex? Sex,
+    bool? Neutered,
+    string? MicrochipCode,
     string? Notes);

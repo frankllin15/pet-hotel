@@ -12,6 +12,10 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
     public string FullName { get; private set; } = null!;
     public Email Email { get; private set; } = null!;
     public PhoneNumber Phone { get; private set; } = null!;
+    /// <summary>Contatos de emergência (acionados se o tutor não for localizado).</summary>
+    public List<EmergencyContact> EmergencyContacts { get; private set; } = [];
+    /// <summary>Pessoas autorizadas a retirar o pet em nome do tutor.</summary>
+    public List<AuthorizedPickup> AuthorizedPickups { get; private set; } = [];
 
     public DateTimeOffset CreatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
@@ -28,7 +32,13 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
         Phone = phone;
     }
 
-    public static Result<Tutor> Register(TenantId tenantId, string? fullName, string? email, string? phone)
+    public static Result<Tutor> Register(
+        TenantId tenantId,
+        string? fullName,
+        string? email,
+        string? phone,
+        IEnumerable<EmergencyContact>? emergencyContacts = null,
+        IEnumerable<AuthorizedPickup>? authorizedPickups = null)
     {
         if (tenantId.Value == Guid.Empty)
         {
@@ -52,13 +62,28 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
             return phoneResult.Error;
         }
 
-        var tutor = new Tutor(TutorId.New(), tenantId, fullName.Trim(), emailResult.Value, phoneResult.Value);
+        var tutor = new Tutor(TutorId.New(), tenantId, fullName.Trim(), emailResult.Value, phoneResult.Value)
+        {
+            EmergencyContacts = emergencyContacts?.ToList() ?? [],
+            AuthorizedPickups = authorizedPickups?.ToList() ?? [],
+        };
         tutor.Raise(new TutorRegistered(tutor.Id, tenantId, tutor.Email.Value));
         return tutor;
     }
 
-    public Result UpdateContact(string? email, string? phone)
+    /// <summary>Edita os dados do tutor, inclusive as coleções de contatos/autorizados.</summary>
+    public Result Update(
+        string? fullName,
+        string? email,
+        string? phone,
+        IEnumerable<EmergencyContact>? emergencyContacts = null,
+        IEnumerable<AuthorizedPickup>? authorizedPickups = null)
     {
+        if (string.IsNullOrWhiteSpace(fullName))
+        {
+            return Error.Validation("tutor.name_required", "Nome do tutor é obrigatório.");
+        }
+
         var emailResult = Email.Create(email);
         if (emailResult.IsFailure)
         {
@@ -71,8 +96,11 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
             return phoneResult.Error;
         }
 
+        FullName = fullName.Trim();
         Email = emailResult.Value;
         Phone = phoneResult.Value;
+        EmergencyContacts = emergencyContacts?.ToList() ?? [];
+        AuthorizedPickups = authorizedPickups?.ToList() ?? [];
         return Result.Success();
     }
 }

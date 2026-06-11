@@ -35,10 +35,10 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 - [x] Guards de rota por papel `[F]`
 
 ### Registry (Cadastros)
-- [ ] Cadastro de tutor (dados, faturamento, contatos de emergência, autorizados a retirar) — _parcial: nome/e-mail/telefone prontos; faturamento, contatos de emergência e autorizados a retirar pendentes_
+- [ ] Cadastro de tutor (dados, faturamento, contatos de emergência, autorizados a retirar) — _parcial: nome/e-mail/telefone, **contatos de emergência** e **autorizados a retirar** prontos; faturamento pendente_
 - [x] Múltiplos pets por tutor
-- [ ] Cadastro de pet (raça, idade, porte, sexo, castração, foto, microchip) — _parcial: nome/espécie/raça/nascimento/notas prontos; porte, sexo, castração, foto e microchip pendentes_
-- [ ] Avaliação comportamental (sociabilidade, reatividade, medo, destrutividade)
+- [ ] Cadastro de pet (raça, idade, porte, sexo, castração, foto, microchip) — _parcial: nome/espécie/raça/nascimento/notas, **porte, sexo, castração e microchip** prontos; **foto** pendente_
+- [x] Avaliação comportamental (sociabilidade, reatividade, medo, destrutividade) — _4 níveis (Baixa/Média/Alta) + notas, editável na ficha; base da gestão de matilhas_
 - [ ] Rotina alimentar (ração, quantidade, horários, restrições, origem da ração)
 - [ ] Pertences trazidos (checklist de conferência)
 - [ ] Estado de chegada com foto; termo/consentimento LGPD

@@ -55,5 +55,12 @@ public sealed class TutorQueries(RegistryDbContext dbContext) : ITutorQueries
     }
 
     private static TutorDto ToDto(Tutor tutor) =>
-        new(tutor.Id.Value, tutor.FullName, tutor.Email.Value, tutor.Phone.Value, tutor.CreatedAt);
+        new(
+            tutor.Id.Value,
+            tutor.FullName,
+            tutor.Email.Value,
+            tutor.Phone.Value,
+            tutor.EmergencyContacts.Select(c => new EmergencyContactDto(c.Name, c.Phone, c.Relationship)).ToList(),
+            tutor.AuthorizedPickups.Select(p => new AuthorizedPickupDto(p.Name, p.Document)).ToList(),
+            tutor.CreatedAt);
 }
