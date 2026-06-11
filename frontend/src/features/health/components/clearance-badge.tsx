@@ -22,3 +22,11 @@ export function VaccineStatusTag({ valid }: { valid: boolean }) {
     <Badge variant="destructive">Vencida</Badge>
   );
 }
+
+/** Situação de um controle de parasitas (em dia / vencido / sem próxima dose informada). */
+export function ParasiteStatusTag({ upToDate }: { upToDate: boolean | null }) {
+  if (upToDate === null) {
+    return <Badge variant="outline">Sem previsão</Badge>;
+  }
+  return upToDate ? <Badge variant="success">Em dia</Badge> : <Badge variant="destructive">Vencido</Badge>;
+}

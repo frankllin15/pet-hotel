@@ -37,7 +37,17 @@ export function TutorFormPage() {
     formState: { errors },
   } = useForm<TutorFormInput>({
     resolver: zodResolver(tutorFormSchema),
-    defaultValues: { emergencyContacts: [], authorizedPickups: [] },
+    defaultValues: {
+      emergencyContacts: [],
+      authorizedPickups: [],
+      billingDocument: "",
+      billingEmail: "",
+      billingAddressLine1: "",
+      billingAddressLine2: "",
+      billingCity: "",
+      billingState: "",
+      billingPostalCode: "",
+    },
   });
 
   const contacts = useFieldArray({ control, name: "emergencyContacts" });
@@ -57,6 +67,13 @@ export function TutorFormPage() {
         relationship: c.relationship ?? "",
       })),
       authorizedPickups: tutor.authorizedPickups.map((p) => ({ name: p.name, document: p.document ?? "" })),
+      billingDocument: tutor.billing?.document ?? "",
+      billingEmail: tutor.billing?.billingEmail ?? "",
+      billingAddressLine1: tutor.billing?.addressLine1 ?? "",
+      billingAddressLine2: tutor.billing?.addressLine2 ?? "",
+      billingCity: tutor.billing?.city ?? "",
+      billingState: tutor.billing?.state ?? "",
+      billingPostalCode: tutor.billing?.postalCode ?? "",
     });
   }, [tutorQuery.data, reset]);
 
@@ -74,6 +91,17 @@ export function TutorFormPage() {
         name: p.name,
         document: p.document ? p.document : null,
       })),
+      billing: values.billingDocument
+        ? {
+            document: values.billingDocument,
+            billingEmail: values.billingEmail ? values.billingEmail : null,
+            addressLine1: values.billingAddressLine1 ? values.billingAddressLine1 : null,
+            addressLine2: values.billingAddressLine2 ? values.billingAddressLine2 : null,
+            city: values.billingCity ? values.billingCity : null,
+            state: values.billingState ? values.billingState : null,
+            postalCode: values.billingPostalCode ? values.billingPostalCode : null,
+          }
+        : null,
     };
 
     if (isEdit) {
@@ -123,6 +151,47 @@ export function TutorFormPage() {
       <Field label="Telefone" htmlFor="phone" error={errors.phone?.message}>
         <Input id="phone" aria-invalid={!!errors.phone} {...register("phone")} />
       </Field>
+
+      <div className="space-y-3 rounded-lg border p-4">
+        <div>
+          <h3 className="text-sm font-semibold">Faturamento</h3>
+          <p className="text-xs text-muted-foreground">
+            Dados de cobrança/nota. Deixe o CPF/CNPJ em branco se não houver.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="CPF/CNPJ" htmlFor="billingDocument" error={errors.billingDocument?.message}>
+            <Input id="billingDocument" aria-invalid={!!errors.billingDocument} {...register("billingDocument")} />
+          </Field>
+          <Field label="E-mail de cobrança" htmlFor="billingEmail" error={errors.billingEmail?.message}>
+            <Input
+              id="billingEmail"
+              type="email"
+              placeholder="se diferente do principal"
+              {...register("billingEmail")}
+            />
+          </Field>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Endereço" htmlFor="billingAddressLine1" error={errors.billingAddressLine1?.message}>
+            <Input id="billingAddressLine1" placeholder="rua, número" {...register("billingAddressLine1")} />
+          </Field>
+          <Field label="Complemento" htmlFor="billingAddressLine2" error={errors.billingAddressLine2?.message}>
+            <Input id="billingAddressLine2" {...register("billingAddressLine2")} />
+          </Field>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Field label="Cidade" htmlFor="billingCity" error={errors.billingCity?.message}>
+            <Input id="billingCity" {...register("billingCity")} />
+          </Field>
+          <Field label="UF" htmlFor="billingState" error={errors.billingState?.message}>
+            <Input id="billingState" {...register("billingState")} />
+          </Field>
+          <Field label="CEP" htmlFor="billingPostalCode" error={errors.billingPostalCode?.message}>
+            <Input id="billingPostalCode" {...register("billingPostalCode")} />
+          </Field>
+        </div>
+      </div>
 
       <FieldArraySection
         title="Contatos de emergência"

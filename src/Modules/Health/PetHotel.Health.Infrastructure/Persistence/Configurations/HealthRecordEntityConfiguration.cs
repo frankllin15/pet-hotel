@@ -44,6 +44,19 @@ public sealed class HealthRecordEntityConfiguration : IEntityTypeConfiguration<H
             .FindNavigation(nameof(HealthRecord.Vaccinations))!
             .SetPropertyAccessMode(PropertyAccessMode.Field);
 
+        // Coleção de controles de parasitas como parte do agregado (acesso via campo privado).
+        builder.HasMany(h => h.ParasiteTreatments)
+            .WithOne()
+            .HasForeignKey("HealthRecordId")
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Metadata
+            .FindNavigation(nameof(HealthRecord.ParasiteTreatments))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
+
+        // Veterinário particular persistido como JSON dentro da linha (mesmo padrão das coleções do Tutor).
+        builder.OwnsOne(h => h.VetContact, owned => owned.ToJson());
+
         builder.Ignore(h => h.DomainEvents);
     }
 }

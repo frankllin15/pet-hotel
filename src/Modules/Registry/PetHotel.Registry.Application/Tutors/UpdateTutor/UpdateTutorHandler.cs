@@ -63,6 +63,26 @@ public static class UpdateTutorHandler
             authorizedPickups.Add(pickup.Value);
         }
 
+        // Monta o value object do faturamento; faturamento inválido aborta a edição.
+        BillingInfo? billing = null;
+        if (command.Billing is { } billingInput)
+        {
+            var billingResult = BillingInfo.Create(
+                billingInput.Document,
+                billingInput.BillingEmail,
+                billingInput.AddressLine1,
+                billingInput.AddressLine2,
+                billingInput.City,
+                billingInput.State,
+                billingInput.PostalCode);
+            if (billingResult.IsFailure)
+            {
+                return billingResult.Error;
+            }
+
+            billing = billingResult.Value;
+        }
+
         // Unicidade de e-mail só importa quando o e-mail muda (compara normalizado).
         var emailResult = Email.Create(command.Email);
         if (emailResult.IsFailure)
@@ -76,7 +96,7 @@ public static class UpdateTutorHandler
             return Error.Conflict("tutor.email_taken", "Já existe um tutor com esse e-mail neste hotel.");
         }
 
-        var result = tutor.Update(command.FullName, command.Email, command.Phone, emergencyContacts, authorizedPickups);
+        var result = tutor.Update(command.FullName, command.Email, command.Phone, emergencyContacts, authorizedPickups, billing);
         if (result.IsFailure)
         {
             return result.Error;

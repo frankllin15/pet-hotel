@@ -16,10 +16,14 @@ public sealed class HealthRecord : AggregateRoot<HealthRecordId>, IHasTenant, IA
     public static readonly IReadOnlyList<VaccineType> RequiredVaccines = [VaccineType.Rabies];
 
     private readonly List<Vaccination> _vaccinations = [];
+    private readonly List<ParasiteTreatment> _parasiteTreatments = [];
 
     public TenantId TenantId { get; private set; }
     public PetReference Pet { get; private set; }
     public IReadOnlyCollection<Vaccination> Vaccinations => _vaccinations.AsReadOnly();
+    public IReadOnlyCollection<ParasiteTreatment> ParasiteTreatments => _parasiteTreatments.AsReadOnly();
+    /// <summary>Veterinário particular do pet (opcional).</summary>
+    public VetContact? VetContact { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
@@ -66,6 +70,37 @@ public sealed class HealthRecord : AggregateRoot<HealthRecordId>, IHasTenant, IA
         Raise(new VaccinationRegistered(Id, TenantId, Pet, type));
         return vaccination.Id;
     }
+
+    public Result<ParasiteTreatmentId> AddParasiteTreatment(
+        ParasiteTreatmentType type,
+        string? productName,
+        DateOnly appliedOn,
+        DateOnly? nextDueOn,
+        DateOnly today)
+    {
+        if (appliedOn > today)
+        {
+            return Error.Validation("parasite_treatment.applied_future", "A aplicação não pode ser no futuro.");
+        }
+
+        if (nextDueOn is { } due && due <= appliedOn)
+        {
+            return Error.Validation("parasite_treatment.invalid_next_due", "A próxima dose deve ser posterior à aplicação.");
+        }
+
+        var treatment = new ParasiteTreatment(
+            ParasiteTreatmentId.New(),
+            type,
+            string.IsNullOrWhiteSpace(productName) ? null : productName.Trim(),
+            appliedOn,
+            nextDueOn);
+        _parasiteTreatments.Add(treatment);
+        Raise(new ParasiteTreatmentRegistered(Id, TenantId, Pet, type));
+        return treatment.Id;
+    }
+
+    /// <summary>Define (ou substitui) o veterinário particular do pet.</summary>
+    public void SetVetContact(VetContact contact) => VetContact = contact;
 
     /// <summary>Avalia a aptidão sanitária na data informada.</summary>
     public HealthClearance GetClearance(DateOnly asOf)

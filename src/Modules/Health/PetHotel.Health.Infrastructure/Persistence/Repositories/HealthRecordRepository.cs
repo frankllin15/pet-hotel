@@ -10,6 +10,7 @@ public sealed class HealthRecordRepository(HealthDbContext dbContext) : IHealthR
     public Task<HealthRecord?> FindByPetAsync(PetReference pet, CancellationToken cancellationToken = default) =>
         dbContext.HealthRecords
             .Include(h => h.Vaccinations)
+            .Include(h => h.ParasiteTreatments)
             .FirstOrDefaultAsync(h => h.Pet == pet, cancellationToken);
 
     public void Add(HealthRecord healthRecord) => dbContext.HealthRecords.Add(healthRecord);

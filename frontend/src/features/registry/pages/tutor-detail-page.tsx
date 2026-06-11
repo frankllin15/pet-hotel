@@ -30,16 +30,47 @@ export function TutorDetailPage() {
             </div>
           }
           sidePanel={
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Contato</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <InfoRow label="E-mail" value={tutor.email} />
-                <InfoRow label="Telefone" value={tutor.phone} />
-                <InfoRow label="Cadastrado em" value={formatDate(tutor.createdAt)} />
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Contato</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <InfoRow label="E-mail" value={tutor.email} />
+                  <InfoRow label="Telefone" value={tutor.phone} />
+                  <InfoRow label="Cadastrado em" value={formatDate(tutor.createdAt)} />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Faturamento</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {tutor.billing ? (
+                    <>
+                      <InfoRow label="CPF/CNPJ" value={tutor.billing.document} />
+                      {tutor.billing.billingEmail && (
+                        <InfoRow label="E-mail de cobrança" value={tutor.billing.billingEmail} />
+                      )}
+                      {(tutor.billing.addressLine1 || tutor.billing.city) && (
+                        <p className="border-t pt-2 text-muted-foreground">
+                          {[
+                            tutor.billing.addressLine1,
+                            tutor.billing.addressLine2,
+                            [tutor.billing.city, tutor.billing.state].filter(Boolean).join("/"),
+                            tutor.billing.postalCode,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">Sem dados de faturamento.</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           }
         >
           {(tutor.emergencyContacts.length > 0 || tutor.authorizedPickups.length > 0) && (

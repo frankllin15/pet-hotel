@@ -212,6 +212,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/pets/{petId}/parasite-treatments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registra um controle de parasitas (antipulgas/vermífugo) na ficha do pet.
+         * @description Cria a ficha de saúde se ainda não existir. Requer tenant no contexto.
+         */
+        post: operations["RegisterParasiteTreatment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pets/{petId}/vet-contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Define (ou substitui) o veterinário particular na ficha do pet.
+         * @description Cria a ficha de saúde se ainda não existir. Requer tenant no contexto.
+         */
+        put: operations["SetVetContact"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pets/{petId}/health": {
         parameters: {
             query?: never;
@@ -392,6 +432,8 @@ export interface components {
             name: string;
             document: null | string;
         };
+        /** @enum {unknown} */
+        BehaviorLevel: "Low" | "Medium" | "High" | null;
         CreateAccommodation: {
             name: string;
         };
@@ -416,6 +458,24 @@ export interface components {
         CursorPageOfTutorDto: {
             items: components["schemas"]["TutorDto"][];
             nextCursor: null | string;
+        };
+        BillingInfoDto: {
+            document: string;
+            billingEmail: null | string;
+            addressLine1: null | string;
+            addressLine2: null | string;
+            city: null | string;
+            state: null | string;
+            postalCode: null | string;
+        };
+        BillingInfoInput: {
+            document: string;
+            billingEmail: null | string;
+            addressLine1: null | string;
+            addressLine2: null | string;
+            city: null | string;
+            state: null | string;
+            postalCode: null | string;
         };
         DirectoryUser: {
             /** Format: uuid */
@@ -477,6 +537,19 @@ export interface components {
             /** Format: date */
             checkOut: string;
         };
+        ParasiteTreatmentDto: {
+            /** Format: uuid */
+            id: string;
+            type: string;
+            productName: null | string;
+            /** Format: date */
+            appliedOn: string;
+            /** Format: date */
+            nextDueOn: null | string;
+            upToDate: null | boolean;
+        };
+        /** @enum {unknown} */
+        ParasiteTreatmentType: "FleaTick" | "Dewormer";
         PetDto: {
             /** Format: uuid */
             id: string;
@@ -507,6 +580,8 @@ export interface components {
             isCleared: boolean;
             pendencies: string[];
             vaccinations: components["schemas"]["VaccinationDto"][];
+            parasiteTreatments: components["schemas"]["ParasiteTreatmentDto"][];
+            vetContact: null | components["schemas"]["VetContactDto"];
         };
         /** @enum {unknown} */
         PetSize: "Small" | "Medium" | "Large" | "Giant" | null;
@@ -531,6 +606,14 @@ export interface components {
             adminEmail: string;
             adminDisplayName: string;
         };
+        RegisterParasiteTreatmentRequest: {
+            type: components["schemas"]["ParasiteTreatmentType"];
+            productName: null | string;
+            /** Format: date */
+            appliedOn: string;
+            /** Format: date */
+            nextDueOn: null | string;
+        };
         RegisterPet: {
             /** Format: uuid */
             tutorId: string;
@@ -552,6 +635,7 @@ export interface components {
             phone: string;
             emergencyContacts?: null | components["schemas"]["EmergencyContactInput"][];
             authorizedPickups?: null | components["schemas"]["AuthorizedPickupInput"][];
+            billing?: null | components["schemas"]["BillingInfoInput"];
         };
         RegisterVaccinationRequest: {
             type: components["schemas"]["VaccineType"];
@@ -577,10 +661,13 @@ export interface components {
             /** Format: date-time */
             checkedOutAt: null | string;
         };
+        SetVetContactRequest: {
+            name: string;
+            phone: string;
+            clinic: null | string;
+        };
         /** @enum {unknown} */
         Sex: "Male" | "Female" | null;
-        /** @enum {unknown} */
-        BehaviorLevel: "Low" | "Medium" | "High" | null;
         /** @enum {unknown} */
         Species: "Dog" | "Cat" | "Other";
         TenantConfigurationDto: {
@@ -609,6 +696,7 @@ export interface components {
             phone: string;
             emergencyContacts: components["schemas"]["EmergencyContactDto"][];
             authorizedPickups: components["schemas"]["AuthorizedPickupDto"][];
+            billing: null | components["schemas"]["BillingInfoDto"];
             /** Format: date-time */
             createdAt: string;
         };
@@ -648,6 +736,7 @@ export interface components {
             phone: string;
             emergencyContacts?: null | components["schemas"]["EmergencyContactInput"][];
             authorizedPickups?: null | components["schemas"]["AuthorizedPickupInput"][];
+            billing?: null | components["schemas"]["BillingInfoInput"];
         };
         VaccinationDto: {
             /** Format: uuid */
@@ -661,6 +750,11 @@ export interface components {
         };
         /** @enum {unknown} */
         VaccineType: "Rabies" | "Distemper" | "Parvovirus" | "Bordetella" | "FelineLeukemia" | "Other";
+        VetContactDto: {
+            name: string;
+            phone: string;
+            clinic: null | string;
+        };
     };
     responses: never;
     parameters: never;
@@ -1314,6 +1408,92 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["CreatedResponse"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RegisterParasiteTreatment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                petId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterParasiteTreatmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetVetContact: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                petId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetVetContactRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {

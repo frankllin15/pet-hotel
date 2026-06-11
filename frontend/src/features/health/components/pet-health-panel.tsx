@@ -5,13 +5,16 @@ import { AsyncBoundary } from "@/shared/ui/async-boundary";
 import { Button } from "@/shared/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { usePetHealth } from "../queries";
-import { vaccineLabel } from "../schemas";
-import { ClearanceBadge, VaccineStatusTag } from "./clearance-badge";
+import { parasiteTreatmentLabel, vaccineLabel } from "../schemas";
+import { ClearanceBadge, ParasiteStatusTag, VaccineStatusTag } from "./clearance-badge";
+import { ParasiteTreatmentForm } from "./parasite-treatment-form";
 import { VaccinationForm } from "./vaccination-form";
+import { VetContactCard } from "./vet-contact-card";
 
-/** Aba "Saúde" da ficha do pet: aptidão + carteira de vacinação + registro. */
+/** Aba "Saúde" da ficha do pet: aptidão + vacinação + parasitas + veterinário. */
 export function PetHealthPanel({ petId }: { petId: string }) {
   const [showForm, setShowForm] = useState(false);
+  const [showParasiteForm, setShowParasiteForm] = useState(false);
   const query = usePetHealth(petId);
 
   return (
@@ -20,6 +23,7 @@ export function PetHealthPanel({ petId }: { petId: string }) {
         {(health) => {
           const pendencies = health?.pendencies ?? [];
           const vaccinations = health?.vaccinations ?? [];
+          const parasiteTreatments = health?.parasiteTreatments ?? [];
           return (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -76,6 +80,54 @@ export function PetHealthPanel({ petId }: { petId: string }) {
                   </p>
                 )
               )}
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <h3 className="text-sm font-semibold">Controle de parasitas</h3>
+                {!showParasiteForm && (
+                  <Button size="sm" variant="outline" onClick={() => setShowParasiteForm(true)}>
+                    <Plus /> Registrar controle
+                  </Button>
+                )}
+              </div>
+
+              {showParasiteForm && (
+                <ParasiteTreatmentForm petId={petId} onDone={() => setShowParasiteForm(false)} />
+              )}
+
+              {parasiteTreatments.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Produto</TableHead>
+                      <TableHead>Aplicado em</TableHead>
+                      <TableHead>Próxima dose</TableHead>
+                      <TableHead>Situação</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {parasiteTreatments.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell className="font-medium">{parasiteTreatmentLabel(t.type)}</TableCell>
+                        <TableCell>{t.productName ?? "—"}</TableCell>
+                        <TableCell>{formatDate(t.appliedOn)}</TableCell>
+                        <TableCell>{t.nextDueOn ? formatDate(t.nextDueOn) : "—"}</TableCell>
+                        <TableCell>
+                          <ParasiteStatusTag upToDate={t.upToDate} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                !showParasiteForm && (
+                  <p className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
+                    Nenhum controle de parasitas registrado.
+                  </p>
+                )
+              )}
+
+              <VetContactCard petId={petId} vetContact={health?.vetContact ?? null} />
             </div>
           );
         }}

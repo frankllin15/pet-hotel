@@ -62,5 +62,15 @@ public sealed class TutorQueries(RegistryDbContext dbContext) : ITutorQueries
             tutor.Phone.Value,
             tutor.EmergencyContacts.Select(c => new EmergencyContactDto(c.Name, c.Phone, c.Relationship)).ToList(),
             tutor.AuthorizedPickups.Select(p => new AuthorizedPickupDto(p.Name, p.Document)).ToList(),
+            tutor.Billing is { } billing
+                ? new BillingInfoDto(
+                    billing.Document,
+                    billing.BillingEmail,
+                    billing.AddressLine1,
+                    billing.AddressLine2,
+                    billing.City,
+                    billing.State,
+                    billing.PostalCode)
+                : null,
             tutor.CreatedAt);
 }

@@ -28,11 +28,19 @@ public static class GetPetHealthHandler
             .Select(v => new VaccinationDto(v.Id.Value, v.Type.ToString(), v.AppliedOn, v.ExpiresOn, v.IsValidOn(today)))
             .ToList();
 
+        var parasiteTreatments = record.ParasiteTreatments
+            .OrderByDescending(t => t.AppliedOn)
+            .Select(t => new ParasiteTreatmentDto(
+                t.Id.Value, t.Type.ToString(), t.ProductName, t.AppliedOn, t.NextDueOn, t.IsUpToDateOn(today)))
+            .ToList();
+
         var dto = new PetHealthDto(
             record.Pet.Value,
             clearance.IsCleared,
             clearance.Pendencies.Select(p => p.ToString()).ToList(),
-            vaccinations);
+            vaccinations,
+            parasiteTreatments,
+            record.VetContact is { } vet ? new VetContactDto(vet.Name, vet.Phone, vet.Clinic) : null);
 
         return dto;
     }

@@ -16,6 +16,8 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
     public List<EmergencyContact> EmergencyContacts { get; private set; } = [];
     /// <summary>Pessoas autorizadas a retirar o pet em nome do tutor.</summary>
     public List<AuthorizedPickup> AuthorizedPickups { get; private set; } = [];
+    /// <summary>Dados de faturamento (opcional; preenchido quando o tutor informa).</summary>
+    public BillingInfo? Billing { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
@@ -38,7 +40,8 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
         string? email,
         string? phone,
         IEnumerable<EmergencyContact>? emergencyContacts = null,
-        IEnumerable<AuthorizedPickup>? authorizedPickups = null)
+        IEnumerable<AuthorizedPickup>? authorizedPickups = null,
+        BillingInfo? billing = null)
     {
         if (tenantId.Value == Guid.Empty)
         {
@@ -66,18 +69,20 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
         {
             EmergencyContacts = emergencyContacts?.ToList() ?? [],
             AuthorizedPickups = authorizedPickups?.ToList() ?? [],
+            Billing = billing,
         };
         tutor.Raise(new TutorRegistered(tutor.Id, tenantId, tutor.Email.Value));
         return tutor;
     }
 
-    /// <summary>Edita os dados do tutor, inclusive as coleções de contatos/autorizados.</summary>
+    /// <summary>Edita os dados do tutor, inclusive as coleções de contatos/autorizados e o faturamento.</summary>
     public Result Update(
         string? fullName,
         string? email,
         string? phone,
         IEnumerable<EmergencyContact>? emergencyContacts = null,
-        IEnumerable<AuthorizedPickup>? authorizedPickups = null)
+        IEnumerable<AuthorizedPickup>? authorizedPickups = null,
+        BillingInfo? billing = null)
     {
         if (string.IsNullOrWhiteSpace(fullName))
         {
@@ -101,6 +106,7 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
         Phone = phoneResult.Value;
         EmergencyContacts = emergencyContacts?.ToList() ?? [];
         AuthorizedPickups = authorizedPickups?.ToList() ?? [];
+        Billing = billing;
         return Result.Success();
     }
 }

@@ -35,7 +35,7 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 - [x] Guards de rota por papel `[F]`
 
 ### Registry (Cadastros)
-- [ ] Cadastro de tutor (dados, faturamento, contatos de emergência, autorizados a retirar) — _parcial: nome/e-mail/telefone, **contatos de emergência** e **autorizados a retirar** prontos; faturamento pendente_
+- [x] Cadastro de tutor (dados, faturamento, contatos de emergência, autorizados a retirar) — _faturamento (CPF/CNPJ, e-mail de cobrança, endereço) como JSON no agregado_
 - [x] Múltiplos pets por tutor
 - [ ] Cadastro de pet (raça, idade, porte, sexo, castração, foto, microchip) — _parcial: nome/espécie/raça/nascimento/notas, **porte, sexo, castração e microchip** prontos; **foto** pendente_
 - [x] Avaliação comportamental (sociabilidade, reatividade, medo, destrutividade) — _4 níveis (Baixa/Média/Alta) + notas, editável na ficha; base da gestão de matilhas_
@@ -46,8 +46,8 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 ### Health (Saúde)
 - [ ] Carteira de vacinação com upload de foto e validade — _parcial: tipo/aplicação/validade prontos; **upload de foto pendente**_
 - [x] Contrato público de *clearance* (vacina em dia?) consumível pelo Booking
-- [ ] Controle de parasitas (antipulgas/vermífugo)
-- [ ] Contato do veterinário particular
+- [x] Controle de parasitas (antipulgas/vermífugo) — _tipo/produto/aplicação/próxima dose; situação em dia/vencido/sem previsão_
+- [x] Contato do veterinário particular — _na ficha de saúde (JSON), editável na aba Saúde_
 
 ### Booking (Reservas — hotelagem)
 - [ ] Tipos de acomodação configuráveis por tenant — _parcial: `AccommodationType` no wizard + CRUD de acomodações; vínculo tipo→acomodação a amadurecer_

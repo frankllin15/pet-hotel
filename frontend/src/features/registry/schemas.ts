@@ -1,23 +1,44 @@
 import { z } from "zod";
 
-export const tutorFormSchema = z.object({
-  fullName: z.string().min(1, "Informe o nome").max(200),
-  email: z.string().min(1, "Informe o e-mail").email("E-mail inválido"),
-  phone: z.string().min(1, "Informe o telefone").max(20),
-  emergencyContacts: z.array(
-    z.object({
-      name: z.string().min(1, "Informe o nome").max(200),
-      phone: z.string().min(1, "Informe o telefone").max(20),
-      relationship: z.string().max(100).optional().or(z.literal("")),
-    }),
-  ),
-  authorizedPickups: z.array(
-    z.object({
-      name: z.string().min(1, "Informe o nome").max(200),
-      document: z.string().max(50).optional().or(z.literal("")),
-    }),
-  ),
-});
+export const tutorFormSchema = z
+  .object({
+    fullName: z.string().min(1, "Informe o nome").max(200),
+    email: z.string().min(1, "Informe o e-mail").email("E-mail inválido"),
+    phone: z.string().min(1, "Informe o telefone").max(20),
+    emergencyContacts: z.array(
+      z.object({
+        name: z.string().min(1, "Informe o nome").max(200),
+        phone: z.string().min(1, "Informe o telefone").max(20),
+        relationship: z.string().max(100).optional().or(z.literal("")),
+      }),
+    ),
+    authorizedPickups: z.array(
+      z.object({
+        name: z.string().min(1, "Informe o nome").max(200),
+        document: z.string().max(50).optional().or(z.literal("")),
+      }),
+    ),
+    // Faturamento (documento em branco = sem faturamento; o form converte para null no submit).
+    billingDocument: z.string().max(20).optional().or(z.literal("")),
+    billingEmail: z.string().email("E-mail inválido").optional().or(z.literal("")),
+    billingAddressLine1: z.string().max(200).optional().or(z.literal("")),
+    billingAddressLine2: z.string().max(200).optional().or(z.literal("")),
+    billingCity: z.string().max(100).optional().or(z.literal("")),
+    billingState: z.string().max(50).optional().or(z.literal("")),
+    billingPostalCode: z.string().max(15).optional().or(z.literal("")),
+  })
+  .superRefine((values, ctx) => {
+    const hasDetails =
+      !!values.billingEmail ||
+      !!values.billingAddressLine1 ||
+      !!values.billingAddressLine2 ||
+      !!values.billingCity ||
+      !!values.billingState ||
+      !!values.billingPostalCode;
+    if (!values.billingDocument && hasDetails) {
+      ctx.addIssue({ code: "custom", path: ["billingDocument"], message: "Informe o CPF/CNPJ" });
+    }
+  });
 
 export type TutorFormInput = z.infer<typeof tutorFormSchema>;
 

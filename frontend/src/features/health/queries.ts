@@ -1,6 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/shared/lib/problem-details";
-import { getPetHealth, registerVaccination, type PetHealthDto, type RegisterVaccinationBody } from "./api";
+import {
+  getPetHealth,
+  registerParasiteTreatment,
+  registerVaccination,
+  setVetContact,
+  type PetHealthDto,
+  type RegisterParasiteTreatmentBody,
+  type RegisterVaccinationBody,
+  type SetVetContactBody,
+} from "./api";
 
 export const healthKeys = {
   pet: (petId: string) => ["health", "pet", petId] as const,
@@ -30,6 +39,26 @@ export function useRegisterVaccination(petId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: RegisterVaccinationBody) => registerVaccination(petId, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: healthKeys.pet(petId) });
+    },
+  });
+}
+
+export function useRegisterParasiteTreatment(petId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: RegisterParasiteTreatmentBody) => registerParasiteTreatment(petId, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: healthKeys.pet(petId) });
+    },
+  });
+}
+
+export function useSetVetContact(petId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: SetVetContactBody) => setVetContact(petId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: healthKeys.pet(petId) });
     },

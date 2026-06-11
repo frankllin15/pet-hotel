@@ -99,6 +99,45 @@ public class TutorTests
     }
 
     [Fact]
+    public void Criar_faturamento_normaliza_campos()
+    {
+        var result = BillingInfo.Create(
+            " 123.456.789-00 ", "  ", " Rua A, 100 ", null, " São Paulo ", "SP", " 01000-000 ");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("123.456.789-00", result.Value.Document); // trim
+        Assert.Null(result.Value.BillingEmail); // em branco vira null
+        Assert.Equal("Rua A, 100", result.Value.AddressLine1);
+        Assert.Equal("São Paulo", result.Value.City);
+        Assert.Equal("01000-000", result.Value.PostalCode);
+    }
+
+    [Fact]
+    public void Criar_faturamento_sem_documento_falha()
+    {
+        var result = BillingInfo.Create("  ", null, null, null, null, null, null);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("billing_info.document_required", result.Error.Code);
+    }
+
+    [Fact]
+    public void Editar_tutor_guarda_e_limpa_faturamento()
+    {
+        var tutor = Tutor.Register(Tenant, "Maria", "m@b.com", "11999998888").Value;
+        var billing = BillingInfo.Create("123.456.789-00", "fin@b.com", null, null, null, null, null).Value;
+
+        tutor.Update("Maria", "m@b.com", "11999998888", null, null, billing);
+        Assert.NotNull(tutor.Billing);
+        Assert.Equal("123.456.789-00", tutor.Billing.Document);
+        Assert.Equal("fin@b.com", tutor.Billing.BillingEmail);
+
+        // Edição sem faturamento limpa (substituição integral, como as coleções).
+        tutor.Update("Maria", "m@b.com", "11999998888");
+        Assert.Null(tutor.Billing);
+    }
+
+    [Fact]
     public void Editar_tutor_com_email_invalido_falha()
     {
         var tutor = Tutor.Register(Tenant, "Maria", "m@b.com", "11999998888").Value;

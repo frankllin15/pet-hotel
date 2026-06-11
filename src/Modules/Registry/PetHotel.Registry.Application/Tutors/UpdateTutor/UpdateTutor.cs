@@ -9,4 +9,5 @@ public sealed record UpdateTutor(
     string Email,
     string Phone,
     IReadOnlyList<EmergencyContactInput>? EmergencyContacts = null,
-    IReadOnlyList<AuthorizedPickupInput>? AuthorizedPickups = null);
+    IReadOnlyList<AuthorizedPickupInput>? AuthorizedPickups = null,
+    BillingInfoInput? Billing = null);

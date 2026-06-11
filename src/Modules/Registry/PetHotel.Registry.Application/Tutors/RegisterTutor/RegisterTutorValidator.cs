@@ -23,5 +23,16 @@ public sealed class RegisterTutorValidator : AbstractValidator<RegisterTutor>
             pickup.RuleFor(p => p.Name).NotEmpty().MaximumLength(200);
             pickup.RuleFor(p => p.Document).MaximumLength(50);
         });
+
+        RuleFor(x => x.Billing!).ChildRules(billing =>
+        {
+            billing.RuleFor(b => b.Document).NotEmpty().MaximumLength(20);
+            billing.RuleFor(b => b.BillingEmail).EmailAddress().When(b => !string.IsNullOrWhiteSpace(b.BillingEmail));
+            billing.RuleFor(b => b.AddressLine1).MaximumLength(200);
+            billing.RuleFor(b => b.AddressLine2).MaximumLength(200);
+            billing.RuleFor(b => b.City).MaximumLength(100);
+            billing.RuleFor(b => b.State).MaximumLength(50);
+            billing.RuleFor(b => b.PostalCode).MaximumLength(15);
+        }).When(x => x.Billing is not null);
     }
 }

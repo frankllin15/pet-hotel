@@ -54,8 +54,28 @@ public static class RegisterTutorHandler
             authorizedPickups.Add(pickup.Value);
         }
 
+        // Monta o value object do faturamento; faturamento inválido aborta o cadastro.
+        BillingInfo? billing = null;
+        if (command.Billing is { } billingInput)
+        {
+            var billingResult = BillingInfo.Create(
+                billingInput.Document,
+                billingInput.BillingEmail,
+                billingInput.AddressLine1,
+                billingInput.AddressLine2,
+                billingInput.City,
+                billingInput.State,
+                billingInput.PostalCode);
+            if (billingResult.IsFailure)
+            {
+                return billingResult.Error;
+            }
+
+            billing = billingResult.Value;
+        }
+
         var result = Tutor.Register(
-            tenantContext.Current, command.FullName, command.Email, command.Phone, emergencyContacts, authorizedPickups);
+            tenantContext.Current, command.FullName, command.Email, command.Phone, emergencyContacts, authorizedPickups, billing);
         if (result.IsFailure)
         {
             return result.Error;
