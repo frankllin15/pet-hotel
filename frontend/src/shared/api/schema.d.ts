@@ -435,6 +435,22 @@ export interface components {
             phone: string;
             relationship: null | string;
         };
+        FeedingRoutineDto: {
+            foodName: string;
+            portionSize: null | string;
+            mealTimes: string[];
+            restrictions: null | string;
+            foodSource: string;
+        };
+        FeedingRoutineInput: {
+            foodName: string;
+            portionSize: null | string;
+            mealTimes: null | string[];
+            restrictions: null | string;
+            foodSource: components["schemas"]["FoodSource"];
+        };
+        /** @enum {unknown} */
+        FoodSource: "TutorProvided" | "HotelProvided";
         Invitation: {
             /** Format: uuid */
             userId: string;
@@ -481,6 +497,7 @@ export interface components {
             fear: null | string;
             destructiveness: null | string;
             behaviorNotes: null | string;
+            feedingRoutine: null | components["schemas"]["FeedingRoutineDto"];
             /** Format: date-time */
             createdAt: string;
         };
@@ -527,6 +544,7 @@ export interface components {
             neutered: null | boolean;
             microchipCode: null | string;
             notes: null | string;
+            feedingRoutine?: null | components["schemas"]["FeedingRoutineInput"];
         };
         RegisterTutor: {
             fullName: string;
@@ -612,6 +630,7 @@ export interface components {
             fear?: null | components["schemas"]["BehaviorLevel"];
             destructiveness?: null | components["schemas"]["BehaviorLevel"];
             behaviorNotes?: null | string;
+            feedingRoutine?: null | components["schemas"]["FeedingRoutineInput"];
         };
         UpdateTenantConfiguration: {
             accommodationTypes: components["schemas"]["AccommodationTypeInput"][];

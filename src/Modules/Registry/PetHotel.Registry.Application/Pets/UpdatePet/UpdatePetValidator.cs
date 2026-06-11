@@ -20,5 +20,13 @@ public sealed class UpdatePetValidator : AbstractValidator<UpdatePet>
         RuleFor(x => x.Fear).IsInEnum().When(x => x.Fear is not null);
         RuleFor(x => x.Destructiveness).IsInEnum().When(x => x.Destructiveness is not null);
         RuleFor(x => x.BehaviorNotes).MaximumLength(2000);
+
+        RuleFor(x => x.FeedingRoutine!).ChildRules(routine =>
+        {
+            routine.RuleFor(r => r.FoodName).NotEmpty().MaximumLength(200);
+            routine.RuleFor(r => r.PortionSize).MaximumLength(100);
+            routine.RuleFor(r => r.Restrictions).MaximumLength(1000);
+            routine.RuleFor(r => r.FoodSource).IsInEnum();
+        }).When(x => x.FeedingRoutine is not null);
     }
 }

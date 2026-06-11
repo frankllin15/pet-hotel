@@ -121,6 +121,74 @@ public class PetTests
     }
 
     [Fact]
+    public void Criar_rotina_alimentar_normaliza_horarios_e_textos()
+    {
+        var result = FeedingRoutine.Create(
+            " Golden Filhote ",
+            " 100 g ",
+            [new TimeOnly(18, 0), new TimeOnly(8, 0), new TimeOnly(8, 0)],
+            "  ",
+            FoodSource.TutorProvided);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Golden Filhote", result.Value.FoodName); // trim
+        Assert.Equal("100 g", result.Value.PortionSize); // trim
+        Assert.Equal([new TimeOnly(8, 0), new TimeOnly(18, 0)], result.Value.MealTimes); // ordenado, sem repetição
+        Assert.Null(result.Value.Restrictions); // em branco vira null
+    }
+
+    [Fact]
+    public void Criar_rotina_alimentar_sem_racao_falha()
+    {
+        var result = FeedingRoutine.Create("  ", null, null, null, FoodSource.HotelProvided);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("feeding_routine.food_name_required", result.Error.Code);
+    }
+
+    [Fact]
+    public void Criar_rotina_alimentar_com_origem_invalida_falha()
+    {
+        var result = FeedingRoutine.Create("Golden", null, null, null, (FoodSource)99);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("feeding_routine.food_source_invalid", result.Error.Code);
+    }
+
+    [Fact]
+    public void Editar_pet_guarda_rotina_alimentar()
+    {
+        var pet = Register().Value;
+        var routine = FeedingRoutine.Create(
+            "Golden", "150 g", [new TimeOnly(7, 30)], "sem frango", FoodSource.TutorProvided).Value;
+
+        var result = pet.Update(
+            "Rex", Species.Dog, null, null, null, null, null, null, null,
+            null, null, null, null, null, Today, routine);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(pet.FeedingRoutine);
+        Assert.Equal("Golden", pet.FeedingRoutine.FoodName);
+        Assert.Equal("sem frango", pet.FeedingRoutine.Restrictions);
+        Assert.Equal(FoodSource.TutorProvided, pet.FeedingRoutine.FoodSource);
+    }
+
+    [Fact]
+    public void Editar_pet_sem_rotina_alimentar_limpa_a_rotina()
+    {
+        var pet = Register().Value;
+        var routine = FeedingRoutine.Create("Golden", null, null, null, FoodSource.HotelProvided).Value;
+        pet.Update("Rex", Species.Dog, null, null, null, null, null, null, null,
+            null, null, null, null, null, Today, routine);
+
+        var result = pet.Update("Rex", Species.Dog, null, null, null, null, null, null, null,
+            null, null, null, null, null, Today);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(pet.FeedingRoutine);
+    }
+
+    [Fact]
     public void Editar_pet_sem_nome_falha_e_preserva_estado()
     {
         var pet = Register(name: "Rex").Value;

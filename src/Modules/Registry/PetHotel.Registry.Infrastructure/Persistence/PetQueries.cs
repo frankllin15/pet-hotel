@@ -78,5 +78,13 @@ public sealed class PetQueries(RegistryDbContext dbContext) : IPetQueries
             pet.Fear?.ToString(),
             pet.Destructiveness?.ToString(),
             pet.BehaviorNotes,
+            pet.FeedingRoutine is { } routine
+                ? new FeedingRoutineDto(
+                    routine.FoodName,
+                    routine.PortionSize,
+                    routine.MealTimes,
+                    routine.Restrictions,
+                    routine.FoodSource.ToString())
+                : null,
             pet.CreatedAt);
 }

@@ -49,6 +49,9 @@ public sealed class PetEntityConfiguration : IEntityTypeConfiguration<Pet>
         builder.Property(p => p.Destructiveness).HasConversion<string>().HasMaxLength(10);
         builder.Property(p => p.BehaviorNotes).HasMaxLength(2000);
 
+        // Rotina alimentar persistida como JSON dentro da linha (mesmo padrão das coleções do Tutor).
+        builder.OwnsOne(p => p.FeedingRoutine, owned => owned.ToJson());
+
         builder.Property(p => p.CreatedAt).IsRequired();
         builder.Property(p => p.CreatedBy).HasMaxLength(200);
         builder.Property(p => p.UpdatedBy).HasMaxLength(200);

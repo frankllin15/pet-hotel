@@ -11,6 +11,7 @@ import { usePet } from "../queries";
 import {
   BEHAVIOR_LEVEL_LABELS,
   BEHAVIOR_TRAITS,
+  FOOD_SOURCE_LABELS,
   PET_SIZE_LABELS,
   SEX_LABELS,
   SPECIES_LABELS,
@@ -78,6 +79,33 @@ export function PetDetailPage() {
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
                   {pet.notes ?? "Sem observações."}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Rotina alimentar</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {pet.feedingRoutine ? (
+                    <>
+                      <InfoRow label="Ração" value={pet.feedingRoutine.foodName} />
+                      <InfoRow label="Quantidade" value={pet.feedingRoutine.portionSize ?? "—"} />
+                      <InfoRow
+                        label="Horários"
+                        value={
+                          pet.feedingRoutine.mealTimes.length > 0
+                            ? pet.feedingRoutine.mealTimes.map((t) => t.slice(0, 5)).join(" · ")
+                            : "—"
+                        }
+                      />
+                      <InfoRow label="Origem" value={labelOf(FOOD_SOURCE_LABELS, pet.feedingRoutine.foodSource)} />
+                      {pet.feedingRoutine.restrictions && (
+                        <p className="border-t pt-2 text-muted-foreground">{pet.feedingRoutine.restrictions}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">Sem rotina alimentar cadastrada.</p>
+                  )}
                 </CardContent>
               </Card>
               <Card>

@@ -13,4 +13,13 @@ public sealed record RegisterPet(
     Sex? Sex,
     bool? Neutered,
     string? MicrochipCode,
-    string? Notes);
+    string? Notes,
+    FeedingRoutineInput? FeedingRoutine = null);
+
+/// <summary>Rotina alimentar informada no cadastro/edição do pet.</summary>
+public sealed record FeedingRoutineInput(
+    string FoodName,
+    string? PortionSize,
+    IReadOnlyList<TimeOnly>? MealTimes,
+    string? Restrictions,
+    FoodSource FoodSource);

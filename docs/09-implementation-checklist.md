@@ -39,7 +39,7 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 - [x] Múltiplos pets por tutor
 - [ ] Cadastro de pet (raça, idade, porte, sexo, castração, foto, microchip) — _parcial: nome/espécie/raça/nascimento/notas, **porte, sexo, castração e microchip** prontos; **foto** pendente_
 - [x] Avaliação comportamental (sociabilidade, reatividade, medo, destrutividade) — _4 níveis (Baixa/Média/Alta) + notas, editável na ficha; base da gestão de matilhas_
-- [ ] Rotina alimentar (ração, quantidade, horários, restrições, origem da ração)
+- [x] Rotina alimentar (ração, quantidade, horários, restrições, origem da ração) — _JSON no agregado Pet; editável no cadastro e na ficha_
 - [ ] Pertences trazidos (checklist de conferência)
 - [ ] Estado de chegada com foto; termo/consentimento LGPD
 

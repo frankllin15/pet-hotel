@@ -65,24 +65,52 @@ export const BEHAVIOR_TRAITS = [
   { key: "destructiveness", label: "Destrutividade" },
 ] as const;
 
-export const petFormSchema = z.object({
-  tutorId: z.string().uuid("Selecione um tutor"),
-  name: z.string().min(1, "Informe o nome").max(120),
-  species: z.enum(SPECIES),
-  breed: z.string().max(120).optional().or(z.literal("")),
-  birthDate: z.string().optional().or(z.literal("")),
-  // "" = não informado; o form converte para null no submit.
-  size: z.enum(PET_SIZES).or(z.literal("")),
-  sex: z.enum(SEXES).or(z.literal("")),
-  neutered: z.enum(["", "yes", "no"]),
-  microchipCode: z.string().max(50).optional().or(z.literal("")),
-  notes: z.string().max(1000).optional().or(z.literal("")),
-  // Avaliação comportamental ("" = não informado).
-  sociability: z.enum(BEHAVIOR_LEVELS).or(z.literal("")),
-  reactivity: z.enum(BEHAVIOR_LEVELS).or(z.literal("")),
-  fear: z.enum(BEHAVIOR_LEVELS).or(z.literal("")),
-  destructiveness: z.enum(BEHAVIOR_LEVELS).or(z.literal("")),
-  behaviorNotes: z.string().max(2000).optional().or(z.literal("")),
-});
+export const FOOD_SOURCES = ["TutorProvided", "HotelProvided"] as const;
+
+/** Rótulos pt-BR da origem da ração (valores batem com o enum FoodSource do backend). */
+export const FOOD_SOURCE_LABELS: Record<(typeof FOOD_SOURCES)[number], string> = {
+  TutorProvided: "Tutor traz a ração",
+  HotelProvided: "Hotel fornece",
+};
+
+export const petFormSchema = z
+  .object({
+    tutorId: z.string().uuid("Selecione um tutor"),
+    name: z.string().min(1, "Informe o nome").max(120),
+    species: z.enum(SPECIES),
+    breed: z.string().max(120).optional().or(z.literal("")),
+    birthDate: z.string().optional().or(z.literal("")),
+    // "" = não informado; o form converte para null no submit.
+    size: z.enum(PET_SIZES).or(z.literal("")),
+    sex: z.enum(SEXES).or(z.literal("")),
+    neutered: z.enum(["", "yes", "no"]),
+    microchipCode: z.string().max(50).optional().or(z.literal("")),
+    notes: z.string().max(1000).optional().or(z.literal("")),
+    // Avaliação comportamental ("" = não informado).
+    sociability: z.enum(BEHAVIOR_LEVELS).or(z.literal("")),
+    reactivity: z.enum(BEHAVIOR_LEVELS).or(z.literal("")),
+    fear: z.enum(BEHAVIOR_LEVELS).or(z.literal("")),
+    destructiveness: z.enum(BEHAVIOR_LEVELS).or(z.literal("")),
+    behaviorNotes: z.string().max(2000).optional().or(z.literal("")),
+    // Rotina alimentar (ração em branco = sem rotina; o form converte para null no submit).
+    feedingFoodName: z.string().max(200).optional().or(z.literal("")),
+    feedingPortionSize: z.string().max(100).optional().or(z.literal("")),
+    feedingMealTimes: z.array(z.object({ time: z.string().min(1, "Informe o horário") })),
+    feedingRestrictions: z.string().max(1000).optional().or(z.literal("")),
+    feedingFoodSource: z.enum(FOOD_SOURCES).or(z.literal("")),
+  })
+  .superRefine((values, ctx) => {
+    const hasDetails =
+      !!values.feedingPortionSize ||
+      values.feedingMealTimes.length > 0 ||
+      !!values.feedingRestrictions ||
+      values.feedingFoodSource !== "";
+    if (!values.feedingFoodName && hasDetails) {
+      ctx.addIssue({ code: "custom", path: ["feedingFoodName"], message: "Informe a ração" });
+    }
+    if (values.feedingFoodName && values.feedingFoodSource === "") {
+      ctx.addIssue({ code: "custom", path: ["feedingFoodSource"], message: "Informe a origem da ração" });
+    }
+  });
 
 export type PetFormInput = z.infer<typeof petFormSchema>;

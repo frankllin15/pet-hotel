@@ -1,3 +1,4 @@
+using PetHotel.Registry.Application.Pets.RegisterPet;
 using PetHotel.Registry.Domain.Pets;
 
 namespace PetHotel.Registry.Application.Pets.UpdatePet;
@@ -18,4 +19,5 @@ public sealed record UpdatePet(
     BehaviorLevel? Reactivity = null,
     BehaviorLevel? Fear = null,
     BehaviorLevel? Destructiveness = null,
-    string? BehaviorNotes = null);
+    string? BehaviorNotes = null,
+    FeedingRoutineInput? FeedingRoutine = null);

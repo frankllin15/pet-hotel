@@ -29,6 +29,9 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
     public BehaviorLevel? Destructiveness { get; private set; }
     public string? BehaviorNotes { get; private set; }
 
+    /// <summary>Rotina alimentar (opcional; preenchida quando o tutor informa).</summary>
+    public FeedingRoutine? FeedingRoutine { get; private set; }
+
     public string? Notes { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
@@ -77,7 +80,8 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
         bool? neutered,
         string? microchipCode,
         string? notes,
-        DateOnly today)
+        DateOnly today,
+        FeedingRoutine? feedingRoutine = null)
     {
         if (tenantId.Value == Guid.Empty)
         {
@@ -111,7 +115,10 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
             sex,
             neutered,
             string.IsNullOrWhiteSpace(microchipCode) ? null : microchipCode.Trim(),
-            string.IsNullOrWhiteSpace(notes) ? null : notes.Trim());
+            string.IsNullOrWhiteSpace(notes) ? null : notes.Trim())
+        {
+            FeedingRoutine = feedingRoutine,
+        };
 
         pet.Raise(new PetRegistered(pet.Id, tenantId, tutorId));
         return pet;
@@ -136,7 +143,8 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
         BehaviorLevel? fear,
         BehaviorLevel? destructiveness,
         string? behaviorNotes,
-        DateOnly today)
+        DateOnly today,
+        FeedingRoutine? feedingRoutine = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -162,6 +170,7 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
         Fear = fear;
         Destructiveness = destructiveness;
         BehaviorNotes = string.IsNullOrWhiteSpace(behaviorNotes) ? null : behaviorNotes.Trim();
+        FeedingRoutine = feedingRoutine;
         return Result.Success();
     }
 }

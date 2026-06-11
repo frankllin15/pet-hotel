@@ -43,6 +43,24 @@ public static class RegisterPetHandler
 
         var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
 
+        // Monta o value object da rotina alimentar; rotina inválida aborta o cadastro.
+        FeedingRoutine? feedingRoutine = null;
+        if (command.FeedingRoutine is { } routineInput)
+        {
+            var routine = FeedingRoutine.Create(
+                routineInput.FoodName,
+                routineInput.PortionSize,
+                routineInput.MealTimes,
+                routineInput.Restrictions,
+                routineInput.FoodSource);
+            if (routine.IsFailure)
+            {
+                return routine.Error;
+            }
+
+            feedingRoutine = routine.Value;
+        }
+
         var result = Pet.Register(
             tenantContext.Current,
             tutorId,
@@ -55,7 +73,8 @@ public static class RegisterPetHandler
             command.Neutered,
             command.MicrochipCode,
             command.Notes,
-            today);
+            today,
+            feedingRoutine);
 
         if (result.IsFailure)
         {

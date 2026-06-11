@@ -38,6 +38,24 @@ public static class UpdatePetHandler
 
         var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
 
+        // Monta o value object da rotina alimentar; rotina inválida aborta a edição.
+        FeedingRoutine? feedingRoutine = null;
+        if (command.FeedingRoutine is { } routineInput)
+        {
+            var routine = FeedingRoutine.Create(
+                routineInput.FoodName,
+                routineInput.PortionSize,
+                routineInput.MealTimes,
+                routineInput.Restrictions,
+                routineInput.FoodSource);
+            if (routine.IsFailure)
+            {
+                return routine.Error;
+            }
+
+            feedingRoutine = routine.Value;
+        }
+
         var result = pet.Update(
             command.Name,
             command.Species,
@@ -53,7 +71,8 @@ public static class UpdatePetHandler
             command.Fear,
             command.Destructiveness,
             command.BehaviorNotes,
-            today);
+            today,
+            feedingRoutine);
 
         if (result.IsFailure)
         {
