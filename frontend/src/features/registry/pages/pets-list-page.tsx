@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search } from "lucide-react";
+import { Cat, Dog, PawPrint, Plus, Search } from "lucide-react";
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { formatDate } from "@/shared/lib/format";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
+import { AvatarTile } from "@/shared/ui/avatar-tile";
 import { Button } from "@/shared/ui/button";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
 import { ListPage } from "@/shared/ui/archetypes/list-page";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { usePets } from "../queries";
 import { SPECIES_LABELS } from "../schemas";
+
+const SPECIES_ICONS: Record<string, typeof PawPrint> = { Dog, Cat };
 
 export function PetsListPage() {
   const navigate = useNavigate();
@@ -41,7 +45,23 @@ export function PetsListPage() {
       <AsyncBoundary
         query={query}
         isEmpty={(data) => data.pages.every((p) => p.items.length === 0)}
-        empty={<p className="py-10 text-center text-sm text-muted-foreground">Nenhum pet encontrado.</p>}
+        empty={
+          <EmptyState
+            title="Nenhum pet por aqui"
+            description={
+              debouncedSearch
+                ? "Nenhum resultado para a busca — tente outro nome."
+                : "Cadastre o primeiro hóspede de quatro patas."
+            }
+            action={
+              !debouncedSearch && (
+                <Button size="sm" onClick={() => navigate("/registry/pets/new")}>
+                  <Plus /> Novo pet
+                </Button>
+              )
+            }
+          />
+        }
       >
         {(data) => {
           const rows = data.pages.flatMap((p) => p.items);
@@ -63,9 +83,24 @@ export function PetsListPage() {
                       data-clickable="true"
                       onClick={() => navigate(`/registry/pets/${pet.id}`)}
                     >
-                      <TableCell className="font-medium">{pet.name}</TableCell>
-                      <TableCell>{SPECIES_LABELS[pet.species as keyof typeof SPECIES_LABELS] ?? pet.species}</TableCell>
-                      <TableCell>{pet.breed ?? "—"}</TableCell>
+                      <TableCell className="font-medium">
+                        <span className="flex items-center gap-3">
+                          <AvatarTile name={pet.name} />
+                          {pet.name}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const SpeciesIcon = SPECIES_ICONS[pet.species] ?? PawPrint;
+                          return (
+                            <span className="flex items-center gap-1.5">
+                              <SpeciesIcon className="size-4 text-muted-foreground" />
+                              {SPECIES_LABELS[pet.species as keyof typeof SPECIES_LABELS] ?? pet.species}
+                            </span>
+                          );
+                        })()}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{pet.breed ?? "—"}</TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(pet.createdAt)}</TableCell>
                     </TableRow>
                   ))}

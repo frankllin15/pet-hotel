@@ -19,7 +19,7 @@ export function FormPage({
   children: ReactNode;
 } & FormHTMLAttributes<HTMLFormElement>) {
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="rise-in mx-auto max-w-2xl space-y-6">
       <PageHeader title={title} description={description} />
       <form className="space-y-6" {...formProps}>
         <div className="space-y-4">{children}</div>

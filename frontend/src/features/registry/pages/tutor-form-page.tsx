@@ -152,9 +152,9 @@ export function TutorFormPage() {
         <Input id="phone" aria-invalid={!!errors.phone} {...register("phone")} />
       </Field>
 
-      <div className="space-y-3 rounded-lg border p-4">
+      <div className="space-y-3 rounded-xl border bg-card p-4 shadow-card">
         <div>
-          <h3 className="text-sm font-semibold">Faturamento</h3>
+          <h3 className="font-display text-base font-semibold">Faturamento</h3>
           <p className="text-xs text-muted-foreground">
             Dados de cobrança/nota. Deixe o CPF/CNPJ em branco se não houver.
           </p>
@@ -268,10 +268,10 @@ function FieldArraySection({
   children: (index: number) => React.ReactNode;
 }) {
   return (
-    <div className="space-y-3 rounded-lg border p-4">
+    <div className="space-y-3 rounded-xl border bg-card p-4 shadow-card">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold">{title}</h3>
+          <h3 className="font-display text-base font-semibold">{title}</h3>
           <p className="text-xs text-muted-foreground">{description}</p>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={onAdd}>

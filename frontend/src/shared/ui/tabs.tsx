@@ -26,8 +26,8 @@ export function TabBar<T extends string>({
           className={cn(
             "border-b-2 px-4 py-2 text-sm font-medium transition-colors",
             value === item.value
-              ? "border-primary text-foreground"
-              : "border-transparent text-muted-foreground hover:text-foreground",
+              ? "border-primary font-semibold text-foreground"
+              : "border-transparent text-muted-foreground hover:border-border hover:text-foreground",
           )}
         >
           {item.label}

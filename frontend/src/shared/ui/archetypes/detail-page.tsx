@@ -23,7 +23,7 @@ export function DetailPage({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-6">
+    <div className="rise-in space-y-6">
       <PageHeader title={title} description={description} actions={actions} />
       {tabs && <div className="border-b">{tabs}</div>}
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">

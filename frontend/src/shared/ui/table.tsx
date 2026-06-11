@@ -3,14 +3,14 @@ import { cn } from "@/shared/lib/utils";
 
 export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="relative w-full overflow-auto rounded-lg border">
+    <div className="relative w-full overflow-auto rounded-xl border bg-card shadow-card">
       <table className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   );
 }
 
 export function TableHeader({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("border-b bg-muted/50", className)} {...props} />;
+  return <thead className={cn("border-b bg-muted/60", className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
@@ -20,7 +20,7 @@ export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSecti
 export function TableRow({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
   return (
     <tr
-      className={cn("border-b transition-colors hover:bg-muted/40 data-[clickable=true]:cursor-pointer", className)}
+      className={cn("border-b transition-colors hover:bg-accent/40 data-[clickable=true]:cursor-pointer", className)}
       {...props}
     />
   );
@@ -29,7 +29,10 @@ export function TableRow({ className, ...props }: HTMLAttributes<HTMLTableRowEle
 export function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={cn("h-10 px-4 text-left align-middle font-medium text-muted-foreground", className)}
+      className={cn(
+        "h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+        className,
+      )}
       {...props}
     />
   );

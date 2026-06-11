@@ -4,62 +4,79 @@
   Design tokens (docs/08 §Sistema de UI).
   Tudo via CSS variable -> habilita tema por tenant no futuro sem tocar
   em componente. PROIBIDO valor mágico fora deste arquivo: telas usam só token.
+
+  Direção estética: "pousada de campo" — papel creme com grão sutil, tinta
+  espresso, terracota como acento e sidebar escura de couro. Display em
+  Fraunces (serifa quente), corpo em Hanken Grotesk.
 */
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.55 0.16 250);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --success: oklch(0.6 0.15 150);
-  --success-foreground: oklch(0.985 0 0);
-  --warning: oklch(0.75 0.16 70);
-  --warning-foreground: oklch(0.205 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.55 0.16 250);
+  --background: oklch(0.972 0.009 84);
+  --foreground: oklch(0.3 0.028 50);
+  --card: oklch(0.995 0.004 90);
+  --card-foreground: oklch(0.3 0.028 50);
+  --popover: oklch(0.995 0.004 90);
+  --popover-foreground: oklch(0.3 0.028 50);
+  --primary: oklch(0.56 0.125 42);
+  --primary-foreground: oklch(0.985 0.008 85);
+  --secondary: oklch(0.93 0.018 80);
+  --secondary-foreground: oklch(0.34 0.03 50);
+  --muted: oklch(0.94 0.014 82);
+  --muted-foreground: oklch(0.5 0.025 60);
+  --accent: oklch(0.92 0.035 50);
+  --accent-foreground: oklch(0.38 0.06 42);
+  --destructive: oklch(0.55 0.19 29);
+  --destructive-foreground: oklch(0.985 0.008 85);
+  --success: oklch(0.55 0.1 145);
+  --success-foreground: oklch(0.985 0.008 85);
+  --warning: oklch(0.8 0.13 85);
+  --warning-foreground: oklch(0.32 0.04 60);
+  --border: oklch(0.885 0.018 78);
+  --input: oklch(0.885 0.018 78);
+  --ring: oklch(0.56 0.125 42);
+
+  /* Sidebar "couro": painel escuro que ancora o app. */
+  --sidebar: oklch(0.26 0.025 45);
+  --sidebar-foreground: oklch(0.93 0.015 80);
+  --sidebar-muted: oklch(0.68 0.02 70);
+  --sidebar-accent: oklch(0.32 0.028 45);
+  --sidebar-border: oklch(0.34 0.025 45);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.7 0.14 250);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --success: oklch(0.7 0.15 150);
-  --success-foreground: oklch(0.205 0 0);
-  --warning: oklch(0.8 0.16 70);
-  --warning-foreground: oklch(0.205 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.7 0.14 250);
+  --background: oklch(0.22 0.02 45);
+  --foreground: oklch(0.93 0.015 80);
+  --card: oklch(0.26 0.022 45);
+  --card-foreground: oklch(0.93 0.015 80);
+  --popover: oklch(0.26 0.022 45);
+  --popover-foreground: oklch(0.93 0.015 80);
+  --primary: oklch(0.68 0.13 45);
+  --primary-foreground: oklch(0.2 0.02 45);
+  --secondary: oklch(0.3 0.022 45);
+  --secondary-foreground: oklch(0.93 0.015 80);
+  --muted: oklch(0.3 0.022 45);
+  --muted-foreground: oklch(0.7 0.02 70);
+  --accent: oklch(0.33 0.03 45);
+  --accent-foreground: oklch(0.93 0.015 80);
+  --destructive: oklch(0.65 0.18 29);
+  --destructive-foreground: oklch(0.2 0.02 45);
+  --success: oklch(0.68 0.1 145);
+  --success-foreground: oklch(0.2 0.02 45);
+  --warning: oklch(0.8 0.13 85);
+  --warning-foreground: oklch(0.2 0.02 45);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.68 0.13 45);
+
+  --sidebar: oklch(0.19 0.018 45);
+  --sidebar-foreground: oklch(0.93 0.015 80);
+  --sidebar-muted: oklch(0.66 0.02 70);
+  --sidebar-accent: oklch(0.26 0.025 45);
+  --sidebar-border: oklch(0.28 0.022 45);
 }
 
 /* Mapeia os tokens para utilitários do Tailwind (bg-primary, text-muted-foreground, etc). */
@@ -88,19 +105,84 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-border: var(--sidebar-border);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Tipografia: display serifado quente + corpo grotesco humanista. */
+  --font-sans: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+
+  /* Sombras quentes (tingidas de espresso, não preto puro). */
+  --shadow-card: 0 1px 2px oklch(0.3 0.03 50 / 0.05), 0 4px 16px -6px oklch(0.3 0.03 50 / 0.08);
+  --shadow-raised: 0 1px 2px oklch(0.3 0.03 50 / 0.08), 0 8px 24px -8px oklch(0.3 0.03 50 / 0.14);
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-sans);
+    font-feature-settings: "tnum"; /* números tabulares: datas/valores alinham em tabelas */
+  }
+
+  /* Grão de papel sobre tudo (sutil, dá matéria ao creme e ao couro). */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.045;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+
+  /* Entrada suave de página (uma vez por navegação; nada de animação dispersa). */
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Scrollbar discreta no tom do papel. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 9999px;
+    border: 2px solid var(--color-background);
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .rise-in {
+    animation: rise-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }

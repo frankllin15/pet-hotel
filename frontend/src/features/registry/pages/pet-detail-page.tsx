@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { formatDate } from "@/shared/lib/format";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
+import { AvatarTile } from "@/shared/ui/avatar-tile";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DetailPage } from "@/shared/ui/archetypes/detail-page";
@@ -40,7 +41,12 @@ export function PetDetailPage() {
     <AsyncBoundary query={query} isEmpty={() => false}>
       {(pet) => (
         <DetailPage
-          title={pet.name}
+          title={
+            <span className="flex items-center gap-3">
+              <AvatarTile name={pet.name} size="lg" />
+              {pet.name}
+            </span>
+          }
           description={SPECIES_LABELS[pet.species as keyof typeof SPECIES_LABELS] ?? pet.species}
           actions={
             <div className="flex gap-2">

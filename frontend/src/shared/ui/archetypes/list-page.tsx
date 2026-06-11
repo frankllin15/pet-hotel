@@ -22,7 +22,7 @@ export function ListPage({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-6">
+    <div className="rise-in space-y-6">
       <PageHeader title={title} description={description} actions={primaryAction} />
       {filters && <div className="flex flex-wrap items-center gap-3">{filters}</div>}
       <div>{children}</div>

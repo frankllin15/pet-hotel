@@ -260,9 +260,9 @@ export function PetFormPage() {
         <Textarea id="notes" {...register("notes")} />
       </Field>
 
-      <div className="space-y-3 rounded-lg border p-4">
+      <div className="space-y-3 rounded-xl border bg-card p-4 shadow-card">
         <div>
-          <h3 className="text-sm font-semibold">Rotina alimentar</h3>
+          <h3 className="font-display text-base font-semibold">Rotina alimentar</h3>
           <p className="text-xs text-muted-foreground">
             Ração, quantidade, horários e restrições. Deixe a ração em branco se não houver rotina.
           </p>
@@ -332,9 +332,9 @@ export function PetFormPage() {
       </div>
 
       {isEdit && (
-        <div className="space-y-3 rounded-lg border p-4">
+        <div className="space-y-3 rounded-xl border bg-card p-4 shadow-card">
           <div>
-            <h3 className="text-sm font-semibold">Avaliação comportamental</h3>
+            <h3 className="font-display text-base font-semibold">Avaliação comportamental</h3>
             <p className="text-xs text-muted-foreground">
               Observada durante a estadia — base para a compatibilidade em matilhas.
             </p>

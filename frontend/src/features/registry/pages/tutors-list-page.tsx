@@ -4,7 +4,9 @@ import { Plus, Search } from "lucide-react";
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { formatDate } from "@/shared/lib/format";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
+import { AvatarTile } from "@/shared/ui/avatar-tile";
 import { Button } from "@/shared/ui/button";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
 import { ListPage } from "@/shared/ui/archetypes/list-page";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
@@ -40,7 +42,23 @@ export function TutorsListPage() {
       <AsyncBoundary
         query={query}
         isEmpty={(data) => data.pages.every((p) => p.items.length === 0)}
-        empty={<p className="py-10 text-center text-sm text-muted-foreground">Nenhum tutor encontrado.</p>}
+        empty={
+          <EmptyState
+            title="Nenhum tutor por aqui"
+            description={
+              debouncedSearch
+                ? "Nenhum resultado para a busca — tente outro nome."
+                : "Cadastre o primeiro tutor para começar as fichas da casa."
+            }
+            action={
+              !debouncedSearch && (
+                <Button size="sm" onClick={() => navigate("/registry/tutors/new")}>
+                  <Plus /> Novo tutor
+                </Button>
+              )
+            }
+          />
+        }
       >
         {(data) => {
           const rows = data.pages.flatMap((p) => p.items);
@@ -62,8 +80,13 @@ export function TutorsListPage() {
                       data-clickable="true"
                       onClick={() => navigate(`/registry/tutors/${tutor.id}`)}
                     >
-                      <TableCell className="font-medium">{tutor.fullName}</TableCell>
-                      <TableCell>{tutor.email}</TableCell>
+                      <TableCell className="font-medium">
+                        <span className="flex items-center gap-3">
+                          <AvatarTile name={tutor.fullName} />
+                          {tutor.fullName}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{tutor.email}</TableCell>
                       <TableCell>{tutor.phone}</TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(tutor.createdAt)}</TableCell>
                     </TableRow>

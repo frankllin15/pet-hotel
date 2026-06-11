@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { formatDate } from "@/shared/lib/format";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
+import { AvatarTile } from "@/shared/ui/avatar-tile";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DetailPage } from "@/shared/ui/archetypes/detail-page";
@@ -19,7 +20,12 @@ export function TutorDetailPage() {
     <AsyncBoundary query={tutorQuery} isEmpty={() => false}>
       {(tutor) => (
         <DetailPage
-          title={tutor.fullName}
+          title={
+            <span className="flex items-center gap-3">
+              <AvatarTile name={tutor.fullName} size="lg" />
+              {tutor.fullName}
+            </span>
+          }
           description="Ficha do tutor"
           actions={
             <div className="flex gap-2">
