@@ -73,6 +73,7 @@ public sealed class PetQueries(RegistryDbContext dbContext) : IPetQueries
             pet.Neutered,
             pet.MicrochipCode,
             pet.Notes,
+            pet.PhotoKey is { } key ? $"/v1/files/{key}" : null,
             pet.Sociability?.ToString(),
             pet.Reactivity?.ToString(),
             pet.Fear?.ToString(),

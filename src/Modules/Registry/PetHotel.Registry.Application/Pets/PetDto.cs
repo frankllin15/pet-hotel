@@ -13,6 +13,7 @@ public sealed record PetDto(
     bool? Neutered,
     string? MicrochipCode,
     string? Notes,
+    string? PhotoUrl,
     string? Sociability,
     string? Reactivity,
     string? Fear,

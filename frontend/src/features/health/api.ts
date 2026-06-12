@@ -1,7 +1,9 @@
 import { apiClient, unwrap } from "@/shared/api/client";
+import { deleteResource, uploadFile } from "@/shared/api/files";
 import type { components } from "@/shared/api/schema";
 
 export type PetHealthDto = components["schemas"]["PetHealthDto"];
+export type VaccinationPhotoResponse = components["schemas"]["VaccinationPhotoResponse"];
 export type VaccinationDto = components["schemas"]["VaccinationDto"];
 export type VaccineType = components["schemas"]["VaccineType"];
 export type RegisterVaccinationBody = components["schemas"]["RegisterVaccinationRequest"];
@@ -33,4 +35,19 @@ export async function registerParasiteTreatment(
 
 export async function setVetContact(petId: string, body: SetVetContactBody): Promise<void> {
   unwrap(await apiClient.PUT("/v1/pets/{petId}/vet-contact", { params: { path: { petId } }, body }));
+}
+
+export async function uploadVaccinationPhoto(
+  petId: string,
+  vaccinationId: string,
+  file: File,
+): Promise<VaccinationPhotoResponse> {
+  return uploadFile<VaccinationPhotoResponse>(
+    `/v1/pets/${petId}/vaccinations/${vaccinationId}/photo`,
+    file,
+  );
+}
+
+export async function deleteVaccinationPhoto(petId: string, vaccinationId: string): Promise<void> {
+  return deleteResource(`/v1/pets/${petId}/vaccinations/${vaccinationId}/photo`);
 }

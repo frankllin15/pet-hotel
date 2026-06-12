@@ -25,7 +25,9 @@ public static class GetPetHealthHandler
         var clearance = record.GetClearance(today);
 
         var vaccinations = record.Vaccinations
-            .Select(v => new VaccinationDto(v.Id.Value, v.Type.ToString(), v.AppliedOn, v.ExpiresOn, v.IsValidOn(today)))
+            .Select(v => new VaccinationDto(
+                v.Id.Value, v.Type.ToString(), v.AppliedOn, v.ExpiresOn, v.IsValidOn(today),
+                v.PhotoKey is { } key ? $"/v1/files/{key}" : null))
             .ToList();
 
         var parasiteTreatments = record.ParasiteTreatments

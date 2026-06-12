@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/shared/lib/problem-details";
 import {
+  deleteVaccinationPhoto,
   getPetHealth,
   registerParasiteTreatment,
   registerVaccination,
   setVetContact,
+  uploadVaccinationPhoto,
   type PetHealthDto,
   type RegisterParasiteTreatmentBody,
   type RegisterVaccinationBody,
@@ -53,6 +55,24 @@ export function useRegisterParasiteTreatment(petId: string) {
       queryClient.invalidateQueries({ queryKey: healthKeys.pet(petId) });
     },
   });
+}
+
+/** Upload e remoção da foto da carteira por vacinação, invalidando a ficha de saúde. */
+export function useVaccinationPhoto(petId: string) {
+  const queryClient = useQueryClient();
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: healthKeys.pet(petId) });
+
+  const upload = useMutation({
+    mutationFn: ({ vaccinationId, file }: { vaccinationId: string; file: File }) =>
+      uploadVaccinationPhoto(petId, vaccinationId, file),
+    onSuccess: invalidate,
+  });
+  const remove = useMutation({
+    mutationFn: (vaccinationId: string) => deleteVaccinationPhoto(petId, vaccinationId),
+    onSuccess: invalidate,
+  });
+
+  return { upload, remove };
 }
 
 export function useSetVetContact(petId: string) {

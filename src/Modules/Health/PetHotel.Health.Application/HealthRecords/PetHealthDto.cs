@@ -14,7 +14,8 @@ public sealed record VaccinationDto(
     string Type,
     DateOnly AppliedOn,
     DateOnly ExpiresOn,
-    bool Valid);
+    bool Valid,
+    string? PhotoUrl);
 
 /// <summary>Controle de parasitas (leitura). UpToDate é null quando não há próxima dose informada.</summary>
 public sealed record ParasiteTreatmentDto(

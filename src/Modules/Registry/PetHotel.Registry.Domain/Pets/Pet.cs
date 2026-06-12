@@ -34,6 +34,9 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
 
     public string? Notes { get; private set; }
 
+    /// <summary>Chave do arquivo da foto no storage (tenant-scoped). Null = sem foto.</summary>
+    public string? PhotoKey { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
@@ -172,5 +175,16 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
         BehaviorNotes = string.IsNullOrWhiteSpace(behaviorNotes) ? null : behaviorNotes.Trim();
         FeedingRoutine = feedingRoutine;
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Define ou remove (key = null) a foto do pet. Devolve a chave anterior para que o
+    /// adaptador possa apagar o arquivo órfão — a fronteira do agregado guarda só a string.
+    /// </summary>
+    public string? SetPhoto(string? key)
+    {
+        var previous = PhotoKey;
+        PhotoKey = string.IsNullOrWhiteSpace(key) ? null : key;
+        return previous;
     }
 }

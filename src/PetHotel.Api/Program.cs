@@ -10,6 +10,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using PetHotel.Api.Adapters;
 using PetHotel.Api.Endpoints;
+using PetHotel.Api.Storage;
 using PetHotel.BuildingBlocks.Multitenancy;
 using PetHotel.SharedKernel;
 using PetHotel.Booking.Infrastructure;
@@ -38,6 +39,9 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ITenantContext, HttpTenantContext>();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddSingleton<ITenantConnectionResolver>(new SharedTenantConnectionResolver(connectionString));
+
+// --- Storage de arquivos (fotos), tenant-scoped (docs/04) ---
+builder.Services.AddFileStorage(builder.Configuration);
 
 // --- Erros padronizados (ProblemDetails, RFC 9457, docs/02) ---
 builder.Services.AddProblemDetails();
@@ -173,6 +177,7 @@ app.MapTenancyEndpoints();
 app.MapRegistryEndpoints();
 app.MapHealthEndpoints();
 app.MapBookingEndpoints();
+app.MapFilesEndpoints();
 
 app.Run();
 

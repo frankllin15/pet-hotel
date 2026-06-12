@@ -20,6 +20,7 @@ Legenda: `[B]` backend · `[F]` frontend · sem marca = ambos.
 - [x] Design tokens, `AsyncBoundary`, arquétipos de tela base, shadcn/ui `[F]`
 - [ ] Observabilidade: Serilog + OpenTelemetry + correlation id; Sentry no front — _Serilog+OTel+correlation id no back e `X-Correlation-Id` no front prontos; **Sentry no front pendente**_
 - [x] Health checks `/health` (liveness) e `/ready` (readiness) `[B]`
+- [x] Storage de arquivos tenant-scoped (`IFileStorage` + adapter em disco; download autenticado `/v1/files/{key}`) — _trocável por S3/Blob; reutilizável por estado de chegada, diário etc._
 
 ---
 
@@ -37,14 +38,14 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 ### Registry (Cadastros)
 - [x] Cadastro de tutor (dados, faturamento, contatos de emergência, autorizados a retirar) — _faturamento (CPF/CNPJ, e-mail de cobrança, endereço) como JSON no agregado_
 - [x] Múltiplos pets por tutor
-- [ ] Cadastro de pet (raça, idade, porte, sexo, castração, foto, microchip) — _parcial: nome/espécie/raça/nascimento/notas, **porte, sexo, castração e microchip** prontos; **foto** pendente_
+- [x] Cadastro de pet (raça, idade, porte, sexo, castração, foto, microchip) — _completo: nome/espécie/raça/nascimento/notas + porte, sexo, castração, microchip e **foto** (upload/troca/remoção, exibida na ficha)_
 - [x] Avaliação comportamental (sociabilidade, reatividade, medo, destrutividade) — _4 níveis (Baixa/Média/Alta) + notas, editável na ficha; base da gestão de matilhas_
 - [x] Rotina alimentar (ração, quantidade, horários, restrições, origem da ração) — _JSON no agregado Pet; editável no cadastro e na ficha_
 - [ ] Pertences trazidos (checklist de conferência)
 - [ ] Estado de chegada com foto; termo/consentimento LGPD
 
 ### Health (Saúde)
-- [ ] Carteira de vacinação com upload de foto e validade — _parcial: tipo/aplicação/validade prontos; **upload de foto pendente**_
+- [x] Carteira de vacinação com upload de foto e validade — _tipo/aplicação/validade + **foto da carteira** por vacinação (upload/troca/remoção na aba Saúde)_
 - [x] Contrato público de *clearance* (vacina em dia?) consumível pelo Booking
 - [x] Controle de parasitas (antipulgas/vermífugo) — _tipo/produto/aplicação/próxima dose; situação em dia/vencido/sem previsão_
 - [x] Contato do veterinário particular — _na ficha de saúde (JSON), editável na aba Saúde_

@@ -1,5 +1,8 @@
+using Microsoft.Extensions.Options;
 using PetHotel.Api.Http;
+using PetHotel.Api.Storage;
 using PetHotel.Registry.Application.Pets;
+using PetHotel.Registry.Application.Pets.SetPetPhoto;
 using PetHotel.Registry.Application.Pets.GetPetById;
 using PetHotel.Registry.Application.Pets.ListPets;
 using PetHotel.Registry.Application.Pets.RegisterPet;
@@ -119,6 +122,58 @@ public static class RegistryEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+        group.MapPost("/pets/{id:guid}/photo", async (
+                Guid id, IFormFile file, IFileStorage storage, IOptions<FileStorageOptions> options,
+                IMessageBus bus, CancellationToken ct) =>
+            {
+                var saved = await ImageUploads.SaveAsync(file, "pets", storage, options, ct);
+                if (saved.IsFailure)
+                {
+                    return saved.ToHttpResult(_ => Results.Empty);
+                }
+
+                var key = saved.Value.Key;
+                var setResult = await bus.InvokeAsync<Result<string?>>(new SetPetPhoto(id, key), ct);
+                if (setResult.IsFailure)
+                {
+                    await storage.DeleteAsync(key, ct); // não deixa arquivo órfão se o pet não existir
+                    return setResult.ToHttpResult(_ => Results.Empty);
+                }
+
+                // Substituiu uma foto anterior: apaga a antiga.
+                if (setResult.Value is { } previous && previous != key)
+                {
+                    await storage.DeleteAsync(previous, ct);
+                }
+
+                return Results.Ok(new PetPhotoResponse($"/v1/files/{key}"));
+            })
+            .DisableAntiforgery()
+            .WithName("SetPetPhoto")
+            .WithSummary("Envia (ou substitui) a foto do pet.")
+            .WithDescription("Multipart com o campo 'file'. JPEG, PNG ou WebP até o limite configurado.")
+            .Produces<PetPhotoResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/pets/{id:guid}/photo", async (Guid id, IFileStorage storage, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<string?>>(new SetPetPhoto(id, null), ct);
+                if (result.IsSuccess && result.Value is { } previous)
+                {
+                    await storage.DeleteAsync(previous, ct);
+                }
+
+                return result.ToHttpResult(_ => Results.NoContent());
+            })
+            .WithName("RemovePetPhoto")
+            .WithSummary("Remove a foto do pet.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         return app;
     }
+
+    /// <summary>Resposta do upload de foto: URL relativa para baixar pelo endpoint de arquivos.</summary>
+    public sealed record PetPhotoResponse(string PhotoUrl);
 }

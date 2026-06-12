@@ -102,6 +102,21 @@ public sealed class HealthRecord : AggregateRoot<HealthRecordId>, IHasTenant, IA
     /// <summary>Define (ou substitui) o veterinário particular do pet.</summary>
     public void SetVetContact(VetContact contact) => VetContact = contact;
 
+    /// <summary>
+    /// Associa/remove (key = null) a foto da carteira a uma vacinação da ficha.
+    /// Devolve a chave anterior para o adaptador apagar o arquivo substituído.
+    /// </summary>
+    public Result<string?> SetVaccinationPhoto(VaccinationId vaccinationId, string? key)
+    {
+        var vaccination = _vaccinations.FirstOrDefault(v => v.Id == vaccinationId);
+        if (vaccination is null)
+        {
+            return Error.NotFound("vaccination.not_found", "Vacinação não encontrada na ficha do pet.");
+        }
+
+        return vaccination.SetPhoto(key);
+    }
+
     /// <summary>Avalia a aptidão sanitária na data informada.</summary>
     public HealthClearance GetClearance(DateOnly asOf)
     {

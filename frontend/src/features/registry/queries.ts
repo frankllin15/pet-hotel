@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
+  deletePetPhoto,
   getPet,
   getTutor,
   listPets,
@@ -13,6 +14,7 @@ import {
   registerTutor,
   updatePet,
   updateTutor,
+  uploadPetPhoto,
   type ListPetsParams,
   type RegisterPetBody,
   type RegisterTutorBody,
@@ -102,4 +104,15 @@ export function useUpdatePet(id: string) {
       queryClient.invalidateQueries({ queryKey: registryKeys.all });
     },
   });
+}
+
+/** Upload e remoção da foto do pet, invalidando a ficha após cada operação. */
+export function usePetPhoto(id: string) {
+  const queryClient = useQueryClient();
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: registryKeys.pet(id) });
+
+  const upload = useMutation({ mutationFn: (file: File) => uploadPetPhoto(id, file), onSuccess: invalidate });
+  const remove = useMutation({ mutationFn: () => deletePetPhoto(id), onSuccess: invalidate });
+
+  return { upload, remove };
 }

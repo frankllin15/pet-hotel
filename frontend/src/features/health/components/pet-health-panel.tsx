@@ -3,8 +3,9 @@ import { Plus } from "lucide-react";
 import { formatDate } from "@/shared/lib/format";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
 import { Button } from "@/shared/ui/button";
+import { PhotoThumb } from "@/shared/ui/photo-uploader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
-import { usePetHealth } from "../queries";
+import { usePetHealth, useVaccinationPhoto } from "../queries";
 import { parasiteTreatmentLabel, vaccineLabel } from "../schemas";
 import { ClearanceBadge, ParasiteStatusTag, VaccineStatusTag } from "./clearance-badge";
 import { ParasiteTreatmentForm } from "./parasite-treatment-form";
@@ -16,6 +17,7 @@ export function PetHealthPanel({ petId }: { petId: string }) {
   const [showForm, setShowForm] = useState(false);
   const [showParasiteForm, setShowParasiteForm] = useState(false);
   const query = usePetHealth(petId);
+  const vaccinePhoto = useVaccinationPhoto(petId);
 
   return (
     <div className="space-y-4">
@@ -58,6 +60,7 @@ export function PetHealthPanel({ petId }: { petId: string }) {
                       <TableHead>Aplicada em</TableHead>
                       <TableHead>Validade</TableHead>
                       <TableHead>Situação</TableHead>
+                      <TableHead>Carteira</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -68,6 +71,16 @@ export function PetHealthPanel({ petId }: { petId: string }) {
                         <TableCell>{formatDate(v.expiresOn)}</TableCell>
                         <TableCell>
                           <VaccineStatusTag valid={v.valid} />
+                        </TableCell>
+                        <TableCell>
+                          <PhotoThumb
+                            url={v.photoUrl ?? null}
+                            onUpload={(file) =>
+                              vaccinePhoto.upload.mutateAsync({ vaccinationId: v.id, file })
+                            }
+                            onRemove={() => vaccinePhoto.remove.mutateAsync(v.id)}
+                            alt={`Carteira de ${vaccineLabel(v.type)}`}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}

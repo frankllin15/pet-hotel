@@ -1,9 +1,11 @@
 import { apiClient, unwrap } from "@/shared/api/client";
+import { deleteResource, uploadFile } from "@/shared/api/files";
 import type { components } from "@/shared/api/schema";
 
 // Tipos do contrato OpenAPI — nunca digitados à mão (docs/08).
 export type TutorDto = components["schemas"]["TutorDto"];
 export type PetDto = components["schemas"]["PetDto"];
+export type PetPhotoResponse = components["schemas"]["PetPhotoResponse"];
 export type Species = components["schemas"]["Species"];
 export type RegisterTutorBody = components["schemas"]["RegisterTutor"];
 export type RegisterPetBody = components["schemas"]["RegisterPet"];
@@ -55,4 +57,12 @@ export async function registerPet(body: RegisterPetBody): Promise<{ id: string }
 
 export async function updatePet(id: string, body: UpdatePetBody): Promise<void> {
   unwrap(await apiClient.PUT("/v1/pets/{id}", { params: { path: { id } }, body }));
+}
+
+export async function uploadPetPhoto(id: string, file: File): Promise<PetPhotoResponse> {
+  return uploadFile<PetPhotoResponse>(`/v1/pets/${id}/photo`, file);
+}
+
+export async function deletePetPhoto(id: string): Promise<void> {
+  return deleteResource(`/v1/pets/${id}/photo`);
 }

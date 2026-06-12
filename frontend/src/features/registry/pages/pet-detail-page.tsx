@@ -2,13 +2,15 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { formatDate } from "@/shared/lib/format";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
+import { AuthImage } from "@/shared/ui/auth-image";
 import { AvatarTile } from "@/shared/ui/avatar-tile";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DetailPage } from "@/shared/ui/archetypes/detail-page";
+import { PhotoUploader } from "@/shared/ui/photo-uploader";
 import { TabBar } from "@/shared/ui/tabs";
 import { PetHealthPanel } from "@/features/health/components/pet-health-panel";
-import { usePet } from "../queries";
+import { usePet, usePetPhoto } from "../queries";
 import {
   BEHAVIOR_LEVEL_LABELS,
   BEHAVIOR_TRAITS,
@@ -36,6 +38,7 @@ export function PetDetailPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("general");
   const query = usePet(id);
+  const photo = usePetPhoto(id);
 
   return (
     <AsyncBoundary query={query} isEmpty={() => false}>
@@ -43,7 +46,16 @@ export function PetDetailPage() {
         <DetailPage
           title={
             <span className="flex items-center gap-3">
-              <AvatarTile name={pet.name} size="lg" />
+              {pet.photoUrl ? (
+                <AuthImage
+                  src={pet.photoUrl}
+                  alt={pet.name}
+                  className="size-12 rounded-xl object-cover"
+                  fallback={<AvatarTile name={pet.name} size="lg" />}
+                />
+              ) : (
+                <AvatarTile name={pet.name} size="lg" />
+              )}
               {pet.name}
             </span>
           }
@@ -61,20 +73,36 @@ export function PetDetailPage() {
           }
           tabs={<TabBar items={TABS} value={tab} onChange={setTab} />}
           sidePanel={
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Dados</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <InfoRow label="Raça" value={pet.breed ?? "—"} />
-                <InfoRow label="Nascimento" value={formatDate(pet.birthDate)} />
-                <InfoRow label="Porte" value={labelOf(PET_SIZE_LABELS, pet.size)} />
-                <InfoRow label="Sexo" value={labelOf(SEX_LABELS, pet.sex)} />
-                <InfoRow label="Castrado" value={neuteredLabel(pet.neutered)} />
-                <InfoRow label="Microchip" value={pet.microchipCode ?? "—"} />
-                <InfoRow label="Cadastrado em" value={formatDate(pet.createdAt)} />
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Foto</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PhotoUploader
+                    url={pet.photoUrl ?? null}
+                    onUpload={(file) => photo.upload.mutateAsync(file)}
+                    onRemove={() => photo.remove.mutateAsync()}
+                    alt={`Foto de ${pet.name}`}
+                    fallback={<AvatarTile name={pet.name} size="lg" className="size-full rounded-xl text-4xl" />}
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Dados</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <InfoRow label="Raça" value={pet.breed ?? "—"} />
+                  <InfoRow label="Nascimento" value={formatDate(pet.birthDate)} />
+                  <InfoRow label="Porte" value={labelOf(PET_SIZE_LABELS, pet.size)} />
+                  <InfoRow label="Sexo" value={labelOf(SEX_LABELS, pet.sex)} />
+                  <InfoRow label="Castrado" value={neuteredLabel(pet.neutered)} />
+                  <InfoRow label="Microchip" value={pet.microchipCode ?? "—"} />
+                  <InfoRow label="Cadastrado em" value={formatDate(pet.createdAt)} />
+                </CardContent>
+              </Card>
+            </div>
           }
         >
           {tab === "general" ? (

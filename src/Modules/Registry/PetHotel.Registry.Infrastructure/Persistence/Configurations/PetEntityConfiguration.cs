@@ -42,6 +42,7 @@ public sealed class PetEntityConfiguration : IEntityTypeConfiguration<Pet>
         builder.Property(p => p.Neutered);
         builder.Property(p => p.MicrochipCode).HasMaxLength(50);
         builder.Property(p => p.Notes).HasMaxLength(2000);
+        builder.Property(p => p.PhotoKey).HasMaxLength(300);
 
         builder.Property(p => p.Sociability).HasConversion<string>().HasMaxLength(10);
         builder.Property(p => p.Reactivity).HasConversion<string>().HasMaxLength(10);

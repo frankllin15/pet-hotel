@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/files/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Baixa um arquivo (foto) do tenant corrente pela chave. */
+        get: operations["DownloadFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/activate": {
         parameters: {
             query?: never;
@@ -192,6 +209,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/pets/{id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Envia (ou substitui) a foto do pet.
+         * @description Multipart com o campo 'file'. JPEG, PNG ou WebP até o limite configurado.
+         */
+        post: operations["SetPetPhoto"];
+        /** Remove a foto do pet. */
+        delete: operations["RemovePetPhoto"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pets/{petId}/vaccinations": {
         parameters: {
             query?: never;
@@ -247,6 +285,27 @@ export interface paths {
         put: operations["SetVetContact"];
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pets/{petId}/vaccinations/{vaccinationId}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Envia (ou substitui) a foto da carteira para uma vacinação.
+         * @description Multipart com o campo 'file'. JPEG, PNG ou WebP até o limite configurado.
+         */
+        post: operations["SetVaccinationPhoto"];
+        /** Remove a foto da carteira de uma vacinação. */
+        delete: operations["RemoveVaccinationPhoto"];
         options?: never;
         head?: never;
         patch?: never;
@@ -434,6 +493,24 @@ export interface components {
         };
         /** @enum {unknown} */
         BehaviorLevel: "Low" | "Medium" | "High" | null;
+        BillingInfoDto: {
+            document: string;
+            billingEmail: null | string;
+            addressLine1: null | string;
+            addressLine2: null | string;
+            city: null | string;
+            state: null | string;
+            postalCode: null | string;
+        };
+        BillingInfoInput: {
+            document: string;
+            billingEmail: null | string;
+            addressLine1: null | string;
+            addressLine2: null | string;
+            city: null | string;
+            state: null | string;
+            postalCode: null | string;
+        };
         CreateAccommodation: {
             name: string;
         };
@@ -458,24 +535,6 @@ export interface components {
         CursorPageOfTutorDto: {
             items: components["schemas"]["TutorDto"][];
             nextCursor: null | string;
-        };
-        BillingInfoDto: {
-            document: string;
-            billingEmail: null | string;
-            addressLine1: null | string;
-            addressLine2: null | string;
-            city: null | string;
-            state: null | string;
-            postalCode: null | string;
-        };
-        BillingInfoInput: {
-            document: string;
-            billingEmail: null | string;
-            addressLine1: null | string;
-            addressLine2: null | string;
-            city: null | string;
-            state: null | string;
-            postalCode: null | string;
         };
         DirectoryUser: {
             /** Format: uuid */
@@ -511,6 +570,8 @@ export interface components {
         };
         /** @enum {unknown} */
         FoodSource: "TutorProvided" | "HotelProvided";
+        /** Format: binary */
+        IFormFile: string;
         Invitation: {
             /** Format: uuid */
             userId: string;
@@ -565,6 +626,7 @@ export interface components {
             neutered: null | boolean;
             microchipCode: null | string;
             notes: null | string;
+            photoUrl: null | string;
             sociability: null | string;
             reactivity: null | string;
             fear: null | string;
@@ -582,6 +644,9 @@ export interface components {
             vaccinations: components["schemas"]["VaccinationDto"][];
             parasiteTreatments: components["schemas"]["ParasiteTreatmentDto"][];
             vetContact: null | components["schemas"]["VetContactDto"];
+        };
+        PetPhotoResponse: {
+            photoUrl: string;
         };
         /** @enum {unknown} */
         PetSize: "Small" | "Medium" | "Large" | "Giant" | null;
@@ -747,6 +812,10 @@ export interface components {
             /** Format: date */
             expiresOn: string;
             valid: boolean;
+            photoUrl: null | string;
+        };
+        VaccinationPhotoResponse: {
+            photoUrl: string;
         };
         /** @enum {unknown} */
         VaccineType: "Rabies" | "Distemper" | "Parvovirus" | "Bordetella" | "FelineLeukemia" | "Other";
@@ -808,6 +877,35 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DownloadFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1385,6 +1483,81 @@ export interface operations {
             };
         };
     };
+    SetPetPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PetPhotoResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemovePetPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     RegisterVaccination: {
         parameters: {
             query?: never;
@@ -1506,6 +1679,83 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetVaccinationPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                petId: string;
+                vaccinationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VaccinationPhotoResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemoveVaccinationPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                petId: string;
+                vaccinationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -1,8 +1,11 @@
+using Microsoft.Extensions.Options;
 using PetHotel.Api.Http;
+using PetHotel.Api.Storage;
 using PetHotel.Health.Application.HealthRecords;
 using PetHotel.Health.Application.HealthRecords.GetPetHealth;
 using PetHotel.Health.Application.ParasiteTreatments.RegisterParasiteTreatment;
 using PetHotel.Health.Application.Vaccinations.RegisterVaccination;
+using PetHotel.Health.Application.Vaccinations.SetVaccinationPhoto;
 using PetHotel.Health.Application.VetContacts.SetVetContact;
 using PetHotel.Health.Domain.HealthRecords;
 using PetHotel.SharedKernel;
@@ -24,6 +27,9 @@ public static class HealthEndpoints
 
     /// <summary>Corpo da definição do veterinário particular (o pet vem da rota).</summary>
     public sealed record SetVetContactRequest(string Name, string Phone, string? Clinic);
+
+    /// <summary>Resposta do upload de foto da carteira: URL relativa para baixar.</summary>
+    public sealed record VaccinationPhotoResponse(string PhotoUrl);
 
     public static IEndpointRouteBuilder MapHealthEndpoints(this IEndpointRouteBuilder app)
     {
@@ -70,6 +76,57 @@ public static class HealthEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        group.MapPost("/vaccinations/{vaccinationId:guid}/photo", async (
+                Guid petId, Guid vaccinationId, IFormFile file, IFileStorage storage,
+                IOptions<FileStorageOptions> options, IMessageBus bus, CancellationToken ct) =>
+            {
+                var saved = await ImageUploads.SaveAsync(file, "vaccinations", storage, options, ct);
+                if (saved.IsFailure)
+                {
+                    return saved.ToHttpResult(_ => Results.Empty);
+                }
+
+                var key = saved.Value.Key;
+                var setResult = await bus.InvokeAsync<Result<string?>>(
+                    new SetVaccinationPhoto(petId, vaccinationId, key), ct);
+                if (setResult.IsFailure)
+                {
+                    await storage.DeleteAsync(key, ct); // não deixa arquivo órfão
+                    return setResult.ToHttpResult(_ => Results.Empty);
+                }
+
+                if (setResult.Value is { } previous && previous != key)
+                {
+                    await storage.DeleteAsync(previous, ct);
+                }
+
+                return Results.Ok(new VaccinationPhotoResponse($"/v1/files/{key}"));
+            })
+            .DisableAntiforgery()
+            .WithName("SetVaccinationPhoto")
+            .WithSummary("Envia (ou substitui) a foto da carteira para uma vacinação.")
+            .WithDescription("Multipart com o campo 'file'. JPEG, PNG ou WebP até o limite configurado.")
+            .Produces<VaccinationPhotoResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/vaccinations/{vaccinationId:guid}/photo", async (
+                Guid petId, Guid vaccinationId, IFileStorage storage, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<string?>>(
+                    new SetVaccinationPhoto(petId, vaccinationId, null), ct);
+                if (result.IsSuccess && result.Value is { } previous)
+                {
+                    await storage.DeleteAsync(previous, ct);
+                }
+
+                return result.ToHttpResult(_ => Results.NoContent());
+            })
+            .WithName("RemoveVaccinationPhoto")
+            .WithSummary("Remove a foto da carteira de uma vacinação.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapGet("/health", async (Guid petId, IMessageBus bus, CancellationToken ct) =>
             {

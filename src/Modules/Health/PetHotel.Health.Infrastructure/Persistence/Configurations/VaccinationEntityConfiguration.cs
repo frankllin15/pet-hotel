@@ -23,6 +23,7 @@ public sealed class VaccinationEntityConfiguration : IEntityTypeConfiguration<Va
 
         builder.Property(v => v.AppliedOn).IsRequired();
         builder.Property(v => v.ExpiresOn).IsRequired();
+        builder.Property(v => v.PhotoKey).HasMaxLength(300);
 
         builder.HasIndex("HealthRecordId");
     }
