@@ -21,7 +21,20 @@ public static class CheckInReservationHandler
             return Error.NotFound("reservation.not_found", "Reserva não encontrada.");
         }
 
-        var result = reservation.CheckIn(clock.GetUtcNow());
+        // Monta o estado de chegada (opcional); estado inválido aborta o check-in.
+        ArrivalState? arrivalState = null;
+        if (command.ArrivalState is { } input)
+        {
+            var created = ArrivalState.Create(input.WeightKg, input.Condition, input.Observations);
+            if (created.IsFailure)
+            {
+                return created.Error;
+            }
+
+            arrivalState = created.Value;
+        }
+
+        var result = reservation.CheckIn(clock.GetUtcNow(), arrivalState);
         if (result.IsFailure)
         {
             return result.Error;

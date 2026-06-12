@@ -189,6 +189,70 @@ public class PetTests
     }
 
     [Fact]
+    public void Criar_pertence_normaliza_textos()
+    {
+        var result = Belonging.Create(" Cobertor azul ", 2, "  ");
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Cobertor azul", result.Value.Name); // trim
+        Assert.Equal(2, result.Value.Quantity);
+        Assert.Null(result.Value.Notes); // em branco vira null
+    }
+
+    [Fact]
+    public void Criar_pertence_sem_nome_falha()
+    {
+        var result = Belonging.Create("  ", 1, null);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("belonging.name_required", result.Error.Code);
+    }
+
+    [Fact]
+    public void Criar_pertence_com_quantidade_invalida_falha()
+    {
+        var result = Belonging.Create("Coleira", 0, null);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("belonging.quantity_invalid", result.Error.Code);
+    }
+
+    [Fact]
+    public void Editar_pet_guarda_pertences()
+    {
+        var pet = Register().Value;
+        var belongings = new[]
+        {
+            Belonging.Create("Coleira", 1, "vermelha").Value,
+            Belonging.Create("Brinquedo", 2, null).Value,
+        };
+
+        var result = pet.Update(
+            "Rex", Species.Dog, null, null, null, null, null, null, null,
+            null, null, null, null, null, Today, belongings: belongings);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, pet.Belongings.Count);
+        Assert.Equal("Coleira", pet.Belongings[0].Name);
+        Assert.Equal("vermelha", pet.Belongings[0].Notes);
+        Assert.Equal(2, pet.Belongings[1].Quantity);
+    }
+
+    [Fact]
+    public void Editar_pet_sem_pertences_limpa_a_lista()
+    {
+        var pet = Register().Value;
+        pet.Update("Rex", Species.Dog, null, null, null, null, null, null, null,
+            null, null, null, null, null, Today, belongings: [Belonging.Create("Coleira", 1, null).Value]);
+
+        var result = pet.Update("Rex", Species.Dog, null, null, null, null, null, null, null,
+            null, null, null, null, null, Today);
+
+        Assert.True(result.IsSuccess);
+        Assert.Empty(pet.Belongings);
+    }
+
+    [Fact]
     public void Editar_pet_sem_nome_falha_e_preserva_estado()
     {
         var pet = Register(name: "Rex").Value;

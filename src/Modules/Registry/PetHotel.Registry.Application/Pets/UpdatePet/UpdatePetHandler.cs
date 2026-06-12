@@ -56,6 +56,19 @@ public static class UpdatePetHandler
             feedingRoutine = routine.Value;
         }
 
+        // Monta os pertences trazidos; o primeiro inválido aborta a edição.
+        var belongings = new List<Belonging>();
+        foreach (var input in command.Belongings ?? [])
+        {
+            var belonging = Belonging.Create(input.Name, input.Quantity, input.Notes);
+            if (belonging.IsFailure)
+            {
+                return belonging.Error;
+            }
+
+            belongings.Add(belonging.Value);
+        }
+
         var result = pet.Update(
             command.Name,
             command.Species,
@@ -72,7 +85,8 @@ public static class UpdatePetHandler
             command.Destructiveness,
             command.BehaviorNotes,
             today,
-            feedingRoutine);
+            feedingRoutine,
+            belongings);
 
         if (result.IsFailure)
         {

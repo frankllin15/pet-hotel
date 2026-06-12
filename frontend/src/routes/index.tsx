@@ -12,6 +12,7 @@ import { PetFormPage } from "@/features/registry/pages/pet-form-page";
 import { PetDetailPage } from "@/features/registry/pages/pet-detail-page";
 import { ReservationsPage } from "@/features/booking/pages/reservations-page";
 import { ReservationFormPage } from "@/features/booking/pages/reservation-form-page";
+import { ReservationDetailPage } from "@/features/booking/pages/reservation-detail-page";
 import { AccommodationsPage } from "@/features/booking/pages/accommodations-page";
 import { OccupancyPage } from "@/features/booking/pages/occupancy-page";
 
@@ -38,6 +39,7 @@ export const routes: RouteObject[] = [
           { path: "registry/pets/:id/edit", element: <PetFormPage /> },
           { path: "booking/reservations", element: <ReservationsPage /> },
           { path: "booking/reservations/new", element: <ReservationFormPage /> },
+          { path: "booking/reservations/:id", element: <ReservationDetailPage /> },
           { path: "booking/accommodations", element: <AccommodationsPage /> },
           { path: "booking/occupancy", element: <OccupancyPage /> },
           { path: "*", element: <PlaceholderPage title="Página não encontrada" /> },

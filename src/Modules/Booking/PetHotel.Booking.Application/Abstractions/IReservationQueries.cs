@@ -10,4 +10,7 @@ public interface IReservationQueries
     Task<IReadOnlyList<ReservationDto>> ListAsync(
         ReservationStatus? status,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Uma reserva por Id no tenant corrente; null se não existir.</summary>
+    Task<ReservationDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 }

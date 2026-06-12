@@ -167,6 +167,24 @@ export function PetDetailPage() {
               </Card>
               <Card>
                 <CardHeader>
+                  <CardTitle className="text-sm">Pertences trazidos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {pet.belongings.length > 0 ? (
+                    pet.belongings.map((b, i) => (
+                      <InfoRow
+                        key={i}
+                        label={b.notes ? `${b.name} — ${b.notes}` : b.name}
+                        value={`${b.quantity}×`}
+                      />
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">Nenhum pertence registrado.</p>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
                   <CardTitle className="text-sm">Avaliação comportamental</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">

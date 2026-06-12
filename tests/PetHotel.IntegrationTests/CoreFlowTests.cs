@@ -141,6 +141,32 @@ public sealed class CoreFlowTests : IAsyncLifetime
             $"/v1/occupancy?from={today:yyyy-MM-dd}&to={today.AddDays(30):yyyy-MM-dd}");
         Assert.NotNull(occupancy);
         Assert.Contains(occupancy!, e => e.ReservationId == reservationId && e.PetId == petId);
+
+        // Check-in com estado de chegada (corpo opcional) → 204; estado persiste e volta na leitura.
+        var checkInResponse = await _client.PostAsJsonAsync($"/v1/reservations/{reservationId}/check-in", new
+        {
+            weightKg = 9.2m,
+            condition = "MinorIssues",
+            observations = "Chegou agitado"
+        });
+        Assert.Equal(HttpStatusCode.NoContent, checkInResponse.StatusCode);
+
+        var reservations = await _client.GetFromJsonAsync<List<ReservationDto>>("/v1/reservations");
+        var checkedIn = reservations!.Single(r => r.Id == reservationId);
+        Assert.Equal("CheckedIn", checkedIn.Status);
+        Assert.NotNull(checkedIn.ArrivalState);
+        Assert.Equal(9.2m, checkedIn.ArrivalState!.WeightKg);
+        Assert.Equal("MinorIssues", checkedIn.ArrivalState.Condition);
+        Assert.Equal("Chegou agitado", checkedIn.ArrivalState.Observations);
+
+        // Detalhe da reserva por Id reflete o mesmo estado.
+        var detail = await _client.GetFromJsonAsync<ReservationDto>($"/v1/reservations/{reservationId}");
+        Assert.Equal("CheckedIn", detail!.Status);
+        Assert.Equal("Chegou agitado", detail.ArrivalState!.Observations);
+
+        // Id inexistente → 404.
+        var missing = await _client.GetAsync($"/v1/reservations/{Guid.NewGuid()}");
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
     }
 
     private async Task<Guid> CreateAsync(string url, object body)

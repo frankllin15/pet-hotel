@@ -20,6 +20,7 @@ public sealed record PetDto(
     string? Destructiveness,
     string? BehaviorNotes,
     FeedingRoutineDto? FeedingRoutine,
+    IReadOnlyList<BelongingDto> Belongings,
     DateTimeOffset CreatedAt);
 
 /// <summary>Rotina alimentar do pet (leitura).</summary>
@@ -29,3 +30,9 @@ public sealed record FeedingRoutineDto(
     IReadOnlyList<TimeOnly> MealTimes,
     string? Restrictions,
     string FoodSource);
+
+/// <summary>Pertence trazido pelo pet (leitura).</summary>
+public sealed record BelongingDto(
+    string Name,
+    int Quantity,
+    string? Notes);

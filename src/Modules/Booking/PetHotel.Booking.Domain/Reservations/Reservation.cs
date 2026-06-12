@@ -22,6 +22,9 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
     /// <summary>Momento real do check-out (saída do pet). Nulo enquanto não houve check-out.</summary>
     public DateTimeOffset? CheckedOutAt { get; private set; }
 
+    /// <summary>Estado do pet registrado na chegada. Nulo se não foi informado no check-in.</summary>
+    public ArrivalState? ArrivalState { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
@@ -87,7 +90,7 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
     /// Registra a entrada do pet (check-in). Só a partir de <see cref="ReservationStatus.Confirmed"/>:
     /// não se faz check-in de reserva apenas solicitada, já em estadia ou encerrada/cancelada.
     /// </summary>
-    public Result CheckIn(DateTimeOffset now)
+    public Result CheckIn(DateTimeOffset now, ArrivalState? arrivalState = null)
     {
         if (Status != ReservationStatus.Confirmed)
         {
@@ -96,6 +99,7 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
 
         Status = ReservationStatus.CheckedIn;
         CheckedInAt = now;
+        ArrivalState = arrivalState;
         Raise(new ReservationCheckedIn(Id, TenantId, Pet, now));
         return Result.Success();
     }

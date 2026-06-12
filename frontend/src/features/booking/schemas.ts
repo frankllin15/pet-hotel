@@ -33,3 +33,11 @@ export const RESERVATION_STATUS_LABELS: Record<string, string> = {
   CheckedOut: "Finalizada",
   Cancelled: "Cancelada",
 };
+
+/** Condições de chegada (valores batem com ArrivalCondition do backend). */
+export const ARRIVAL_CONDITIONS = ["Healthy", "MinorIssues", "NeedsAttention"] as const;
+export const ARRIVAL_CONDITION_LABELS: Record<string, string> = {
+  Healthy: "Saudável",
+  MinorIssues: "Alterações leves",
+  NeedsAttention: "Requer atenção",
+};

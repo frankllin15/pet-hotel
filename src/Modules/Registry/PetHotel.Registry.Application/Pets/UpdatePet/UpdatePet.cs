@@ -20,4 +20,5 @@ public sealed record UpdatePet(
     BehaviorLevel? Fear = null,
     BehaviorLevel? Destructiveness = null,
     string? BehaviorNotes = null,
-    FeedingRoutineInput? FeedingRoutine = null);
+    FeedingRoutineInput? FeedingRoutine = null,
+    IReadOnlyList<BelongingInput>? Belongings = null);

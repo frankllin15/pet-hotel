@@ -32,6 +32,9 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
     /// <summary>Rotina alimentar (opcional; preenchida quando o tutor informa).</summary>
     public FeedingRoutine? FeedingRoutine { get; private set; }
 
+    /// <summary>Pertences que o pet traz para a hospedagem (coleira, brinquedos, cobertor, etc.).</summary>
+    public List<Belonging> Belongings { get; private set; } = [];
+
     public string? Notes { get; private set; }
 
     /// <summary>Chave do arquivo da foto no storage (tenant-scoped). Null = sem foto.</summary>
@@ -84,7 +87,8 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
         string? microchipCode,
         string? notes,
         DateOnly today,
-        FeedingRoutine? feedingRoutine = null)
+        FeedingRoutine? feedingRoutine = null,
+        IEnumerable<Belonging>? belongings = null)
     {
         if (tenantId.Value == Guid.Empty)
         {
@@ -121,6 +125,7 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
             string.IsNullOrWhiteSpace(notes) ? null : notes.Trim())
         {
             FeedingRoutine = feedingRoutine,
+            Belongings = belongings?.ToList() ?? [],
         };
 
         pet.Raise(new PetRegistered(pet.Id, tenantId, tutorId));
@@ -147,7 +152,8 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
         BehaviorLevel? destructiveness,
         string? behaviorNotes,
         DateOnly today,
-        FeedingRoutine? feedingRoutine = null)
+        FeedingRoutine? feedingRoutine = null,
+        IEnumerable<Belonging>? belongings = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -174,6 +180,7 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
         Destructiveness = destructiveness;
         BehaviorNotes = string.IsNullOrWhiteSpace(behaviorNotes) ? null : behaviorNotes.Trim();
         FeedingRoutine = feedingRoutine;
+        Belongings = belongings?.ToList() ?? [];
         return Result.Success();
     }
 

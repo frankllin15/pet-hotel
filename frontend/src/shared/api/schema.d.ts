@@ -429,7 +429,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Registra o check-in (entrada) de uma reserva confirmada. */
+        /**
+         * Registra o check-in (entrada) de uma reserva confirmada.
+         * @description Corpo opcional com o estado de chegada (peso, condição, observações).
+         */
         post: operations["CheckInReservation"];
         delete?: never;
         options?: never;
@@ -465,6 +468,23 @@ export interface paths {
         put?: never;
         /** Cancela a reserva. */
         post: operations["CancelReservation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reservations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Busca uma reserva por Id no tenant corrente. */
+        get: operations["GetReservationById"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -522,6 +542,20 @@ export interface components {
             token: string;
             password: string;
         };
+        /** @enum {unknown} */
+        ArrivalCondition: "Healthy" | "MinorIssues" | "NeedsAttention";
+        ArrivalStateDto: {
+            /** Format: double */
+            weightKg: null | number | string;
+            condition: string;
+            observations: null | string;
+        };
+        ArrivalStateInput: {
+            /** Format: double */
+            weightKg: null | number | string;
+            condition: components["schemas"]["ArrivalCondition"];
+            observations: null | string;
+        };
         AuthorizedPickupDto: {
             name: string;
             document: null | string;
@@ -532,6 +566,18 @@ export interface components {
         };
         /** @enum {unknown} */
         BehaviorLevel: "Low" | "Medium" | "High" | null;
+        BelongingDto: {
+            name: string;
+            /** Format: int32 */
+            quantity: number | string;
+            notes: null | string;
+        };
+        BelongingInput: {
+            name: string;
+            /** Format: int32 */
+            quantity: number | string;
+            notes: null | string;
+        };
         BillingInfoDto: {
             document: string;
             billingEmail: null | string;
@@ -672,6 +718,7 @@ export interface components {
             destructiveness: null | string;
             behaviorNotes: null | string;
             feedingRoutine: null | components["schemas"]["FeedingRoutineDto"];
+            belongings: components["schemas"]["BelongingDto"][];
             /** Format: date-time */
             createdAt: string;
         };
@@ -732,6 +779,7 @@ export interface components {
             microchipCode: null | string;
             notes: null | string;
             feedingRoutine?: null | components["schemas"]["FeedingRoutineInput"];
+            belongings?: null | components["schemas"]["BelongingInput"][];
         };
         RegisterTutor: {
             fullName: string;
@@ -764,6 +812,7 @@ export interface components {
             checkedInAt: null | string;
             /** Format: date-time */
             checkedOutAt: null | string;
+            arrivalState: null | components["schemas"]["ArrivalStateDto"];
         };
         SetVetContactRequest: {
             name: string;
@@ -823,6 +872,7 @@ export interface components {
             destructiveness?: null | components["schemas"]["BehaviorLevel"];
             behaviorNotes?: null | string;
             feedingRoutine?: null | components["schemas"]["FeedingRoutineInput"];
+            belongings?: null | components["schemas"]["BelongingInput"][];
         };
         UpdateTenantConfiguration: {
             accommodationTypes: components["schemas"]["AccommodationTypeInput"][];
@@ -2179,7 +2229,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": null | components["schemas"]["ArrivalStateInput"];
+            };
+        };
         responses: {
             /** @description No Content */
             204: {
@@ -2187,6 +2241,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
             /** @description Not Found */
             404: {
@@ -2275,6 +2338,37 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetReservationById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

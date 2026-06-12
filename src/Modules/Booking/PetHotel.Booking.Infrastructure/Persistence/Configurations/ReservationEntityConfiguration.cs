@@ -44,6 +44,9 @@ public sealed class ReservationEntityConfiguration : IEntityTypeConfiguration<Re
         builder.Property(r => r.CheckedInAt).HasColumnName("checked_in_at");
         builder.Property(r => r.CheckedOutAt).HasColumnName("checked_out_at");
 
+        // Estado de chegada persistido como JSON dentro da linha (owned, opcional).
+        builder.OwnsOne(r => r.ArrivalState, owned => owned.ToJson());
+
         builder.Property(r => r.CreatedAt).IsRequired();
         builder.Property(r => r.CreatedBy).HasMaxLength(200);
         builder.Property(r => r.UpdatedBy).HasMaxLength(200);

@@ -7,8 +7,10 @@ import {
   createAccommodation,
   createReservation,
   getOccupancy,
+  getReservation,
   listAccommodations,
   listReservations,
+  type ArrivalStateInput,
   type CreateReservationBody,
 } from "./api";
 
@@ -16,6 +18,7 @@ export const bookingKeys = {
   all: ["booking"] as const,
   accommodations: () => ["booking", "accommodations"] as const,
   reservations: (status?: string) => ["booking", "reservations", { status: status || undefined }] as const,
+  reservation: (id: string) => ["booking", "reservation", id] as const,
   occupancy: (from: string, to: string) => ["booking", "occupancy", { from, to }] as const,
 };
 
@@ -27,6 +30,14 @@ export function useReservations(status?: string) {
   return useQuery({
     queryKey: bookingKeys.reservations(status),
     queryFn: () => listReservations(status),
+  });
+}
+
+export function useReservation(id: string) {
+  return useQuery({
+    queryKey: bookingKeys.reservation(id),
+    queryFn: () => getReservation(id),
+    enabled: !!id,
   });
 }
 
@@ -64,7 +75,8 @@ export function useConfirmReservation() {
 export function useCheckInReservation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => checkInReservation(id),
+    mutationFn: (vars: { id: string; arrivalState?: ArrivalStateInput }) =>
+      checkInReservation(vars.id, vars.arrivalState),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
   });
 }

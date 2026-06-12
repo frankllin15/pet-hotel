@@ -79,10 +79,12 @@ export function PetFormPage() {
       feedingMealTimes: [],
       feedingRestrictions: "",
       feedingFoodSource: "",
+      belongings: [],
     },
   });
 
   const mealTimes = useFieldArray({ control, name: "feedingMealTimes" });
+  const belongings = useFieldArray({ control, name: "belongings" });
 
   // Pré-preenche o formulário quando o pet é carregado (edição).
   useEffect(() => {
@@ -110,6 +112,7 @@ export function PetFormPage() {
       feedingMealTimes: pet.feedingRoutine?.mealTimes.map((t) => ({ time: t.slice(0, 5) })) ?? [],
       feedingRestrictions: pet.feedingRoutine?.restrictions ?? "",
       feedingFoodSource: (pet.feedingRoutine?.foodSource ?? "") as PetFormInput["feedingFoodSource"],
+      belongings: pet.belongings.map((b) => ({ name: b.name, quantity: Number(b.quantity), notes: b.notes ?? "" })),
     });
   }, [petQuery.data, reset]);
 
@@ -134,6 +137,11 @@ export function PetFormPage() {
               foodSource: values.feedingFoodSource,
             }
           : null,
+      belongings: values.belongings.map((b) => ({
+        name: b.name,
+        quantity: b.quantity,
+        notes: b.notes ? b.notes : null,
+      })),
     };
 
     if (isEdit) {
@@ -329,6 +337,80 @@ export function PetFormPage() {
             {...register("feedingRestrictions")}
           />
         </Field>
+      </div>
+
+      <div className="space-y-3 rounded-xl border bg-card p-4 shadow-card">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h3 className="font-display text-base font-semibold">Pertences trazidos</h3>
+            <p className="text-xs text-muted-foreground">
+              Itens que o pet traz para a hospedagem (coleira, brinquedos, cobertor, remédios).
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => belongings.append({ name: "", quantity: 1, notes: "" })}
+          >
+            <Plus /> Adicionar pertence
+          </Button>
+        </div>
+        {belongings.fields.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhum pertence.</p>
+        ) : (
+          belongings.fields.map((field, index) => (
+            <div key={field.id} className="flex items-end gap-2">
+              <div className="grid flex-1 gap-3 sm:grid-cols-[1fr_5rem_1fr]">
+                <Field
+                  label={`Item ${index + 1}`}
+                  htmlFor={`belonging-name-${index}`}
+                  error={errors.belongings?.[index]?.name?.message}
+                >
+                  <Input
+                    id={`belonging-name-${index}`}
+                    placeholder="ex.: Cobertor azul"
+                    aria-invalid={!!errors.belongings?.[index]?.name}
+                    {...register(`belongings.${index}.name`)}
+                  />
+                </Field>
+                <Field
+                  label="Qtd."
+                  htmlFor={`belonging-quantity-${index}`}
+                  error={errors.belongings?.[index]?.quantity?.message}
+                >
+                  <Input
+                    id={`belonging-quantity-${index}`}
+                    type="number"
+                    min={1}
+                    aria-invalid={!!errors.belongings?.[index]?.quantity}
+                    {...register(`belongings.${index}.quantity`, { valueAsNumber: true })}
+                  />
+                </Field>
+                <Field
+                  label="Observação"
+                  htmlFor={`belonging-notes-${index}`}
+                  error={errors.belongings?.[index]?.notes?.message}
+                >
+                  <Input
+                    id={`belonging-notes-${index}`}
+                    placeholder="opcional"
+                    {...register(`belongings.${index}.notes`)}
+                  />
+                </Field>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Remover pertence"
+                onClick={() => belongings.remove(index)}
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          ))
+        )}
       </div>
 
       {isEdit && (

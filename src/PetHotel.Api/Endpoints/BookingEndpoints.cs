@@ -10,6 +10,7 @@ using PetHotel.Booking.Application.Reservations.CheckOutReservation;
 using PetHotel.Booking.Application.Reservations.ConfirmReservation;
 using PetHotel.Booking.Application.Reservations.CreateReservation;
 using PetHotel.Booking.Application.Reservations.GetOccupancy;
+using PetHotel.Booking.Application.Reservations.GetReservationById;
 using PetHotel.Booking.Application.Reservations.ListReservations;
 using PetHotel.Booking.Domain.Ports;
 using PetHotel.SharedKernel;
@@ -80,14 +81,17 @@ public static class BookingEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
-        group.MapPost("/reservations/{id:guid}/check-in", async (Guid id, IMessageBus bus, CancellationToken ct) =>
+        group.MapPost("/reservations/{id:guid}/check-in", async (
+                Guid id, ArrivalStateInput? arrivalState, IMessageBus bus, CancellationToken ct) =>
             {
-                var result = await bus.InvokeAsync<Result>(new CheckInReservation(id), ct);
+                var result = await bus.InvokeAsync<Result>(new CheckInReservation(id, arrivalState), ct);
                 return result.ToHttpResult(Results.NoContent());
             })
             .WithName("CheckInReservation")
             .WithSummary("Registra o check-in (entrada) de uma reserva confirmada.")
+            .WithDescription("Corpo opcional com o estado de chegada (peso, condição, observações).")
             .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
@@ -122,6 +126,16 @@ public static class BookingEndpoints
             .WithSummary("Lista reservas do tenant corrente (filtro opcional por status).")
             .Produces<IReadOnlyList<ReservationDto>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest);
+
+        group.MapGet("/reservations/{id:guid}", async (Guid id, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<ReservationDto>>(new GetReservationById(id), ct);
+                return result.ToHttpResult(Results.Ok);
+            })
+            .WithName("GetReservationById")
+            .WithSummary("Busca uma reserva por Id no tenant corrente.")
+            .Produces<ReservationDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapGet("/occupancy", async (DateOnly from, DateOnly to, IMessageBus bus, CancellationToken ct) =>
             {

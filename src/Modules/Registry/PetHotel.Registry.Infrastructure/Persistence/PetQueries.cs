@@ -87,5 +87,8 @@ public sealed class PetQueries(RegistryDbContext dbContext) : IPetQueries
                     routine.Restrictions,
                     routine.FoodSource.ToString())
                 : null,
+            pet.Belongings
+                .Select(b => new BelongingDto(b.Name, b.Quantity, b.Notes))
+                .ToList(),
             pet.CreatedAt);
 }

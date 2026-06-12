@@ -23,5 +23,12 @@ public sealed class RegisterPetValidator : AbstractValidator<RegisterPet>
             routine.RuleFor(r => r.Restrictions).MaximumLength(1000);
             routine.RuleFor(r => r.FoodSource).IsInEnum();
         }).When(x => x.FeedingRoutine is not null);
+
+        RuleForEach(x => x.Belongings).ChildRules(belonging =>
+        {
+            belonging.RuleFor(b => b.Name).NotEmpty().MaximumLength(120);
+            belonging.RuleFor(b => b.Quantity).GreaterThan(0);
+            belonging.RuleFor(b => b.Notes).MaximumLength(500);
+        });
     }
 }

@@ -119,6 +119,14 @@ export const petFormSchema = z
     feedingMealTimes: z.array(z.object({ time: z.string().min(1, "Informe o horário") })),
     feedingRestrictions: z.string().max(1000).optional().or(z.literal("")),
     feedingFoodSource: z.enum(FOOD_SOURCES).or(z.literal("")),
+    // Pertences trazidos pelo pet (lista dinâmica).
+    belongings: z.array(
+      z.object({
+        name: z.string().min(1, "Informe o pertence").max(120),
+        quantity: z.number({ message: "Quantidade inválida" }).int("Quantidade inválida").min(1, "Mínimo 1"),
+        notes: z.string().max(500).optional().or(z.literal("")),
+      }),
+    ),
   })
   .superRefine((values, ctx) => {
     const hasDetails =

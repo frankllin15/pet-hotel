@@ -94,6 +94,50 @@ public class ReservationTests
     }
 
     [Fact]
+    public void Checkin_com_estado_de_chegada_guarda_o_estado()
+    {
+        var reservation = NewConfirmed();
+        var arrival = ArrivalState.Create(8.5m, ArrivalCondition.MinorIssues, " agitado ").Value;
+
+        var result = reservation.CheckIn(Now, arrival);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(reservation.ArrivalState);
+        Assert.Equal(8.5m, reservation.ArrivalState!.WeightKg);
+        Assert.Equal(ArrivalCondition.MinorIssues, reservation.ArrivalState.Condition);
+        Assert.Equal("agitado", reservation.ArrivalState.Observations); // trim
+    }
+
+    [Fact]
+    public void Checkin_sem_estado_de_chegada_deixa_nulo()
+    {
+        var reservation = NewConfirmed();
+
+        var result = reservation.CheckIn(Now);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(reservation.ArrivalState);
+    }
+
+    [Fact]
+    public void Estado_de_chegada_com_peso_nao_positivo_falha()
+    {
+        var result = ArrivalState.Create(0m, ArrivalCondition.Healthy, null);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("arrival_state.weight_invalid", result.Error.Code);
+    }
+
+    [Fact]
+    public void Estado_de_chegada_com_condicao_invalida_falha()
+    {
+        var result = ArrivalState.Create(null, (ArrivalCondition)99, null);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("arrival_state.condition_invalid", result.Error.Code);
+    }
+
+    [Fact]
     public void Checkin_de_reserva_nao_confirmada_bloqueia()
     {
         var reservation = NewRequested();

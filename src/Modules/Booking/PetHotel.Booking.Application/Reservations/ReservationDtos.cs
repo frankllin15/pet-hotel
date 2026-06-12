@@ -9,7 +9,14 @@ public sealed record ReservationDto(
     DateOnly CheckOut,
     string Status,
     DateTimeOffset? CheckedInAt,
-    DateTimeOffset? CheckedOutAt);
+    DateTimeOffset? CheckedOutAt,
+    ArrivalStateDto? ArrivalState);
+
+/// <summary>Estado do pet na chegada (leitura).</summary>
+public sealed record ArrivalStateDto(
+    decimal? WeightKg,
+    string Condition,
+    string? Observations);
 
 /// <summary>Linha do calendário de ocupação (reservas confirmadas).</summary>
 public sealed record OccupancyEntryDto(

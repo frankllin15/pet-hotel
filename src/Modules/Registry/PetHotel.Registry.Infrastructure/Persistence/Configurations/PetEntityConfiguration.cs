@@ -53,6 +53,9 @@ public sealed class PetEntityConfiguration : IEntityTypeConfiguration<Pet>
         // Rotina alimentar persistida como JSON dentro da linha (mesmo padrão das coleções do Tutor).
         builder.OwnsOne(p => p.FeedingRoutine, owned => owned.ToJson());
 
+        // Pertences trazidos persistidos como JSON dentro da linha (coleção owned).
+        builder.OwnsMany(p => p.Belongings, owned => owned.ToJson());
+
         builder.Property(p => p.CreatedAt).IsRequired();
         builder.Property(p => p.CreatedBy).HasMaxLength(200);
         builder.Property(p => p.UpdatedBy).HasMaxLength(200);

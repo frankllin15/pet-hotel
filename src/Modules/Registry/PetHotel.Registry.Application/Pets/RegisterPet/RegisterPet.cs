@@ -14,7 +14,8 @@ public sealed record RegisterPet(
     bool? Neutered,
     string? MicrochipCode,
     string? Notes,
-    FeedingRoutineInput? FeedingRoutine = null);
+    FeedingRoutineInput? FeedingRoutine = null,
+    IReadOnlyList<BelongingInput>? Belongings = null);
 
 /// <summary>Rotina alimentar informada no cadastro/edição do pet.</summary>
 public sealed record FeedingRoutineInput(
@@ -23,3 +24,9 @@ public sealed record FeedingRoutineInput(
     IReadOnlyList<TimeOnly>? MealTimes,
     string? Restrictions,
     FoodSource FoodSource);
+
+/// <summary>Pertence trazido pelo pet, informado no cadastro/edição.</summary>
+public sealed record BelongingInput(
+    string Name,
+    int Quantity,
+    string? Notes);

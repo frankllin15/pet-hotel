@@ -24,16 +24,29 @@ public sealed class ReservationQueries(BookingDbContext dbContext) : IReservatio
             .ThenBy(r => r.Period.End)
             .ToListAsync(cancellationToken);
 
-        return rows
-            .Select(r => new ReservationDto(
-                r.Id.Value,
-                r.Pet.Value,
-                r.AccommodationId.Value,
-                r.Period.Start,
-                r.Period.End,
-                r.Status.ToString(),
-                r.CheckedInAt,
-                r.CheckedOutAt))
-            .ToList();
+        return rows.Select(ToDto).ToList();
     }
+
+    public async Task<ReservationDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var reservation = await dbContext.Reservations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == new ReservationId(id), cancellationToken);
+
+        return reservation is null ? null : ToDto(reservation);
+    }
+
+    private static ReservationDto ToDto(Reservation r) =>
+        new(
+            r.Id.Value,
+            r.Pet.Value,
+            r.AccommodationId.Value,
+            r.Period.Start,
+            r.Period.End,
+            r.Status.ToString(),
+            r.CheckedInAt,
+            r.CheckedOutAt,
+            r.ArrivalState is { } a
+                ? new ArrivalStateDto(a.WeightKg, a.Condition.ToString(), a.Observations)
+                : null);
 }

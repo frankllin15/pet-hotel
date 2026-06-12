@@ -61,6 +61,19 @@ public static class RegisterPetHandler
             feedingRoutine = routine.Value;
         }
 
+        // Monta os pertences trazidos; o primeiro inválido aborta o cadastro.
+        var belongings = new List<Belonging>();
+        foreach (var input in command.Belongings ?? [])
+        {
+            var belonging = Belonging.Create(input.Name, input.Quantity, input.Notes);
+            if (belonging.IsFailure)
+            {
+                return belonging.Error;
+            }
+
+            belongings.Add(belonging.Value);
+        }
+
         var result = Pet.Register(
             tenantContext.Current,
             tutorId,
@@ -74,7 +87,8 @@ public static class RegisterPetHandler
             command.MicrochipCode,
             command.Notes,
             today,
-            feedingRoutine);
+            feedingRoutine,
+            belongings);
 
         if (result.IsFailure)
         {
