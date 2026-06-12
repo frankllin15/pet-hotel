@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Npgsql;
 using PetHotel.Booking.Application.Abstractions;
 using PetHotel.Booking.Application.Accommodations.CreateAccommodation;
 using PetHotel.Booking.Application.Reservations.CreateReservation;
@@ -16,13 +17,13 @@ namespace PetHotel.Booking.Infrastructure;
 /// <summary>Ponto único de registro DI do módulo Booking (docs/02).</summary>
 public static class BookingModuleExtensions
 {
-    public static IServiceCollection AddBookingModule(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddBookingModule(this IServiceCollection services, NpgsqlDataSource dataSource)
     {
         services.TryAddScoped<TenantAuditingInterceptor>();
 
         services.AddDbContext<BookingDbContext>((serviceProvider, options) =>
             options
-                .UseNpgsql(connectionString, npgsql =>
+                .UseNpgsql(dataSource, npgsql =>
                     npgsql.MigrationsHistoryTable("__EFMigrationsHistory", BookingDbContext.Schema))
                 .AddInterceptors(serviceProvider.GetRequiredService<TenantAuditingInterceptor>()));
 

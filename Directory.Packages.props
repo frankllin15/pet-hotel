@@ -23,6 +23,9 @@
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="Riok.Mapperly" Version="4.3.1" />
 
+    <!-- Geração de dados para testes de carga (seeder) -->
+    <PackageVersion Include="Bogus" Version="35.6.1" />
+
     <!-- Observabilidade e resiliência (docs/05) -->
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />

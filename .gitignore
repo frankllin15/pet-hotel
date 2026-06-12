@@ -7,3 +7,6 @@ riderModule.iml
 # Uploads de arquivos em dev (storage local de IFileStorage)
 App_Data/
 **/App_Data/
+
+# Manifesto gerado pelo seeder de carga (tokens) — não versionar
+loadtest/manifest.json

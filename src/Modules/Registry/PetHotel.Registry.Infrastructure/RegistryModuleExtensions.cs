@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Npgsql;
 using PetHotel.BuildingBlocks.Persistence;
 using PetHotel.Registry.Application.Abstractions;
 using PetHotel.Registry.Application.Pets.RegisterPet;
@@ -17,13 +18,13 @@ namespace PetHotel.Registry.Infrastructure;
 /// <summary>Ponto único de registro DI do módulo Registry (docs/02).</summary>
 public static class RegistryModuleExtensions
 {
-    public static IServiceCollection AddRegistryModule(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddRegistryModule(this IServiceCollection services, NpgsqlDataSource dataSource)
     {
         services.TryAddScoped<TenantAuditingInterceptor>();
 
         services.AddDbContext<RegistryDbContext>((serviceProvider, options) =>
             options
-                .UseNpgsql(connectionString, npgsql =>
+                .UseNpgsql(dataSource, npgsql =>
                     npgsql.MigrationsHistoryTable("__EFMigrationsHistory", RegistryDbContext.Schema))
                 .AddInterceptors(serviceProvider.GetRequiredService<TenantAuditingInterceptor>()));
 

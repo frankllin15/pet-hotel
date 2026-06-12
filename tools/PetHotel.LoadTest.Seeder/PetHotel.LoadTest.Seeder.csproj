@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>PetHotel.LoadTest.Seeder</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reusa os DbContexts/configs reais de cada módulo (mesmas conversões/jsonb/índices). -->
+    <ProjectReference Include="..\..\src\Modules\Registry\PetHotel.Registry.Infrastructure\PetHotel.Registry.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Booking\PetHotel.Booking.Infrastructure\PetHotel.Booking.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Health\PetHotel.Health.Infrastructure\PetHotel.Health.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Bogus" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+  </ItemGroup>
+
+</Project>

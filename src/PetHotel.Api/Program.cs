@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -27,6 +28,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("Postgres")
     ?? throw new InvalidOperationException("ConnectionStrings:Postgres não configurada.");
+
+// --- Pool de conexões único e compartilhado (docs/04) ---
+// Um NpgsqlDataSource = um pool. Compartilhado por todos os DbContexts e pelo
+// Wolverine para que 'Maximum Pool Size' seja o teto real do processo. Sem isso,
+// cada UseNpgsql(connectionString) cria um data source próprio (= pool próprio) e o
+// limite vira N × MaxPoolSize, estourando o max_connections do Postgres sob carga.
+var dataSource = new NpgsqlDataSourceBuilder(connectionString).Build();
+builder.Services.AddSingleton(dataSource);
 
 // --- Logging estruturado (docs/05) ---
 builder.Host.UseSerilog((context, loggerConfig) => loggerConfig
@@ -111,15 +120,15 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 // --- Módulos (cada um registra suas portas/adaptadores, docs/02) ---
-builder.Services.AddTenancyModule(connectionString);
-builder.Services.AddRegistryModule(connectionString);
-builder.Services.AddHealthModule(connectionString);
-builder.Services.AddBookingModule(connectionString);
+builder.Services.AddTenancyModule(dataSource);
+builder.Services.AddRegistryModule(dataSource);
+builder.Services.AddHealthModule(dataSource);
+builder.Services.AddBookingModule(dataSource);
 
 // --- Wolverine: mediator + Outbox durável no Postgres (docs/05) ---
 builder.Host.UseWolverine(opts =>
 {
-    opts.PersistMessagesWithPostgresql(connectionString);
+    opts.PersistMessagesWithPostgresql(dataSource);
     opts.UseEntityFrameworkCoreTransactions();
     opts.Policies.AutoApplyTransactions();
     opts.Policies.UseDurableLocalQueues();
