@@ -187,4 +187,7 @@ public sealed class Pet : AggregateRoot<PetId>, IHasTenant, IAuditable
         PhotoKey = string.IsNullOrWhiteSpace(key) ? null : key;
         return previous;
     }
+
+    /// <summary>Marca o pet como excluído (levanta o evento; a remoção física é do repositório).</summary>
+    public void Delete() => Raise(new PetDeleted(Id, TenantId, TutorId));
 }

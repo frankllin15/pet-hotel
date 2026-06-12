@@ -161,7 +161,11 @@ export interface paths {
         /** Edita um tutor existente no tenant corrente. */
         put: operations["UpdateTutor"];
         post?: never;
-        delete?: never;
+        /**
+         * Exclui um tutor do tenant corrente.
+         * @description Bloqueado (409) se o tutor ainda tiver pets vinculados.
+         */
+        delete: operations["DeleteTutor"];
         options?: never;
         head?: never;
         patch?: never;
@@ -203,7 +207,8 @@ export interface paths {
         /** Edita um pet existente no tenant corrente. */
         put: operations["UpdatePet"];
         post?: never;
-        delete?: never;
+        /** Exclui um pet do tenant corrente (e a foto associada). */
+        delete: operations["DeletePet"];
         options?: never;
         head?: never;
         patch?: never;
@@ -250,6 +255,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/pets/{petId}/vaccinations/{vaccinationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edita uma vacinação existente na ficha do pet. */
+        put: operations["UpdateVaccination"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pets/{petId}/parasite-treatments": {
         parameters: {
             query?: never;
@@ -264,6 +286,23 @@ export interface paths {
          * @description Cria a ficha de saúde se ainda não existir. Requer tenant no contexto.
          */
         post: operations["RegisterParasiteTreatment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pets/{petId}/parasite-treatments/{treatmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edita um controle de parasitas existente na ficha do pet. */
+        put: operations["UpdateParasiteTreatment"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1325,6 +1364,44 @@ export interface operations {
             };
         };
     };
+    DeleteTutor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     ListPets: {
         parameters: {
             query?: {
@@ -1483,6 +1560,35 @@ export interface operations {
             };
         };
     };
+    DeletePet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     SetPetPhoto: {
         parameters: {
             query?: never;
@@ -1602,6 +1708,49 @@ export interface operations {
             };
         };
     };
+    UpdateVaccination: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                petId: string;
+                vaccinationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterVaccinationRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     RegisterParasiteTreatment: {
         parameters: {
             query?: never;
@@ -1637,6 +1786,49 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateParasiteTreatment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                petId: string;
+                treatmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterParasiteTreatmentRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

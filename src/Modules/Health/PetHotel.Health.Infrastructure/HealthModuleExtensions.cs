@@ -6,7 +6,9 @@ using PetHotel.BuildingBlocks.Persistence;
 using PetHotel.Health.Application.Abstractions;
 using PetHotel.Health.Application.Contracts;
 using PetHotel.Health.Application.ParasiteTreatments.RegisterParasiteTreatment;
+using PetHotel.Health.Application.ParasiteTreatments.UpdateParasiteTreatment;
 using PetHotel.Health.Application.Vaccinations.RegisterVaccination;
+using PetHotel.Health.Application.Vaccinations.UpdateVaccination;
 using PetHotel.Health.Application.VetContacts.SetVetContact;
 using PetHotel.Health.Domain.Ports;
 using PetHotel.Health.Infrastructure.Persistence;
@@ -34,7 +36,9 @@ public static class HealthModuleExtensions
         services.AddScoped<IHealthClearanceContract, HealthClearanceContract>();
 
         services.AddScoped<IValidator<RegisterVaccination>, RegisterVaccinationValidator>();
+        services.AddScoped<IValidator<UpdateVaccination>, UpdateVaccinationValidator>();
         services.AddScoped<IValidator<RegisterParasiteTreatment>, RegisterParasiteTreatmentValidator>();
+        services.AddScoped<IValidator<UpdateParasiteTreatment>, UpdateParasiteTreatmentValidator>();
         services.AddScoped<IValidator<SetVetContact>, SetVetContactValidator>();
 
         return services;

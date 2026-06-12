@@ -4,8 +4,10 @@ using PetHotel.Api.Storage;
 using PetHotel.Health.Application.HealthRecords;
 using PetHotel.Health.Application.HealthRecords.GetPetHealth;
 using PetHotel.Health.Application.ParasiteTreatments.RegisterParasiteTreatment;
+using PetHotel.Health.Application.ParasiteTreatments.UpdateParasiteTreatment;
 using PetHotel.Health.Application.Vaccinations.RegisterVaccination;
 using PetHotel.Health.Application.Vaccinations.SetVaccinationPhoto;
+using PetHotel.Health.Application.Vaccinations.UpdateVaccination;
 using PetHotel.Health.Application.VetContacts.SetVetContact;
 using PetHotel.Health.Domain.HealthRecords;
 using PetHotel.SharedKernel;
@@ -49,6 +51,19 @@ public static class HealthEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden);
 
+        group.MapPut("/vaccinations/{vaccinationId:guid}",
+                async (Guid petId, Guid vaccinationId, RegisterVaccinationRequest body, IMessageBus bus, CancellationToken ct) =>
+                {
+                    var command = new UpdateVaccination(petId, vaccinationId, body.Type, body.AppliedOn, body.ExpiresOn);
+                    var result = await bus.InvokeAsync<Result>(command, ct);
+                    return result.ToHttpResult(Results.NoContent());
+                })
+            .WithName("UpdateVaccination")
+            .WithSummary("Edita uma vacinação existente na ficha do pet.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         group.MapPost("/parasite-treatments",
                 async (Guid petId, RegisterParasiteTreatmentRequest body, IMessageBus bus, CancellationToken ct) =>
                 {
@@ -62,6 +77,20 @@ public static class HealthEndpoints
             .Produces<CreatedResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        group.MapPut("/parasite-treatments/{treatmentId:guid}",
+                async (Guid petId, Guid treatmentId, RegisterParasiteTreatmentRequest body, IMessageBus bus, CancellationToken ct) =>
+                {
+                    var command = new UpdateParasiteTreatment(
+                        petId, treatmentId, body.Type, body.ProductName, body.AppliedOn, body.NextDueOn);
+                    var result = await bus.InvokeAsync<Result>(command, ct);
+                    return result.ToHttpResult(Results.NoContent());
+                })
+            .WithName("UpdateParasiteTreatment")
+            .WithSummary("Edita um controle de parasitas existente na ficha do pet.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPut("/vet-contact",
                 async (Guid petId, SetVetContactRequest body, IMessageBus bus, CancellationToken ct) =>

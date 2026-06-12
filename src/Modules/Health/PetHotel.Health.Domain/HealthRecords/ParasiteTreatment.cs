@@ -33,4 +33,13 @@ public sealed class ParasiteTreatment : Entity<ParasiteTreatmentId>
 
     /// <summary>Em dia na data informada? Null quando a próxima dose não foi informada.</summary>
     public bool? IsUpToDateOn(DateOnly date) => NextDueOn is { } due ? date <= due : null;
+
+    /// <summary>Edita os dados do controle de parasitas.</summary>
+    internal void Update(ParasiteTreatmentType type, string? productName, DateOnly appliedOn, DateOnly? nextDueOn)
+    {
+        Type = type;
+        ProductName = string.IsNullOrWhiteSpace(productName) ? null : productName.Trim();
+        AppliedOn = appliedOn;
+        NextDueOn = nextDueOn;
+    }
 }

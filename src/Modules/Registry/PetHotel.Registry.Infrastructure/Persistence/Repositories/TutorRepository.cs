@@ -17,4 +17,6 @@ public sealed class TutorRepository(RegistryDbContext dbContext) : ITutorReposit
         dbContext.Tutors.AnyAsync(t => t.Email == email, cancellationToken);
 
     public void Add(Tutor tutor) => dbContext.Tutors.Add(tutor);
+
+    public void Remove(Tutor tutor) => dbContext.Tutors.Remove(tutor);
 }

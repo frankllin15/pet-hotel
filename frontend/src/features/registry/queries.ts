@@ -5,7 +5,9 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
+  deletePet,
   deletePetPhoto,
+  deleteTutor,
   getPet,
   getTutor,
   listPets,
@@ -100,6 +102,26 @@ export function useUpdatePet(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: UpdatePetBody) => updatePet(id, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: registryKeys.all });
+    },
+  });
+}
+
+export function useDeleteTutor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteTutor(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: registryKeys.all });
+    },
+  });
+}
+
+export function useDeletePet() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deletePet(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: registryKeys.all });
     },

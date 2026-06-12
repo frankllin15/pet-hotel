@@ -148,4 +148,15 @@ public class TutorTests
         Assert.Equal(ErrorType.Validation, result.Error.Type);
         Assert.Equal("m@b.com", tutor.Email.Value); // preservado
     }
+
+    [Fact]
+    public void Excluir_tutor_levanta_evento()
+    {
+        var tutor = Tutor.Register(Tenant, "Maria", "m@b.com", "11999998888").Value;
+
+        tutor.Delete();
+
+        var evt = Assert.Single(tutor.DomainEvents, e => e is TutorDeleted);
+        Assert.Equal(tutor.Id, Assert.IsType<TutorDeleted>(evt).TutorId);
+    }
 }

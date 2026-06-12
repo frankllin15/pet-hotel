@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { formatDate } from "@/shared/lib/format";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
 import { Button } from "@/shared/ui/button";
 import { PhotoThumb } from "@/shared/ui/photo-uploader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import type { ParasiteTreatmentDto, VaccinationDto } from "../api";
 import { usePetHealth, useVaccinationPhoto } from "../queries";
 import { parasiteTreatmentLabel, vaccineLabel } from "../schemas";
 import { ClearanceBadge, ParasiteStatusTag, VaccineStatusTag } from "./clearance-badge";
@@ -14,8 +15,9 @@ import { VetContactCard } from "./vet-contact-card";
 
 /** Aba "Saúde" da ficha do pet: aptidão + vacinação + parasitas + veterinário. */
 export function PetHealthPanel({ petId }: { petId: string }) {
-  const [showForm, setShowForm] = useState(false);
-  const [showParasiteForm, setShowParasiteForm] = useState(false);
+  // null = fechado · "new" = registrar · DTO = editar aquele item.
+  const [vaccForm, setVaccForm] = useState<VaccinationDto | "new" | null>(null);
+  const [parasiteForm, setParasiteForm] = useState<ParasiteTreatmentDto | "new" | null>(null);
   const query = usePetHealth(petId);
   const vaccinePhoto = useVaccinationPhoto(petId);
 
@@ -36,8 +38,8 @@ export function PetHealthPanel({ petId }: { petId: string }) {
                     <span className="text-sm text-muted-foreground">Sem ficha de saúde ainda.</span>
                   )}
                 </div>
-                {!showForm && (
-                  <Button size="sm" onClick={() => setShowForm(true)}>
+                {vaccForm === null && (
+                  <Button size="sm" onClick={() => setVaccForm("new")}>
                     <Plus /> Registrar vacina
                   </Button>
                 )}
@@ -50,7 +52,13 @@ export function PetHealthPanel({ petId }: { petId: string }) {
                 </p>
               )}
 
-              {showForm && <VaccinationForm petId={petId} onDone={() => setShowForm(false)} />}
+              {vaccForm !== null && (
+                <VaccinationForm
+                  petId={petId}
+                  vaccination={vaccForm === "new" ? undefined : vaccForm}
+                  onDone={() => setVaccForm(null)}
+                />
+              )}
 
               {vaccinations.length > 0 ? (
                 <Table>
@@ -61,6 +69,7 @@ export function PetHealthPanel({ petId }: { petId: string }) {
                       <TableHead>Validade</TableHead>
                       <TableHead>Situação</TableHead>
                       <TableHead>Carteira</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -80,14 +89,25 @@ export function PetHealthPanel({ petId }: { petId: string }) {
                             }
                             onRemove={() => vaccinePhoto.remove.mutateAsync(v.id)}
                             alt={`Carteira de ${vaccineLabel(v.type)}`}
+                            confirmDescription={`A foto da carteira de ${vaccineLabel(v.type)} será removida permanentemente. Esta ação é irreversível.`}
                           />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            aria-label="Editar vacina"
+                            onClick={() => setVaccForm(v)}
+                          >
+                            <Pencil /> Editar
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               ) : (
-                !showForm && (
+                vaccForm === null && (
                   <p className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
                     Nenhuma vacina registrada.
                   </p>
@@ -96,15 +116,19 @@ export function PetHealthPanel({ petId }: { petId: string }) {
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                 <h3 className="text-sm font-semibold">Controle de parasitas</h3>
-                {!showParasiteForm && (
-                  <Button size="sm" variant="outline" onClick={() => setShowParasiteForm(true)}>
+                {parasiteForm === null && (
+                  <Button size="sm" variant="outline" onClick={() => setParasiteForm("new")}>
                     <Plus /> Registrar controle
                   </Button>
                 )}
               </div>
 
-              {showParasiteForm && (
-                <ParasiteTreatmentForm petId={petId} onDone={() => setShowParasiteForm(false)} />
+              {parasiteForm !== null && (
+                <ParasiteTreatmentForm
+                  petId={petId}
+                  treatment={parasiteForm === "new" ? undefined : parasiteForm}
+                  onDone={() => setParasiteForm(null)}
+                />
               )}
 
               {parasiteTreatments.length > 0 ? (
@@ -116,6 +140,7 @@ export function PetHealthPanel({ petId }: { petId: string }) {
                       <TableHead>Aplicado em</TableHead>
                       <TableHead>Próxima dose</TableHead>
                       <TableHead>Situação</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -128,12 +153,22 @@ export function PetHealthPanel({ petId }: { petId: string }) {
                         <TableCell>
                           <ParasiteStatusTag upToDate={t.upToDate} />
                         </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            aria-label="Editar controle"
+                            onClick={() => setParasiteForm(t)}
+                          >
+                            <Pencil /> Editar
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               ) : (
-                !showParasiteForm && (
+                parasiteForm === null && (
                   <p className="rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
                     Nenhum controle de parasitas registrado.
                   </p>

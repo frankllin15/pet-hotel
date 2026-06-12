@@ -13,4 +13,6 @@ public interface ITutorRepository
     Task<bool> EmailExistsAsync(Email email, CancellationToken cancellationToken = default);
 
     void Add(Tutor tutor);
+
+    void Remove(Tutor tutor);
 }

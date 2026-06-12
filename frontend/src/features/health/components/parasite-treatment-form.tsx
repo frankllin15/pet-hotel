@@ -6,7 +6,8 @@ import { Card, CardContent } from "@/shared/ui/card";
 import { Field } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Select } from "@/shared/ui/select";
-import { useRegisterParasiteTreatment } from "../queries";
+import type { ParasiteTreatmentDto } from "../api";
+import { useRegisterParasiteTreatment, useUpdateParasiteTreatment } from "../queries";
 import {
   PARASITE_TREATMENT_LABELS,
   PARASITE_TREATMENT_TYPES,
@@ -14,29 +15,50 @@ import {
   type ParasiteTreatmentFormInput,
 } from "../schemas";
 
-/** Formulário inline de controle de parasitas (mesmo arquétipo do VaccinationForm). */
-export function ParasiteTreatmentForm({ petId, onDone }: { petId: string; onDone: () => void }) {
-  const mutation = useRegisterParasiteTreatment(petId);
+/** Formulário inline de controle de parasitas (registro ou edição quando `treatment` é informado). */
+export function ParasiteTreatmentForm({
+  petId,
+  treatment,
+  onDone,
+}: {
+  petId: string;
+  treatment?: ParasiteTreatmentDto;
+  onDone: () => void;
+}) {
+  const isEdit = treatment !== undefined;
+  const registerMutation = useRegisterParasiteTreatment(petId);
+  const updateMutation = useUpdateParasiteTreatment(petId);
+  const mutation = isEdit ? updateMutation : registerMutation;
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<ParasiteTreatmentFormInput>({
     resolver: zodResolver(parasiteTreatmentFormSchema),
-    defaultValues: { type: "FleaTick", productName: "", appliedOn: "", nextDueOn: "" },
+    defaultValues: treatment
+      ? {
+          type: treatment.type as ParasiteTreatmentFormInput["type"],
+          productName: treatment.productName ?? "",
+          appliedOn: treatment.appliedOn,
+          nextDueOn: treatment.nextDueOn ?? "",
+        }
+      : { type: "FleaTick", productName: "", appliedOn: "", nextDueOn: "" },
   });
 
-  const submit = handleSubmit((values) =>
-    mutation.mutate(
-      {
-        type: values.type,
-        productName: values.productName ? values.productName : null,
-        appliedOn: values.appliedOn,
-        nextDueOn: values.nextDueOn ? values.nextDueOn : null,
-      },
-      { onSuccess: onDone },
-    ),
-  );
+  const submit = handleSubmit((values) => {
+    const body = {
+      type: values.type,
+      productName: values.productName ? values.productName : null,
+      appliedOn: values.appliedOn,
+      nextDueOn: values.nextDueOn ? values.nextDueOn : null,
+    };
+    if (isEdit) {
+      updateMutation.mutate({ treatmentId: treatment.id, body }, { onSuccess: onDone });
+    } else {
+      registerMutation.mutate(body, { onSuccess: onDone });
+    }
+  });
 
   const formError = mutation.error instanceof ApiError ? mutation.error.message : null;
 
@@ -72,7 +94,7 @@ export function ParasiteTreatmentForm({ petId, onDone }: { petId: string; onDone
               Cancelar
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Salvando…" : "Registrar controle"}
+              {mutation.isPending ? "Salvando…" : isEdit ? "Salvar alterações" : "Registrar controle"}
             </Button>
           </div>
         </form>

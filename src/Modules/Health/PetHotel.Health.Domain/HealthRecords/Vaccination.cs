@@ -29,6 +29,14 @@ public sealed class Vaccination : Entity<VaccinationId>
     /// <summary>Vacina válida (vigente) na data informada.</summary>
     public bool IsValidOn(DateOnly date) => AppliedOn <= date && date <= ExpiresOn;
 
+    /// <summary>Edita os dados da vacinação (a foto é gerida à parte por <see cref="SetPhoto"/>).</summary>
+    internal void Update(VaccineType type, DateOnly appliedOn, DateOnly expiresOn)
+    {
+        Type = type;
+        AppliedOn = appliedOn;
+        ExpiresOn = expiresOn;
+    }
+
     /// <summary>Define/remove a foto da carteira; devolve a chave anterior (para apagar o órfão).</summary>
     internal string? SetPhoto(string? key)
     {

@@ -6,24 +6,52 @@ import { Card, CardContent } from "@/shared/ui/card";
 import { Field } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
 import { Select } from "@/shared/ui/select";
-import { useRegisterVaccination } from "../queries";
-import { VACCINE_LABELS, VACCINE_TYPES, vaccinationFormSchema, type VaccinationFormInput } from "../schemas";
+import type { VaccinationDto } from "../api";
+import { useRegisterVaccination, useUpdateVaccination } from "../queries";
+import {
+  VACCINE_LABELS,
+  VACCINE_TYPES,
+  vaccinationFormSchema,
+  type VaccinationFormInput,
+} from "../schemas";
 
-/** Formulário inline de registro de vacina (arquétipo Form, reusado na ficha). */
-export function VaccinationForm({ petId, onDone }: { petId: string; onDone: () => void }) {
-  const mutation = useRegisterVaccination(petId);
+/** Formulário inline de vacina (registro ou edição quando `vaccination` é informada). */
+export function VaccinationForm({
+  petId,
+  vaccination,
+  onDone,
+}: {
+  petId: string;
+  vaccination?: VaccinationDto;
+  onDone: () => void;
+}) {
+  const isEdit = vaccination !== undefined;
+  const registerMutation = useRegisterVaccination(petId);
+  const updateMutation = useUpdateVaccination(petId);
+  const mutation = isEdit ? updateMutation : registerMutation;
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<VaccinationFormInput>({
     resolver: zodResolver(vaccinationFormSchema),
-    defaultValues: { type: "Rabies", appliedOn: "", expiresOn: "" },
+    defaultValues: vaccination
+      ? {
+          type: vaccination.type as VaccinationFormInput["type"],
+          appliedOn: vaccination.appliedOn,
+          expiresOn: vaccination.expiresOn,
+        }
+      : { type: "Rabies", appliedOn: "", expiresOn: "" },
   });
 
-  const submit = handleSubmit((values) =>
-    mutation.mutate(values, { onSuccess: onDone }),
-  );
+  const submit = handleSubmit((values) => {
+    if (isEdit) {
+      updateMutation.mutate({ vaccinationId: vaccination.id, body: values }, { onSuccess: onDone });
+    } else {
+      registerMutation.mutate(values, { onSuccess: onDone });
+    }
+  });
 
   const formError = mutation.error instanceof ApiError ? mutation.error.message : null;
 
@@ -54,7 +82,7 @@ export function VaccinationForm({ petId, onDone }: { petId: string; onDone: () =
               Cancelar
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Salvando…" : "Registrar vacina"}
+              {mutation.isPending ? "Salvando…" : isEdit ? "Salvar alterações" : "Registrar vacina"}
             </Button>
           </div>
         </form>

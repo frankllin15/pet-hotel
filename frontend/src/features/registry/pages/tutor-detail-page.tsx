@@ -1,24 +1,39 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
+import { ApiError } from "@/shared/lib/problem-details";
 import { formatDate } from "@/shared/lib/format";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
 import { AvatarTile } from "@/shared/ui/avatar-tile";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { DetailPage } from "@/shared/ui/archetypes/detail-page";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { SPECIES_LABELS } from "../schemas";
-import { usePets, useTutor } from "../queries";
+import { useDeleteTutor, usePets, useTutor } from "../queries";
 
 export function TutorDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const tutorQuery = useTutor(id);
   const petsQuery = usePets({ tutorId: id });
+  const deleteTutor = useDeleteTutor();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  async function runDelete() {
+    try {
+      await deleteTutor.mutateAsync(id);
+      navigate("/registry/tutors");
+    } catch {
+      // Falha (ex.: 409 com pets vinculados) é exibida no diálogo via deleteTutor.error.
+    }
+  }
 
   return (
     <AsyncBoundary query={tutorQuery} isEmpty={() => false}>
       {(tutor) => (
+        <>
         <DetailPage
           title={
             <span className="flex items-center gap-3">
@@ -30,6 +45,15 @@ export function TutorDetailPage() {
           actions={
             <div className="flex gap-2">
               <Button onClick={() => navigate(`/registry/tutors/${tutor.id}/edit`)}>Editar</Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  deleteTutor.reset();
+                  setConfirmOpen(true);
+                }}
+              >
+                Excluir
+              </Button>
               <Button variant="outline" onClick={() => navigate("/registry/tutors")}>
                 Voltar
               </Button>
@@ -169,6 +193,27 @@ export function TutorDetailPage() {
             </AsyncBoundary>
           </div>
         </DetailPage>
+        <ConfirmDialog
+          open={confirmOpen}
+          loading={deleteTutor.isPending}
+          title="Excluir tutor"
+          description={
+            <>
+              <p>
+                O tutor <strong>{tutor.fullName}</strong> será excluído permanentemente. Esta ação é
+                irreversível.
+              </p>
+              {deleteTutor.error instanceof ApiError && (
+                <p className="text-destructive">{deleteTutor.error.message}</p>
+              )}
+            </>
+          }
+          confirmLabel="Excluir"
+          confirmVariant="destructive"
+          onConfirm={() => void runDelete()}
+          onClose={() => setConfirmOpen(false)}
+        />
+        </>
       )}
     </AsyncBoundary>
   );

@@ -6,6 +6,8 @@ import {
   registerParasiteTreatment,
   registerVaccination,
   setVetContact,
+  updateParasiteTreatment,
+  updateVaccination,
   uploadVaccinationPhoto,
   type PetHealthDto,
   type RegisterParasiteTreatmentBody,
@@ -47,10 +49,32 @@ export function useRegisterVaccination(petId: string) {
   });
 }
 
+export function useUpdateVaccination(petId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ vaccinationId, body }: { vaccinationId: string; body: RegisterVaccinationBody }) =>
+      updateVaccination(petId, vaccinationId, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: healthKeys.pet(petId) });
+    },
+  });
+}
+
 export function useRegisterParasiteTreatment(petId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: RegisterParasiteTreatmentBody) => registerParasiteTreatment(petId, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: healthKeys.pet(petId) });
+    },
+  });
+}
+
+export function useUpdateParasiteTreatment(petId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ treatmentId, body }: { treatmentId: string; body: RegisterParasiteTreatmentBody }) =>
+      updateParasiteTreatment(petId, treatmentId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: healthKeys.pet(petId) });
     },

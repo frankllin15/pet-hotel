@@ -109,4 +109,7 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
         Billing = billing;
         return Result.Success();
     }
+
+    /// <summary>Marca o tutor como excluído (levanta o evento; a remoção física é do repositório).</summary>
+    public void Delete() => Raise(new TutorDeleted(Id, TenantId));
 }

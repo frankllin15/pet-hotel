@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 
@@ -45,7 +46,10 @@ export function ConfirmDialog({
 
   if (!open) return null;
 
-  return (
+  // Portal para o body: escapa ancestrais com `transform`/`filter` (ex.: a animação
+  // .rise-in das telas), que senão tornariam o `position: fixed` relativo a eles e
+  // encolheriam o overlay para menor que a viewport.
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
@@ -69,6 +73,7 @@ export function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

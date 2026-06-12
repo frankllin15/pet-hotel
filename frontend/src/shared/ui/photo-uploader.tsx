@@ -5,6 +5,7 @@ import { ApiError } from "@/shared/lib/problem-details";
 import { cn } from "@/shared/lib/utils";
 import { AuthImage } from "./auth-image";
 import { Button } from "./button";
+import { ConfirmDialog } from "./confirm-dialog";
 
 /** Validação client-side (UX); o backend é a fonte da verdade. Mensagens em pt-BR. */
 function validateImage(file: File): string | null {
@@ -27,7 +28,12 @@ interface BaseProps {
   onUpload: (file: File) => Promise<unknown>;
   onRemove: () => Promise<unknown>;
   alt: string;
+  /** Corpo do diálogo de confirmação de remoção (default genérico). */
+  confirmDescription?: ReactNode;
 }
+
+const DEFAULT_REMOVE_DESCRIPTION =
+  "A imagem será removida permanentemente. Esta ação é irreversível.";
 
 /** Uploader em destaque (ficha do pet): moldura quadrada + ações abaixo. */
 export function PhotoUploader({
@@ -36,10 +42,12 @@ export function PhotoUploader({
   onRemove,
   alt,
   fallback,
+  confirmDescription = DEFAULT_REMOVE_DESCRIPTION,
 }: BaseProps & { fallback?: ReactNode }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true);
@@ -51,6 +59,11 @@ export function PhotoUploader({
     } finally {
       setBusy(false);
     }
+  }
+
+  async function confirmRemove() {
+    await run(onRemove);
+    setConfirmOpen(false);
   }
 
   function onPick(file: File | undefined) {
@@ -83,7 +96,7 @@ export function PhotoUploader({
           <Upload /> {url ? "Trocar" : "Enviar foto"}
         </Button>
         {url && (
-          <Button size="sm" variant="ghost" disabled={busy} onClick={() => void run(onRemove)}>
+          <Button size="sm" variant="ghost" disabled={busy} onClick={() => setConfirmOpen(true)}>
             <Trash2 /> Remover
           </Button>
         )}
@@ -101,14 +114,32 @@ export function PhotoUploader({
           e.target.value = ""; // permite reenviar o mesmo arquivo
         }}
       />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        loading={busy}
+        title="Remover foto"
+        description={confirmDescription}
+        confirmLabel="Remover"
+        confirmVariant="destructive"
+        onConfirm={() => void confirmRemove()}
+        onClose={() => setConfirmOpen(false)}
+      />
     </div>
   );
 }
 
 /** Versão compacta para linhas de tabela (carteira de vacina): miniatura clicável. */
-export function PhotoThumb({ url, onUpload, onRemove, alt }: BaseProps) {
+export function PhotoThumb({
+  url,
+  onUpload,
+  onRemove,
+  alt,
+  confirmDescription = DEFAULT_REMOVE_DESCRIPTION,
+}: BaseProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   async function run(action: () => Promise<unknown>) {
     setBusy(true);
@@ -117,6 +148,11 @@ export function PhotoThumb({ url, onUpload, onRemove, alt }: BaseProps) {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function confirmRemove() {
+    await run(onRemove);
+    setConfirmOpen(false);
   }
 
   function onPick(file: File | undefined) {
@@ -154,7 +190,7 @@ export function PhotoThumb({ url, onUpload, onRemove, alt }: BaseProps) {
         <button
           type="button"
           title="Remover foto"
-          onClick={() => void run(onRemove)}
+          onClick={() => setConfirmOpen(true)}
           className="text-muted-foreground transition-colors hover:text-destructive"
         >
           <X className="size-4" />
@@ -169,6 +205,17 @@ export function PhotoThumb({ url, onUpload, onRemove, alt }: BaseProps) {
           onPick(e.target.files?.[0]);
           e.target.value = "";
         }}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        loading={busy}
+        title="Remover foto"
+        description={confirmDescription}
+        confirmLabel="Remover"
+        confirmVariant="destructive"
+        onConfirm={() => void confirmRemove()}
+        onClose={() => setConfirmOpen(false)}
       />
     </div>
   );

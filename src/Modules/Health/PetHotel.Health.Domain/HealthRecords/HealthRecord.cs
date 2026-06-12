@@ -71,6 +71,33 @@ public sealed class HealthRecord : AggregateRoot<HealthRecordId>, IHasTenant, IA
         return vaccination.Id;
     }
 
+    public Result UpdateVaccination(
+        VaccinationId vaccinationId,
+        VaccineType type,
+        DateOnly appliedOn,
+        DateOnly expiresOn,
+        DateOnly today)
+    {
+        var vaccination = _vaccinations.FirstOrDefault(v => v.Id == vaccinationId);
+        if (vaccination is null)
+        {
+            return Error.NotFound("vaccination.not_found", "Vacinação não encontrada na ficha do pet.");
+        }
+
+        if (appliedOn > today)
+        {
+            return Error.Validation("vaccination.applied_future", "A aplicação não pode ser no futuro.");
+        }
+
+        if (expiresOn <= appliedOn)
+        {
+            return Error.Validation("vaccination.invalid_validity", "A validade deve ser posterior à aplicação.");
+        }
+
+        vaccination.Update(type, appliedOn, expiresOn);
+        return Result.Success();
+    }
+
     public Result<ParasiteTreatmentId> AddParasiteTreatment(
         ParasiteTreatmentType type,
         string? productName,
@@ -97,6 +124,34 @@ public sealed class HealthRecord : AggregateRoot<HealthRecordId>, IHasTenant, IA
         _parasiteTreatments.Add(treatment);
         Raise(new ParasiteTreatmentRegistered(Id, TenantId, Pet, type));
         return treatment.Id;
+    }
+
+    public Result UpdateParasiteTreatment(
+        ParasiteTreatmentId treatmentId,
+        ParasiteTreatmentType type,
+        string? productName,
+        DateOnly appliedOn,
+        DateOnly? nextDueOn,
+        DateOnly today)
+    {
+        var treatment = _parasiteTreatments.FirstOrDefault(t => t.Id == treatmentId);
+        if (treatment is null)
+        {
+            return Error.NotFound("parasite_treatment.not_found", "Controle de parasitas não encontrado na ficha do pet.");
+        }
+
+        if (appliedOn > today)
+        {
+            return Error.Validation("parasite_treatment.applied_future", "A aplicação não pode ser no futuro.");
+        }
+
+        if (nextDueOn is { } due && due <= appliedOn)
+        {
+            return Error.Validation("parasite_treatment.invalid_next_due", "A próxima dose deve ser posterior à aplicação.");
+        }
+
+        treatment.Update(type, productName, appliedOn, nextDueOn);
+        return Result.Success();
     }
 
     /// <summary>Define (ou substitui) o veterinário particular do pet.</summary>

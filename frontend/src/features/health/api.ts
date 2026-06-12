@@ -24,12 +24,38 @@ export async function registerVaccination(
   );
 }
 
+export async function updateVaccination(
+  petId: string,
+  vaccinationId: string,
+  body: RegisterVaccinationBody,
+): Promise<void> {
+  unwrap(
+    await apiClient.PUT("/v1/pets/{petId}/vaccinations/{vaccinationId}", {
+      params: { path: { petId, vaccinationId } },
+      body,
+    }),
+  );
+}
+
 export async function registerParasiteTreatment(
   petId: string,
   body: RegisterParasiteTreatmentBody,
 ): Promise<{ id: string }> {
   return unwrap(
     await apiClient.POST("/v1/pets/{petId}/parasite-treatments", { params: { path: { petId } }, body }),
+  );
+}
+
+export async function updateParasiteTreatment(
+  petId: string,
+  treatmentId: string,
+  body: RegisterParasiteTreatmentBody,
+): Promise<void> {
+  unwrap(
+    await apiClient.PUT("/v1/pets/{petId}/parasite-treatments/{treatmentId}", {
+      params: { path: { petId, treatmentId } },
+      body,
+    }),
   );
 }
 

@@ -43,6 +43,10 @@ export async function updateTutor(id: string, body: UpdateTutorBody): Promise<vo
   unwrap(await apiClient.PUT("/v1/tutors/{id}", { params: { path: { id } }, body }));
 }
 
+export async function deleteTutor(id: string): Promise<void> {
+  unwrap(await apiClient.DELETE("/v1/tutors/{id}", { params: { path: { id } } }));
+}
+
 export async function listPets(params: ListPetsParams): Promise<PetPage> {
   return unwrap(await apiClient.GET("/v1/pets", { params: { query: params } }));
 }
@@ -57,6 +61,10 @@ export async function registerPet(body: RegisterPetBody): Promise<{ id: string }
 
 export async function updatePet(id: string, body: UpdatePetBody): Promise<void> {
   unwrap(await apiClient.PUT("/v1/pets/{id}", { params: { path: { id } }, body }));
+}
+
+export async function deletePet(id: string): Promise<void> {
+  unwrap(await apiClient.DELETE("/v1/pets/{id}", { params: { path: { id } } }));
 }
 
 export async function uploadPetPhoto(id: string, file: File): Promise<PetPhotoResponse> {

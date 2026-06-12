@@ -2,12 +2,14 @@ using Microsoft.Extensions.Options;
 using PetHotel.Api.Http;
 using PetHotel.Api.Storage;
 using PetHotel.Registry.Application.Pets;
+using PetHotel.Registry.Application.Pets.DeletePet;
 using PetHotel.Registry.Application.Pets.SetPetPhoto;
 using PetHotel.Registry.Application.Pets.GetPetById;
 using PetHotel.Registry.Application.Pets.ListPets;
 using PetHotel.Registry.Application.Pets.RegisterPet;
 using PetHotel.Registry.Application.Pets.UpdatePet;
 using PetHotel.Registry.Application.Tutors;
+using PetHotel.Registry.Application.Tutors.DeleteTutor;
 using PetHotel.Registry.Application.Tutors.GetTutorById;
 using PetHotel.Registry.Application.Tutors.ListTutors;
 using PetHotel.Registry.Application.Tutors.RegisterTutor;
@@ -72,6 +74,18 @@ public static class RegistryEndpoints
             .WithSummary("Edita um tutor existente no tenant corrente.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapDelete("/tutors/{id:guid}", async (Guid id, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(new DeleteTutor(id), ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("DeleteTutor")
+            .WithSummary("Exclui um tutor do tenant corrente.")
+            .WithDescription("Bloqueado (409) se o tutor ainda tiver pets vinculados.")
+            .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
@@ -168,6 +182,21 @@ public static class RegistryEndpoints
             })
             .WithName("RemovePetPhoto")
             .WithSummary("Remove a foto do pet.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/pets/{id:guid}", async (Guid id, IFileStorage storage, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<string?>>(new DeletePet(id), ct);
+                if (result.IsSuccess && result.Value is { } photoKey)
+                {
+                    await storage.DeleteAsync(photoKey, ct); // limpa o arquivo da foto, se houver
+                }
+
+                return result.ToHttpResult(_ => Results.NoContent());
+            })
+            .WithName("DeletePet")
+            .WithSummary("Exclui um pet do tenant corrente (e a foto associada).")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound);
 

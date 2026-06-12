@@ -56,6 +56,46 @@ public class HealthRecordTests
     }
 
     [Fact]
+    public void Editar_vacina_atualiza_os_dados()
+    {
+        var record = NewRecord();
+        var id = record.AddVaccination(VaccineType.Rabies, Today.AddYears(-1), Today.AddDays(10), Today).Value;
+
+        var result = record.UpdateVaccination(id, VaccineType.Distemper, Today.AddMonths(-2), Today.AddYears(1), Today);
+
+        Assert.True(result.IsSuccess);
+        var vaccination = Assert.Single(record.Vaccinations);
+        Assert.Equal(VaccineType.Distemper, vaccination.Type);
+        Assert.Equal(Today.AddMonths(-2), vaccination.AppliedOn);
+        Assert.Equal(Today.AddYears(1), vaccination.ExpiresOn);
+    }
+
+    [Fact]
+    public void Editar_vacina_inexistente_retorna_nao_encontrado()
+    {
+        var record = NewRecord();
+
+        var result = record.UpdateVaccination(
+            VaccinationId.New(), VaccineType.Rabies, Today.AddYears(-1), Today.AddYears(1), Today);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
+        Assert.Equal("vaccination.not_found", result.Error.Code);
+    }
+
+    [Fact]
+    public void Editar_vacina_com_validade_invalida_falha()
+    {
+        var record = NewRecord();
+        var id = record.AddVaccination(VaccineType.Rabies, Today.AddYears(-1), Today.AddYears(1), Today).Value;
+
+        var result = record.UpdateVaccination(id, VaccineType.Rabies, Today.AddDays(-1), Today.AddDays(-1), Today);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("vaccination.invalid_validity", result.Error.Code);
+    }
+
+    [Fact]
     public void Adicionar_controle_de_parasitas_valido_levanta_evento()
     {
         var record = NewRecord();
@@ -105,6 +145,37 @@ public class HealthRecordTests
 
         Assert.False(treatments[0].IsUpToDateOn(Today)); // próxima dose já passou
         Assert.Null(treatments[1].IsUpToDateOn(Today)); // sem próxima dose informada
+    }
+
+    [Fact]
+    public void Editar_controle_de_parasitas_atualiza_os_dados()
+    {
+        var record = NewRecord();
+        var id = record.AddParasiteTreatment(
+            ParasiteTreatmentType.FleaTick, "Bravecto", Today.AddDays(-10), Today.AddMonths(3), Today).Value;
+
+        var result = record.UpdateParasiteTreatment(
+            id, ParasiteTreatmentType.Dewormer, " Drontal ", Today.AddDays(-5), Today.AddMonths(1), Today);
+
+        Assert.True(result.IsSuccess);
+        var treatment = Assert.Single(record.ParasiteTreatments);
+        Assert.Equal(ParasiteTreatmentType.Dewormer, treatment.Type);
+        Assert.Equal("Drontal", treatment.ProductName); // trim
+        Assert.Equal(Today.AddDays(-5), treatment.AppliedOn);
+        Assert.Equal(Today.AddMonths(1), treatment.NextDueOn);
+    }
+
+    [Fact]
+    public void Editar_controle_de_parasitas_inexistente_retorna_nao_encontrado()
+    {
+        var record = NewRecord();
+
+        var result = record.UpdateParasiteTreatment(
+            ParasiteTreatmentId.New(), ParasiteTreatmentType.Dewormer, null, Today.AddDays(-5), null, Today);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(ErrorType.NotFound, result.Error.Type);
+        Assert.Equal("parasite_treatment.not_found", result.Error.Code);
     }
 
     [Fact]

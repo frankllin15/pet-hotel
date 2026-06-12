@@ -6,11 +6,12 @@ import { AuthImage } from "@/shared/ui/auth-image";
 import { AvatarTile } from "@/shared/ui/avatar-tile";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { DetailPage } from "@/shared/ui/archetypes/detail-page";
 import { PhotoUploader } from "@/shared/ui/photo-uploader";
 import { TabBar } from "@/shared/ui/tabs";
 import { PetHealthPanel } from "@/features/health/components/pet-health-panel";
-import { usePet, usePetPhoto } from "../queries";
+import { useDeletePet, usePet, usePetPhoto } from "../queries";
 import {
   BEHAVIOR_LEVEL_LABELS,
   BEHAVIOR_TRAITS,
@@ -37,12 +38,24 @@ export function PetDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("general");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const query = usePet(id);
   const photo = usePetPhoto(id);
+  const deletePet = useDeletePet();
+
+  async function runDelete() {
+    try {
+      await deletePet.mutateAsync(id);
+      navigate("/registry/pets");
+    } catch {
+      // Falha é exibida no diálogo via deletePet.error.
+    }
+  }
 
   return (
     <AsyncBoundary query={query} isEmpty={() => false}>
       {(pet) => (
+        <>
         <DetailPage
           title={
             <span className="flex items-center gap-3">
@@ -63,6 +76,15 @@ export function PetDetailPage() {
           actions={
             <div className="flex gap-2">
               <Button onClick={() => navigate(`/registry/pets/${pet.id}/edit`)}>Editar</Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  deletePet.reset();
+                  setConfirmOpen(true);
+                }}
+              >
+                Excluir
+              </Button>
               <Button variant="outline" onClick={() => navigate(`/registry/tutors/${pet.tutorId}`)}>
                 Ver tutor
               </Button>
@@ -84,6 +106,7 @@ export function PetDetailPage() {
                     onUpload={(file) => photo.upload.mutateAsync(file)}
                     onRemove={() => photo.remove.mutateAsync()}
                     alt={`Foto de ${pet.name}`}
+                    confirmDescription={`A foto de ${pet.name} será removida permanentemente. Esta ação é irreversível.`}
                     fallback={<AvatarTile name={pet.name} size="lg" className="size-full rounded-xl text-4xl" />}
                   />
                 </CardContent>
@@ -164,6 +187,22 @@ export function PetDetailPage() {
             <PetHealthPanel petId={pet.id} />
           )}
         </DetailPage>
+        <ConfirmDialog
+          open={confirmOpen}
+          loading={deletePet.isPending}
+          title="Excluir pet"
+          description={
+            <p>
+              O pet <strong>{pet.name}</strong> e a foto associada serão excluídos permanentemente.
+              Esta ação é irreversível.
+            </p>
+          }
+          confirmLabel="Excluir"
+          confirmVariant="destructive"
+          onConfirm={() => void runDelete()}
+          onClose={() => setConfirmOpen(false)}
+        />
+        </>
       )}
     </AsyncBoundary>
   );

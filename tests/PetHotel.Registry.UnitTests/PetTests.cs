@@ -201,4 +201,17 @@ public class PetTests
         Assert.Equal("pet.name_required", result.Error.Code);
         Assert.Equal("Rex", pet.Name);
     }
+
+    [Fact]
+    public void Excluir_pet_levanta_evento()
+    {
+        var pet = Register().Value;
+
+        pet.Delete();
+
+        var evt = Assert.Single(pet.DomainEvents, e => e is PetDeleted);
+        var deleted = Assert.IsType<PetDeleted>(evt);
+        Assert.Equal(pet.Id, deleted.PetId);
+        Assert.Equal(Tutor, deleted.TutorId);
+    }
 }
