@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Diretório de usuários do hotel (id + nome) para resolver autoria. */
+        get: operations["ListTenantUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/files/{key}": {
         parameters: {
             query?: never;
@@ -613,11 +630,62 @@ export interface paths {
         /** Timeline do diário de bordo da estadia (paginada por cursor). */
         get: operations["GetStayCareLog"];
         put?: never;
-        /**
-         * Registra uma ocorrência no diário de bordo do pet.
-         * @description Tipo + observação opcional; OccurredAt opcional (default: agora, não pode ser futuro).
-         */
+        /** Registra uma ocorrência no diário de bordo da estadia. */
         post: operations["LogCareEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/care-log/{entryId}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Anexa uma foto a uma ocorrência do diário. */
+        post: operations["AddCareEntryPhoto"];
+        /** Remove uma foto de uma ocorrência do diário (chave via query). */
+        delete: operations["RemoveCareEntryPhoto"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reservations/{reservationId}/medications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Medicações registradas na estadia. */
+        get: operations["GetStayMedications"];
+        put?: never;
+        /** Registra a administração de um medicamento na estadia (quem/quando/dose). */
+        post: operations["RecordMedication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reservations/{reservationId}/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Incidentes registrados na estadia. */
+        get: operations["GetStayIncidents"];
+        put?: never;
+        /** Registra um incidente na estadia (auditável). */
+        post: operations["ReportIncident"];
         delete?: never;
         options?: never;
         head?: never;
@@ -727,11 +795,15 @@ export interface components {
             /** Format: date-time */
             occurredAt: string;
             registeredBy: null | string;
+            photoUrls: string[];
             /** Format: date-time */
             createdAt: string;
         };
         /** @enum {unknown} */
         CareLogEntryType: "Meal" | "Bathroom" | "Play" | "Behavior" | "Hygiene" | "Note";
+        CarePhotoResponse: {
+            photoUrl: string;
+        };
         ConsentDecisionInput: {
             type: components["schemas"]["ConsentType"];
             granted: boolean;
@@ -817,6 +889,19 @@ export interface components {
         FoodSource: "TutorProvided" | "HotelProvided";
         /** Format: binary */
         IFormFile: string;
+        IncidentDto: {
+            /** Format: uuid */
+            id: string;
+            severity: string;
+            description: string;
+            /** Format: date-time */
+            occurredAt: string;
+            reportedBy: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {unknown} */
+        IncidentSeverity: "Low" | "Medium" | "High";
         Invitation: {
             /** Format: uuid */
             userId: string;
@@ -838,6 +923,15 @@ export interface components {
         Login: {
             email: string;
             password: string;
+        };
+        MedicationDto: {
+            /** Format: uuid */
+            id: string;
+            drug: string;
+            dose: string;
+            /** Format: date-time */
+            administeredAt: string;
+            givenBy: null | string;
         };
         OccupancyEntryDto: {
             /** Format: uuid */
@@ -951,6 +1045,14 @@ export interface components {
             adminEmail: string;
             adminDisplayName: string;
         };
+        RecordMedication: {
+            /** Format: uuid */
+            reservationId: string;
+            drug: string;
+            dose: string;
+            /** Format: date-time */
+            administeredAt: null | string;
+        };
         RegisterParasiteTreatmentRequest: {
             type: components["schemas"]["ParasiteTreatmentType"];
             productName: null | string;
@@ -989,6 +1091,14 @@ export interface components {
             appliedOn: string;
             /** Format: date */
             expiresOn: string;
+        };
+        ReportIncident: {
+            /** Format: uuid */
+            reservationId: string;
+            severity: components["schemas"]["IncidentSeverity"];
+            description: string;
+            /** Format: date-time */
+            occurredAt: null | string;
         };
         ReservationDto: {
             /** Format: uuid */
@@ -1114,6 +1224,11 @@ export interface components {
             authorizedPickups?: null | components["schemas"]["AuthorizedPickupInput"][];
             billing?: null | components["schemas"]["BillingInfoInput"];
         };
+        UserSummaryResponse: {
+            /** Format: uuid */
+            id: string;
+            displayName: string;
+        };
         VaccinationDto: {
             /** Format: uuid */
             id: string;
@@ -1193,6 +1308,26 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ListTenantUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSummaryResponse"][];
                 };
             };
         };
@@ -3033,8 +3168,253 @@ export interface operations {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
-            /** @description Forbidden */
-            403: {
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    AddCareEntryPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CarePhotoResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemoveCareEntryPhoto: {
+        parameters: {
+            query: {
+                key: string;
+            };
+            header?: never;
+            path: {
+                entryId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetStayMedications: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationDto"][];
+                };
+            };
+        };
+    };
+    RecordMedication: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordMedication"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetStayIncidents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentDto"][];
+                };
+            };
+        };
+    };
+    ReportIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportIncident"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

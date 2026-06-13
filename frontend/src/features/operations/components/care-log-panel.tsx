@@ -1,17 +1,22 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { ImagePlus, Plus, Trash2 } from "lucide-react";
+import { ACCEPTED_IMAGE_TYPES } from "@/shared/api/files";
 import { formatDateTime } from "@/shared/lib/format";
 import { ApiError } from "@/shared/lib/problem-details";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
+import { AuthImage } from "@/shared/ui/auth-image";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Field } from "@/shared/ui/field";
 import { Select } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
-import { useLogCareEntry, useStayCareLog } from "../queries";
+import { UserName } from "@/features/users/components/user-name";
+import { useCareEntryPhotos, useLogCareEntry, useStayCareLog } from "../queries";
 import { CARE_LOG_TYPE_LABELS, CARE_LOG_TYPES, careLogFormSchema, type CareLogFormInput } from "../schemas";
+
+const keyFromUrl = (url: string) => url.replace(/^\/v1\/files\//, "");
 
 /**
  * Diário de bordo de uma estadia: registro rápido de ocorrência + timeline. O registro só
@@ -20,6 +25,7 @@ import { CARE_LOG_TYPE_LABELS, CARE_LOG_TYPES, careLogFormSchema, type CareLogFo
 export function CareLogPanel({ reservationId, canManage }: { reservationId: string; canManage: boolean }) {
   const query = useStayCareLog(reservationId);
   const logEntry = useLogCareEntry(reservationId);
+  const photos = useCareEntryPhotos(reservationId);
 
   const {
     register,
@@ -98,9 +104,47 @@ export function CareLogPanel({ reservationId, canManage }: { reservationId: stri
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="secondary">{CARE_LOG_TYPE_LABELS[e.type] ?? e.type}</Badge>
                       <span className="text-xs text-muted-foreground">{formatDateTime(e.occurredAt)}</span>
-                      {e.registeredBy && <span className="text-xs text-muted-foreground">· {e.registeredBy}</span>}
+                      {e.registeredBy && (
+                        <span className="text-xs text-muted-foreground">
+                          · <UserName userId={e.registeredBy} />
+                        </span>
+                      )}
                     </div>
                     {e.note && <p className="mt-1 text-sm">{e.note}</p>}
+                    {(e.photoUrls.length > 0 || canManage) && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {e.photoUrls.map((url) => (
+                          <div key={url} className="group relative size-16 overflow-hidden rounded-md border bg-muted">
+                            <AuthImage src={url} alt="Foto" className="size-full object-cover" />
+                            {canManage && (
+                              <button
+                                type="button"
+                                aria-label="Remover foto"
+                                className="absolute right-0.5 top-0.5 rounded bg-background/80 p-0.5 text-destructive opacity-0 transition group-hover:opacity-100"
+                                onClick={() => photos.remove.mutate({ entryId: e.id, key: keyFromUrl(url) })}
+                              >
+                                <Trash2 className="size-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        {canManage && (
+                          <label className="flex size-16 cursor-pointer items-center justify-center rounded-md border border-dashed text-muted-foreground hover:bg-accent/40">
+                            <input
+                              type="file"
+                              accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                              className="hidden"
+                              onChange={(ev) => {
+                                const file = ev.target.files?.[0];
+                                if (file) photos.upload.mutate({ entryId: e.id, file });
+                                ev.target.value = "";
+                              }}
+                            />
+                            <ImagePlus className="size-4" />
+                          </label>
+                        )}
+                      </div>
+                    )}
                   </li>
                 ))}
               </ol>

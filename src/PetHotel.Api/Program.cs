@@ -184,6 +184,7 @@ app.MapHealthChecks("/ready", new HealthCheckOptions
 app.MapProvisioningEndpoints();
 app.MapAuthEndpoints();
 app.MapInvitationsEndpoints();
+app.MapUsersEndpoints();
 app.MapSetupEndpoints();
 app.MapTenancyEndpoints();
 app.MapRegistryEndpoints();

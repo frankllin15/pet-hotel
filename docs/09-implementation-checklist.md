@@ -67,10 +67,10 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 ### Operations (Diário de bordo)
 - [ ] Checklist de tarefas (limpeza, alimentação, recreação)
 - [x] Registro rápido de ocorrências (comeu, fezes, comportamento) — _módulo Operations; `CareLogEntry` **vinculado à estadia** (contexto genérico estadia/creche); só registra com check-in feito (409 se não); `POST /v1/reservations/{id}/care-log`_
-- [x] Timeline por estadia com fotos/vídeos (com virtualização) `[F]` — _timeline no card "Diário de bordo" da ficha da reserva (cursor, "carregar mais"); **fotos/vídeos por entrada e virtualização ainda pendentes**_
+- [x] Timeline por estadia com fotos/vídeos (com virtualização) `[F]` — _timeline no card "Diário de bordo" (cursor, "carregar mais") com **fotos por ocorrência** (upload/remoção, reusa IFileStorage); **vídeos e virtualização ainda pendentes**_
 - [ ] Atribuição de responsável / escala do dia
-- [ ] Log de administração de medicamento (quem, quando, dose)
-- [ ] Fluxo de incidente grave (auditável + notificação ao tutor)
+- [x] Log de administração de medicamento (quem, quando, dose) — _agregado MedicationAdministration por estadia (medicamento/dose/momento; "quem" = auditoria); seção "Medicação" na ficha da reserva_
+- [x] Fluxo de incidente grave (auditável + notificação ao tutor) — _agregado Incident por estadia (gravidade/descrição/momento), levanta `IncidentReported`; **notificação ao tutor depende do Notifications/Outbox (futuro)**_
 
 ### Notifications (Comunicação)
 - [ ] Montagem de relatório diário (texto + mídia) a partir do diário

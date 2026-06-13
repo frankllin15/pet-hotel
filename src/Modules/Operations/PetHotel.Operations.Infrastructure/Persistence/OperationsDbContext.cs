@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using PetHotel.BuildingBlocks.Persistence;
 using PetHotel.Operations.Application.Abstractions;
 using PetHotel.Operations.Domain.CareLog;
+using PetHotel.Operations.Domain.Incidents;
+using PetHotel.Operations.Domain.Medications;
 using PetHotel.SharedKernel;
 
 namespace PetHotel.Operations.Infrastructure.Persistence;
@@ -13,6 +15,8 @@ public sealed class OperationsDbContext(DbContextOptions<OperationsDbContext> op
     public const string Schema = "operations";
 
     public DbSet<CareLogEntry> CareLogEntries => Set<CareLogEntry>();
+    public DbSet<MedicationAdministration> Medications => Set<MedicationAdministration>();
+    public DbSet<Incident> Incidents => Set<Incident>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

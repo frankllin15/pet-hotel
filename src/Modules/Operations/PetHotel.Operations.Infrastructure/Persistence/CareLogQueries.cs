@@ -36,5 +36,6 @@ public sealed class CareLogQueries(OperationsDbContext dbContext) : ICareLogQuer
     }
 
     private static CareLogEntryDto ToDto(CareLogEntry e) =>
-        new(e.Id.Value, e.Pet.Value, e.Type.ToString(), e.Note, e.OccurredAt, e.CreatedBy, e.CreatedAt);
+        new(e.Id.Value, e.Pet.Value, e.Type.ToString(), e.Note, e.OccurredAt, e.CreatedBy,
+            e.PhotoKeys.Select(k => $"/v1/files/{k}").ToList(), e.CreatedAt);
 }

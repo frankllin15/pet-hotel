@@ -22,6 +22,9 @@ public sealed class CareLogEntry : AggregateRoot<CareLogEntryId>, IHasTenant, IA
     /// <summary>Momento em que a ocorrência aconteceu (pode ser anterior ao registro).</summary>
     public DateTimeOffset OccurredAt { get; private set; }
 
+    /// <summary>Chaves das fotos anexadas à ocorrência (tenant-scoped no storage).</summary>
+    public List<string> PhotoKeys { get; private set; } = [];
+
     public DateTimeOffset CreatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
@@ -90,4 +93,30 @@ public sealed class CareLogEntry : AggregateRoot<CareLogEntryId>, IHasTenant, IA
         entry.Raise(new CareEntryLogged(entry.Id, tenantId, pet));
         return entry;
     }
+
+    /// <summary>Limite de fotos por ocorrência.</summary>
+    public const int MaxPhotos = 8;
+
+    /// <summary>Anexa uma foto (já gravada no storage; aqui só guardamos a chave).</summary>
+    public Result AddPhoto(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return Error.Validation("care_photo.key_required", "Chave do arquivo é obrigatória.");
+        }
+
+        if (PhotoKeys.Count >= MaxPhotos)
+        {
+            return Error.Conflict("care_photo.limit_reached", $"Limite de {MaxPhotos} fotos por ocorrência atingido.");
+        }
+
+        PhotoKeys.Add(key);
+        return Result.Success();
+    }
+
+    /// <summary>Remove uma foto pela chave (o arquivo é apagado pelo adaptador).</summary>
+    public Result RemovePhoto(string key) =>
+        PhotoKeys.Remove(key)
+            ? Result.Success()
+            : Error.NotFound("care_photo.not_found", "Foto não encontrada nesta ocorrência.");
 }

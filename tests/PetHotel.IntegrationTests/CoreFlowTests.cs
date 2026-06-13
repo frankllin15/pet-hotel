@@ -251,6 +251,7 @@ public sealed class CoreFlowTests : IAsyncLifetime
         // registra e relê a timeline; a reserva nova ainda é Solicitada (pet não chegou) → 409.
         var log = await _client.PostAsJsonAsync($"/v1/reservations/{reservationId}/care-log", new { type = "Meal", note = "comeu tudo" });
         Assert.Equal(HttpStatusCode.Created, log.StatusCode);
+        var entryId = (await log.Content.ReadFromJsonAsync<CreatedResponse>())!.Id;
 
         var careLog = await _client.GetFromJsonAsync<JsonElement>($"/v1/reservations/{reservationId}/care-log");
         Assert.Equal(1, careLog.GetProperty("items").GetArrayLength());
@@ -260,6 +261,41 @@ public sealed class CoreFlowTests : IAsyncLifetime
 
         var blockedLog = await _client.PostAsJsonAsync($"/v1/reservations/{rebookId}/care-log", new { type = "Meal", note = (string?)null });
         Assert.Equal(HttpStatusCode.Conflict, blockedLog.StatusCode);
+
+        // Foto na ocorrência (multipart) → 200; aparece na timeline.
+        using (var form = new MultipartFormDataContent())
+        {
+            var img = new ByteArrayContent([5, 6, 7, 8]);
+            img.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+            form.Add(img, "file", "diario.png");
+            var photo = await _client.PostAsync($"/v1/care-log/{entryId}/photos", form);
+            Assert.Equal(HttpStatusCode.OK, photo.StatusCode);
+        }
+        var careLog2 = await _client.GetFromJsonAsync<JsonElement>($"/v1/reservations/{reservationId}/care-log");
+        Assert.Equal(1, careLog2.GetProperty("items")[0].GetProperty("photoUrls").GetArrayLength());
+
+        // Medicação e incidente na estadia → 201; aparecem nas listas.
+        var med = await _client.PostAsJsonAsync($"/v1/reservations/{reservationId}/medications", new { drug = "Dipirona", dose = "1 comprimido" });
+        Assert.Equal(HttpStatusCode.Created, med.StatusCode);
+        var meds = await _client.GetFromJsonAsync<JsonElement>($"/v1/reservations/{reservationId}/medications");
+        Assert.Equal(1, meds.GetArrayLength());
+        Assert.Equal("Dipirona", meds[0].GetProperty("drug").GetString());
+
+        // Diretório de usuários resolve a autoria (givenBy → nome de exibição).
+        var givenBy = meds[0].GetProperty("givenBy").GetString();
+        var users = await _client.GetFromJsonAsync<JsonElement>("/v1/users");
+        var actor = users.EnumerateArray().Single(u => u.GetProperty("id").GetString() == givenBy);
+        Assert.Equal("Admin", actor.GetProperty("displayName").GetString());
+
+        var incident = await _client.PostAsJsonAsync($"/v1/reservations/{reservationId}/incidents", new { severity = "High", description = "Brigou com outro pet" });
+        Assert.Equal(HttpStatusCode.Created, incident.StatusCode);
+        var incidents = await _client.GetFromJsonAsync<JsonElement>($"/v1/reservations/{reservationId}/incidents");
+        Assert.Equal(1, incidents.GetArrayLength());
+        Assert.Equal("High", incidents[0].GetProperty("severity").GetString());
+
+        // Regra de estadia vale também p/ medicação/incidente: reserva Solicitada → 409.
+        var blockedMed = await _client.PostAsJsonAsync($"/v1/reservations/{rebookId}/medications", new { drug = "X", dose = "1" });
+        Assert.Equal(HttpStatusCode.Conflict, blockedMed.StatusCode);
     }
 
     private async Task<Guid> CreateAsync(string url, object body)

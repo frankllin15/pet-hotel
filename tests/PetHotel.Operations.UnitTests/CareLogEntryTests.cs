@@ -60,4 +60,16 @@ public class CareLogEntryTests
         Assert.True(result.IsFailure);
         Assert.Equal("care_log.context_required", result.Error.Code);
     }
+
+    [Fact]
+    public void Anexar_e_remover_foto_na_ocorrencia()
+    {
+        var entry = CareLogEntry.Log(Tenant, Pet, CareContextType.HotelStay, Stay, CareLogEntryType.Play, null, Now, Now).Value;
+
+        Assert.True(entry.AddPhoto("k1").IsSuccess);
+        Assert.Single(entry.PhotoKeys);
+        Assert.True(entry.RemovePhoto("k1").IsSuccess);
+        Assert.Empty(entry.PhotoKeys);
+        Assert.True(entry.RemovePhoto("k1").IsFailure); // já removida
+    }
 }

@@ -8,4 +8,5 @@ public sealed record CareLogEntryDto(
     string? Note,
     DateTimeOffset OccurredAt,
     string? RegisteredBy,
+    IReadOnlyList<string> PhotoUrls,
     DateTimeOffset CreatedAt);

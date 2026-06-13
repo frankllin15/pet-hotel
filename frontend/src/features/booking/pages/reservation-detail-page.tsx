@@ -5,6 +5,8 @@ import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DetailPage } from "@/shared/ui/archetypes/detail-page";
 import { CareLogPanel } from "@/features/operations/components/care-log-panel";
+import { MedicationPanel } from "@/features/operations/components/medication-panel";
+import { IncidentPanel } from "@/features/operations/components/incident-panel";
 import { ArrivalPhotos } from "../components/arrival-photos";
 import { PetName } from "../components/pet-name";
 import {
@@ -134,6 +136,28 @@ export function ReservationDetailPage() {
               </CardHeader>
               <CardContent>
                 <CareLogPanel
+                  reservationId={r.id}
+                  canManage={r.status === "CheckedIn" || r.status === "CheckedOut"}
+                />
+              </CardContent>
+            </Card>
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-sm">Medicação</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MedicationPanel
+                  reservationId={r.id}
+                  canManage={r.status === "CheckedIn" || r.status === "CheckedOut"}
+                />
+              </CardContent>
+            </Card>
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-sm">Incidentes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <IncidentPanel
                   reservationId={r.id}
                   canManage={r.status === "CheckedIn" || r.status === "CheckedOut"}
                 />

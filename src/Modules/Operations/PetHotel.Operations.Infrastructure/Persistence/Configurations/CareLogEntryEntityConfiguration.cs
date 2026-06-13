@@ -32,6 +32,7 @@ public sealed class CareLogEntryEntityConfiguration : IEntityTypeConfiguration<C
         builder.Property(e => e.Type).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(e => e.Note).HasMaxLength(2000);
         builder.Property(e => e.OccurredAt).IsRequired();
+        builder.PrimitiveCollection(e => e.PhotoKeys);
 
         builder.Property(e => e.CreatedAt).IsRequired();
         builder.Property(e => e.CreatedBy).HasMaxLength(200);
