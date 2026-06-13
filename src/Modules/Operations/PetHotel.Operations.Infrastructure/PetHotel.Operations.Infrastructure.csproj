@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\PetHotel.Operations.Application\PetHotel.Operations.Application.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\PetHotel.BuildingBlocks\PetHotel.BuildingBlocks.csproj" />
+    <!-- Só os Contratos públicos do Booking (estadia) — nunca o domínio/infra (docs/01). -->
+    <ProjectReference Include="..\..\Booking\PetHotel.Booking.Application\PetHotel.Booking.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

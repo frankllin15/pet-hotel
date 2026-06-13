@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using PetHotel.Booking.Application.Abstractions;
+using PetHotel.Booking.Application.Contracts;
 using PetHotel.Booking.Application.Accommodations.CreateAccommodation;
 using PetHotel.Booking.Application.Accommodations.UpdateAccommodation;
 using PetHotel.Booking.Application.Reservations.CreateReservation;
@@ -37,6 +38,9 @@ public static class BookingModuleExtensions
 
         // Adaptador do gateway sobre o contrato público do Health.
         services.AddScoped<IHealthClearanceGateway, BookingHealthClearanceGateway>();
+
+        // Contrato público de estadia (consumido pelo Operations p/ vincular o diário).
+        services.AddScoped<IStayContract, StayContract>();
 
         services.AddScoped<IValidator<CreateAccommodation>, CreateAccommodationValidator>();
         services.AddScoped<IValidator<UpdateAccommodation>, UpdateAccommodationValidator>();

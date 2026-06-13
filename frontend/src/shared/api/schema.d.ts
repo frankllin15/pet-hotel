@@ -603,6 +603,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reservations/{reservationId}/care-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Timeline do diário de bordo da estadia (paginada por cursor). */
+        get: operations["GetStayCareLog"];
+        put?: never;
+        /**
+         * Registra uma ocorrência no diário de bordo do pet.
+         * @description Tipo + observação opcional; OccurredAt opcional (default: agora, não pode ser futuro).
+         */
+        post: operations["LogCareEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -696,6 +717,21 @@ export interface components {
             state: null | string;
             postalCode: null | string;
         };
+        CareLogEntryDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            petId: string;
+            type: string;
+            note: null | string;
+            /** Format: date-time */
+            occurredAt: string;
+            registeredBy: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {unknown} */
+        CareLogEntryType: "Meal" | "Bathroom" | "Play" | "Behavior" | "Hygiene" | "Note";
         ConsentDecisionInput: {
             type: components["schemas"]["ConsentType"];
             granted: boolean;
@@ -732,6 +768,10 @@ export interface components {
             checkIn: string;
             /** Format: date */
             checkOut: string;
+        };
+        CursorPageOfCareLogEntryDto: {
+            items: components["schemas"]["CareLogEntryDto"][];
+            nextCursor: null | string;
         };
         CursorPageOfPetDto: {
             items: components["schemas"]["PetDto"][];
@@ -786,6 +826,14 @@ export interface components {
             email: string;
             displayName: string;
             role: string;
+        };
+        LogCareEntry: {
+            /** Format: uuid */
+            reservationId: string;
+            type: components["schemas"]["CareLogEntryType"];
+            note: null | string;
+            /** Format: date-time */
+            occurredAt: null | string;
         };
         Login: {
             email: string;
@@ -2909,6 +2957,84 @@ export interface operations {
             };
             /** @description Bad Request */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetStayCareLog: {
+        parameters: {
+            query?: {
+                cursor?: string;
+                limit?: number | string;
+            };
+            header?: never;
+            path: {
+                reservationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CursorPageOfCareLogEntryDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    LogCareEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LogCareEntry"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

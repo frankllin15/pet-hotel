@@ -4,6 +4,7 @@ import { AsyncBoundary } from "@/shared/ui/async-boundary";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DetailPage } from "@/shared/ui/archetypes/detail-page";
+import { CareLogPanel } from "@/features/operations/components/care-log-panel";
 import { ArrivalPhotos } from "../components/arrival-photos";
 import { PetName } from "../components/pet-name";
 import {
@@ -123,6 +124,17 @@ export function ReservationDetailPage() {
                 <ArrivalPhotos
                   reservationId={r.id}
                   photoUrls={r.arrivalPhotoUrls}
+                  canManage={r.status === "CheckedIn" || r.status === "CheckedOut"}
+                />
+              </CardContent>
+            </Card>
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-sm">Diário de bordo</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CareLogPanel
+                  reservationId={r.id}
                   canManage={r.status === "CheckedIn" || r.status === "CheckedOut"}
                 />
               </CardContent>

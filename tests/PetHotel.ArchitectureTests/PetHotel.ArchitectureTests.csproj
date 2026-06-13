@@ -31,6 +31,8 @@
     <ProjectReference Include="..\..\src\Modules\Health\PetHotel.Health.Application\PetHotel.Health.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Booking\PetHotel.Booking.Domain\PetHotel.Booking.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Booking\PetHotel.Booking.Application\PetHotel.Booking.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Operations\PetHotel.Operations.Domain\PetHotel.Operations.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Operations\PetHotel.Operations.Application\PetHotel.Operations.Application.csproj" />
   </ItemGroup>
 
 </Project>

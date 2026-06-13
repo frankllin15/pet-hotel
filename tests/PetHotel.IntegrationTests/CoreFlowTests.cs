@@ -11,6 +11,7 @@ using PetHotel.Booking.Application.Reservations;
 using PetHotel.Booking.Infrastructure.Persistence;
 using PetHotel.Health.Infrastructure.Persistence;
 using PetHotel.IntegrationTests.Support;
+using PetHotel.Operations.Infrastructure.Persistence;
 using PetHotel.Registry.Infrastructure.Persistence;
 using PetHotel.Tenancy.Application.Provisioning;
 using PetHotel.Tenancy.Infrastructure.Persistence;
@@ -54,6 +55,7 @@ public sealed class CoreFlowTests : IAsyncLifetime
             await scope.ServiceProvider.GetRequiredService<RegistryDbContext>().Database.MigrateAsync();
             await scope.ServiceProvider.GetRequiredService<HealthDbContext>().Database.MigrateAsync();
             await scope.ServiceProvider.GetRequiredService<BookingDbContext>().Database.MigrateAsync();
+            await scope.ServiceProvider.GetRequiredService<OperationsDbContext>().Database.MigrateAsync();
         }
 
         _client = _factory.CreateClient();
@@ -214,6 +216,7 @@ public sealed class CoreFlowTests : IAsyncLifetime
 
         var rebook = await _client.PostAsJsonAsync("/v1/reservations", new { petId, accommodationId, checkIn, checkOut });
         Assert.Equal(HttpStatusCode.Created, rebook.StatusCode);
+        var rebookId = (await rebook.Content.ReadFromJsonAsync<CreatedResponse>())!.Id;
 
         // Edição da acomodação (renomear + nova diária) → 204; reflete na listagem.
         var editAcc = await _client.PutAsJsonAsync($"/v1/accommodations/{accommodationId}", new
@@ -243,6 +246,20 @@ public sealed class CoreFlowTests : IAsyncLifetime
         Assert.True(pack2.GetProperty("needsAttention").GetBoolean());
         var flags = pack2.GetProperty("members")[0].GetProperty("flags").EnumerateArray().Select(f => f.GetString());
         Assert.Contains("Reactive", flags);
+
+        // Operations: diário vinculado à estadia. A reserva original está encerrada (pet chegou) →
+        // registra e relê a timeline; a reserva nova ainda é Solicitada (pet não chegou) → 409.
+        var log = await _client.PostAsJsonAsync($"/v1/reservations/{reservationId}/care-log", new { type = "Meal", note = "comeu tudo" });
+        Assert.Equal(HttpStatusCode.Created, log.StatusCode);
+
+        var careLog = await _client.GetFromJsonAsync<JsonElement>($"/v1/reservations/{reservationId}/care-log");
+        Assert.Equal(1, careLog.GetProperty("items").GetArrayLength());
+        var entry = careLog.GetProperty("items")[0];
+        Assert.Equal("Meal", entry.GetProperty("type").GetString());
+        Assert.Equal("comeu tudo", entry.GetProperty("note").GetString());
+
+        var blockedLog = await _client.PostAsJsonAsync($"/v1/reservations/{rebookId}/care-log", new { type = "Meal", note = (string?)null });
+        Assert.Equal(HttpStatusCode.Conflict, blockedLog.StatusCode);
     }
 
     private async Task<Guid> CreateAsync(string url, object body)

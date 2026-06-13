@@ -66,8 +66,8 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 
 ### Operations (Diário de bordo)
 - [ ] Checklist de tarefas (limpeza, alimentação, recreação)
-- [ ] Registro rápido de ocorrências (comeu, fezes, comportamento)
-- [ ] Timeline por pet com fotos/vídeos (com virtualização) `[F]`
+- [x] Registro rápido de ocorrências (comeu, fezes, comportamento) — _módulo Operations; `CareLogEntry` **vinculado à estadia** (contexto genérico estadia/creche); só registra com check-in feito (409 se não); `POST /v1/reservations/{id}/care-log`_
+- [x] Timeline por estadia com fotos/vídeos (com virtualização) `[F]` — _timeline no card "Diário de bordo" da ficha da reserva (cursor, "carregar mais"); **fotos/vídeos por entrada e virtualização ainda pendentes**_
 - [ ] Atribuição de responsável / escala do dia
 - [ ] Log de administração de medicamento (quem, quando, dose)
 - [ ] Fluxo de incidente grave (auditável + notificação ao tutor)
