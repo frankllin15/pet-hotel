@@ -41,8 +41,8 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 - [x] Cadastro de pet (raça, idade, porte, sexo, castração, foto, microchip) — _completo: nome/espécie/raça/nascimento/notas + porte, sexo, castração, microchip e **foto** (upload/troca/remoção, exibida na ficha)_
 - [x] Avaliação comportamental (sociabilidade, reatividade, medo, destrutividade) — _4 níveis (Baixa/Média/Alta) + notas, editável na ficha; base da gestão de matilhas_
 - [x] Rotina alimentar (ração, quantidade, horários, restrições, origem da ração) — _JSON no agregado Pet; editável no cadastro e na ficha_
-- [ ] Pertences trazidos (checklist de conferência)
-- [ ] Estado de chegada com foto; termo/consentimento LGPD
+- [x] Pertences trazidos (checklist de conferência) — _itens (nome/quantidade/observação) como JSON no agregado Pet; editável no cadastro e na ficha_
+- [x] Estado de chegada com foto; termo/consentimento LGPD — _estado de chegada (peso/condição/observações) no check-in + **galeria de fotos de chegada** (upload/remoção na ficha da reserva, após o check-in); consentimento LGPD do tutor (uso de imagem/marketing/compartilhamento, com data e versão dos termos)_
 
 ### Health (Saúde)
 - [x] Carteira de vacinação com upload de foto e validade — _tipo/aplicação/validade + **foto da carteira** por vacinação (upload/troca/remoção na aba Saúde)_
@@ -56,8 +56,8 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 - [ ] Criar reserva (pet, período, acomodação, serviços adicionais) — _parcial: pet/período/acomodação prontos; serviços adicionais pendentes_
 - [x] **Bloqueio/alerta por vacina vencida** no fluxo de reserva
 - [x] Concorrência otimista (xmin) contra overbooking `[B]`
-- [ ] Gestão de matilhas (compatibilidade comportamental) — critério objetivo a definir
-- [ ] Precificação por porte/necessidade/feriado/alta temporada
+- [x] Gestão de matilhas (compatibilidade comportamental) — _matilha = grupo de pets (no Registry); compatibilidade objetiva pela avaliação comportamental: alerta se membro `Reatividade=Alta` ou `Sociabilidade=Baixa`; CRUD + multi-select de pets + ficha com alertas por membro_
+- [ ] Precificação por porte/necessidade/feriado/alta temporada — _base pronta: diária por acomodação + total da reserva (diária×noites, snapshot no momento da reserva); **variação por porte/feriado/alta temporada pendente**_
 - [x] Check-in / check-out — _ciclo `Confirmed→CheckedIn→CheckedOut` com horários reais carimbados; **regra de diária/late-checkout pendente**_
 
 ---

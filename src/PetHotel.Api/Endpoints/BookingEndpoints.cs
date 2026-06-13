@@ -1,16 +1,21 @@
+using Microsoft.Extensions.Options;
 using PetHotel.Api.Http;
+using PetHotel.Api.Storage;
 using PetHotel.Booking.Application.Abstractions;
 using PetHotel.Booking.Application.Accommodations;
 using PetHotel.Booking.Application.Reservations;
 using PetHotel.Booking.Application.Accommodations.CreateAccommodation;
 using PetHotel.Booking.Application.Accommodations.ListAccommodations;
+using PetHotel.Booking.Application.Accommodations.UpdateAccommodation;
 using PetHotel.Booking.Application.Reservations.CancelReservation;
 using PetHotel.Booking.Application.Reservations.CheckInReservation;
 using PetHotel.Booking.Application.Reservations.CheckOutReservation;
 using PetHotel.Booking.Application.Reservations.ConfirmReservation;
 using PetHotel.Booking.Application.Reservations.CreateReservation;
+using PetHotel.Booking.Application.Reservations.AddArrivalPhoto;
 using PetHotel.Booking.Application.Reservations.GetOccupancy;
 using PetHotel.Booking.Application.Reservations.GetReservationById;
+using PetHotel.Booking.Application.Reservations.RemoveArrivalPhoto;
 using PetHotel.Booking.Application.Reservations.ListReservations;
 using PetHotel.Booking.Domain.Ports;
 using PetHotel.SharedKernel;
@@ -47,6 +52,17 @@ public static class BookingEndpoints
             .WithName("ListAccommodations")
             .WithSummary("Lista as acomodações do tenant corrente.")
             .Produces<IReadOnlyList<AccommodationDto>>(StatusCodes.Status200OK);
+
+        group.MapPut("/accommodations/{id:guid}", async (Guid id, UpdateAccommodation command, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(command with { Id = id }, ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("UpdateAccommodation")
+            .WithSummary("Edita uma acomodação (nome, diária, disponibilidade).")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("/reservations", async (CreateReservation command, IMessageBus bus, CancellationToken ct) =>
             {
@@ -106,6 +122,51 @@ public static class BookingEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
+        group.MapPost("/reservations/{id:guid}/arrival-photos", async (
+                Guid id, IFormFile file, IFileStorage storage, IOptions<FileStorageOptions> options,
+                IMessageBus bus, CancellationToken ct) =>
+            {
+                var saved = await ImageUploads.SaveAsync(file, "arrivals", storage, options, ct);
+                if (saved.IsFailure)
+                {
+                    return saved.ToHttpResult(_ => Results.Empty);
+                }
+
+                var key = saved.Value.Key;
+                var result = await bus.InvokeAsync<Result>(new AddArrivalPhoto(id, key), ct);
+                if (result.IsFailure)
+                {
+                    await storage.DeleteAsync(key, ct); // não deixa arquivo órfão
+                    return result.ToHttpResult(Results.Empty);
+                }
+
+                return Results.Ok(new ArrivalPhotoResponse($"/v1/files/{key}"));
+            })
+            .DisableAntiforgery()
+            .WithName("AddArrivalPhoto")
+            .WithSummary("Anexa uma foto de chegada à reserva (após o check-in).")
+            .WithDescription("Multipart com o campo 'file'. JPEG, PNG ou WebP até o limite configurado.")
+            .Produces<ArrivalPhotoResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapDelete("/reservations/{id:guid}/arrival-photos", async (
+                Guid id, string key, IFileStorage storage, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(new RemoveArrivalPhoto(id, key), ct);
+                if (result.IsSuccess)
+                {
+                    await storage.DeleteAsync(key, ct);
+                }
+
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("RemoveArrivalPhoto")
+            .WithSummary("Remove uma foto de chegada da reserva (chave via query).")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         group.MapPost("/reservations/{id:guid}/cancel", async (Guid id, IMessageBus bus, CancellationToken ct) =>
             {
                 var result = await bus.InvokeAsync<Result>(new CancelReservation(id), ct);
@@ -149,4 +210,7 @@ public static class BookingEndpoints
 
         return app;
     }
+
+    /// <summary>Resposta do upload de foto de chegada: URL relativa para baixar pelo endpoint de arquivos.</summary>
+    public sealed record ArrivalPhotoResponse(string PhotoUrl);
 }

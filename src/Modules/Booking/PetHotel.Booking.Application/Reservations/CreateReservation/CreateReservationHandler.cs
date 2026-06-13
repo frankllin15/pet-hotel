@@ -59,7 +59,8 @@ public static class CreateReservationHandler
             return Error.Conflict("accommodation.unavailable", "Já há reserva para o período nessa acomodação.");
         }
 
-        var result = Reservation.Request(tenantContext.Current, new PetReference(command.PetId), accommodationId, period);
+        var result = Reservation.Request(
+            tenantContext.Current, new PetReference(command.PetId), accommodationId, period, accommodation.DailyRate);
         if (result.IsFailure)
         {
             return result.Error;

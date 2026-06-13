@@ -10,7 +10,11 @@ public sealed record ReservationDto(
     string Status,
     DateTimeOffset? CheckedInAt,
     DateTimeOffset? CheckedOutAt,
-    ArrivalStateDto? ArrivalState);
+    int Nights,
+    decimal DailyRate,
+    decimal TotalAmount,
+    ArrivalStateDto? ArrivalState,
+    IReadOnlyList<string> ArrivalPhotoUrls);
 
 /// <summary>Estado do pet na chegada (leitura).</summary>
 public sealed record ArrivalStateDto(

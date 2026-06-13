@@ -41,11 +41,17 @@ public sealed class ReservationEntityConfiguration : IEntityTypeConfiguration<Re
 
         builder.Property(r => r.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
 
+        builder.Property(r => r.DailyRate).HasColumnName("daily_rate").HasPrecision(10, 2).IsRequired();
+        builder.Property(r => r.TotalAmount).HasColumnName("total_amount").HasPrecision(12, 2).IsRequired();
+
         builder.Property(r => r.CheckedInAt).HasColumnName("checked_in_at");
         builder.Property(r => r.CheckedOutAt).HasColumnName("checked_out_at");
 
         // Estado de chegada persistido como JSON dentro da linha (owned, opcional).
         builder.OwnsOne(r => r.ArrivalState, owned => owned.ToJson());
+
+        // Chaves das fotos de chegada (coleção de primitivos).
+        builder.PrimitiveCollection(r => r.ArrivalPhotoKeys);
 
         builder.Property(r => r.CreatedAt).IsRequired();
         builder.Property(r => r.CreatedBy).HasMaxLength(200);

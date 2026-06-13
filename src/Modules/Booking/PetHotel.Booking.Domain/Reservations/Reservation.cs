@@ -16,6 +16,11 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
     public DateRange Period { get; private set; } = null!;
     public ReservationStatus Status { get; private set; }
 
+    /// <summary>Diária vigente na criação da reserva (snapshot — preço travado no momento da reserva).</summary>
+    public decimal DailyRate { get; private set; }
+    /// <summary>Valor total estimado da hospedagem (diária × noites), fixado na criação.</summary>
+    public decimal TotalAmount { get; private set; }
+
     /// <summary>Momento real do check-in (entrada do pet). Nulo enquanto não houve check-in.</summary>
     public DateTimeOffset? CheckedInAt { get; private set; }
 
@@ -25,6 +30,9 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
     /// <summary>Estado do pet registrado na chegada. Nulo se não foi informado no check-in.</summary>
     public ArrivalState? ArrivalState { get; private set; }
 
+    /// <summary>Chaves das fotos de chegada no storage (tenant-scoped). Documentam a condição na entrada.</summary>
+    public List<string> ArrivalPhotoKeys { get; private set; } = [];
+
     public DateTimeOffset CreatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
     public DateTimeOffset? UpdatedAt { get; private set; }
@@ -32,18 +40,21 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
 
     private Reservation() { } // EF
 
-    private Reservation(ReservationId id, TenantId tenantId, PetReference pet, AccommodationId accommodationId, DateRange period)
+    private Reservation(
+        ReservationId id, TenantId tenantId, PetReference pet, AccommodationId accommodationId, DateRange period, decimal dailyRate)
         : base(id)
     {
         TenantId = tenantId;
         Pet = pet;
         AccommodationId = accommodationId;
         Period = period;
+        DailyRate = dailyRate;
+        TotalAmount = dailyRate * period.Nights;
         Status = ReservationStatus.Requested;
     }
 
     public static Result<Reservation> Request(
-        TenantId tenantId, PetReference pet, AccommodationId accommodationId, DateRange period)
+        TenantId tenantId, PetReference pet, AccommodationId accommodationId, DateRange period, decimal dailyRate)
     {
         if (tenantId.Value == Guid.Empty)
         {
@@ -60,7 +71,12 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
             return Error.Validation("reservation.accommodation_required", "Acomodação é obrigatória.");
         }
 
-        var reservation = new Reservation(ReservationId.New(), tenantId, pet, accommodationId, period);
+        if (dailyRate < 0)
+        {
+            return Error.Validation("reservation.daily_rate_invalid", "Valor da diária não pode ser negativo.");
+        }
+
+        var reservation = new Reservation(ReservationId.New(), tenantId, pet, accommodationId, period, dailyRate);
         reservation.Raise(new ReservationRequested(reservation.Id, tenantId, pet, accommodationId));
         return reservation;
     }
@@ -116,6 +132,42 @@ public sealed class Reservation : AggregateRoot<ReservationId>, IHasTenant, IAud
         CheckedOutAt = now;
         Raise(new ReservationCheckedOut(Id, TenantId, Pet, now));
         return Result.Success();
+    }
+
+    /// <summary>Limite de fotos de chegada por reserva.</summary>
+    public const int MaxArrivalPhotos = 12;
+
+    /// <summary>
+    /// Anexa uma foto de chegada (a foto já foi gravada no storage; aqui só guardamos a chave).
+    /// Só após o check-in: a foto documenta a entrada do pet.
+    /// </summary>
+    public Result AddArrivalPhoto(string? key)
+    {
+        if (Status is not (ReservationStatus.CheckedIn or ReservationStatus.CheckedOut))
+        {
+            return Error.Conflict("reservation.not_arrived", "Fotos de chegada só podem ser anexadas após o check-in.");
+        }
+
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return Error.Validation("arrival_photo.key_required", "Chave do arquivo é obrigatória.");
+        }
+
+        if (ArrivalPhotoKeys.Count >= MaxArrivalPhotos)
+        {
+            return Error.Conflict("arrival_photo.limit_reached", $"Limite de {MaxArrivalPhotos} fotos de chegada atingido.");
+        }
+
+        ArrivalPhotoKeys.Add(key);
+        return Result.Success();
+    }
+
+    /// <summary>Remove uma foto de chegada pela chave (o arquivo é apagado pelo adaptador).</summary>
+    public Result RemoveArrivalPhoto(string key)
+    {
+        return ArrivalPhotoKeys.Remove(key)
+            ? Result.Success()
+            : Error.NotFound("arrival_photo.not_found", "Foto de chegada não encontrada nesta reserva.");
     }
 
     public Result Cancel()

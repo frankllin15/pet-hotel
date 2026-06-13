@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { formatDate, formatDateTime } from "@/shared/lib/format";
+import { formatDate, formatDateTime, formatMoney } from "@/shared/lib/format";
 import { AsyncBoundary } from "@/shared/ui/async-boundary";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { DetailPage } from "@/shared/ui/archetypes/detail-page";
+import { ArrivalPhotos } from "../components/arrival-photos";
 import { PetName } from "../components/pet-name";
 import {
   ReservationActionButtons,
@@ -67,6 +68,13 @@ export function ReservationDetailPage() {
                   <InfoRow label="Check-out previsto" value={formatDate(r.checkOut)} />
                   <InfoRow label="Entrada real" value={formatDateTime(r.checkedInAt)} />
                   <InfoRow label="Saída real" value={formatDateTime(r.checkedOutAt)} />
+                  <div className="border-t pt-2">
+                    <InfoRow label={`Diária × ${r.nights} ${Number(r.nights) === 1 ? "noite" : "noites"}`} value={formatMoney(r.dailyRate)} />
+                    <div className="mt-1 flex justify-between gap-4">
+                      <span className="font-medium">Total</span>
+                      <span className="text-right font-semibold">{formatMoney(r.totalAmount)}</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             }
@@ -105,6 +113,18 @@ export function ReservationDetailPage() {
                       : "Nenhum estado de chegada foi registrado nesta reserva."}
                   </p>
                 )}
+              </CardContent>
+            </Card>
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-sm">Fotos de chegada</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ArrivalPhotos
+                  reservationId={r.id}
+                  photoUrls={r.arrivalPhotoUrls}
+                  canManage={r.status === "CheckedIn" || r.status === "CheckedOut"}
+                />
               </CardContent>
             </Card>
           </DetailPage>

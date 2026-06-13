@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PetHotel.BuildingBlocks.Persistence;
 using PetHotel.Registry.Application.Abstractions;
+using PetHotel.Registry.Domain.Packs;
 using PetHotel.Registry.Domain.Pets;
 using PetHotel.Registry.Domain.Tutors;
 using PetHotel.SharedKernel;
@@ -15,6 +16,7 @@ public sealed class RegistryDbContext(DbContextOptions<RegistryDbContext> option
 
     public DbSet<Tutor> Tutors => Set<Tutor>();
     public DbSet<Pet> Pets => Set<Pet>();
+    public DbSet<Pack> Packs => Set<Pack>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

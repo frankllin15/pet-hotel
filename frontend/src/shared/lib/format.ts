@@ -1,4 +1,12 @@
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" });
+const moneyFormatter = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+
+/** Formata um valor monetário em BRL. Aceita number ou string (o contrato traz decimais como number|string). */
+export function formatMoney(value: number | string | null | undefined): string {
+  if (value === null || value === undefined || value === "") return "—";
+  const amount = Number(value);
+  return Number.isNaN(amount) ? "—" : moneyFormatter.format(amount);
+}
 const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" });
 
 /** Formata uma data ISO (date ou date-time) em pt-BR; vazio para nulo/ inválido. */

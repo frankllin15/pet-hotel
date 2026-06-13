@@ -29,7 +29,7 @@ public static class CreateAccommodationHandler
             return Error.Forbidden("tenant.required", "A operação exige um tenant no contexto.");
         }
 
-        var result = Accommodation.Create(tenantContext.Current, command.Name);
+        var result = Accommodation.Create(tenantContext.Current, command.Name, command.DailyRate);
         if (result.IsFailure)
         {
             return result.Error;

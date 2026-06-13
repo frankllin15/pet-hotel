@@ -46,7 +46,11 @@ public sealed class ReservationQueries(BookingDbContext dbContext) : IReservatio
             r.Status.ToString(),
             r.CheckedInAt,
             r.CheckedOutAt,
+            r.Period.Nights,
+            r.DailyRate,
+            r.TotalAmount,
             r.ArrivalState is { } a
                 ? new ArrivalStateDto(a.WeightKg, a.Condition.ToString(), a.Observations)
-                : null);
+                : null,
+            r.ArrivalPhotoKeys.Select(k => $"/v1/files/{k}").ToList());
 }

@@ -23,6 +23,7 @@ public sealed class AccommodationEntityConfiguration : IEntityTypeConfiguration<
             .IsRequired();
 
         builder.Property(a => a.Name).HasMaxLength(120).IsRequired();
+        builder.Property(a => a.DailyRate).HasColumnName("daily_rate").HasPrecision(10, 2).IsRequired();
         builder.Property(a => a.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
         builder.Property(a => a.LastBookedAt);
 

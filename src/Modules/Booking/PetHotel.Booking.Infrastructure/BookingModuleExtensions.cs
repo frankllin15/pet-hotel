@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using PetHotel.Booking.Application.Abstractions;
 using PetHotel.Booking.Application.Accommodations.CreateAccommodation;
+using PetHotel.Booking.Application.Accommodations.UpdateAccommodation;
 using PetHotel.Booking.Application.Reservations.CreateReservation;
 using PetHotel.Booking.Domain.Ports;
 using PetHotel.Booking.Infrastructure.Adapters;
@@ -38,6 +39,7 @@ public static class BookingModuleExtensions
         services.AddScoped<IHealthClearanceGateway, BookingHealthClearanceGateway>();
 
         services.AddScoped<IValidator<CreateAccommodation>, CreateAccommodationValidator>();
+        services.AddScoped<IValidator<UpdateAccommodation>, UpdateAccommodationValidator>();
         services.AddScoped<IValidator<CreateReservation>, CreateReservationValidator>();
 
         return services;

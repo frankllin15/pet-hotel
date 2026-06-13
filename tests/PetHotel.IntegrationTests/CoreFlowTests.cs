@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PetHotel.Api.Http;
+using PetHotel.Booking.Application.Accommodations;
 using PetHotel.Booking.Application.Reservations;
 using PetHotel.Booking.Infrastructure.Persistence;
 using PetHotel.Health.Infrastructure.Persistence;
@@ -107,7 +108,7 @@ public sealed class CoreFlowTests : IAsyncLifetime
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Cadastros: acomodação, tutor, pet.
-        var accommodationId = await CreateAsync("/v1/accommodations", new { name = "Suíte 1" });
+        var accommodationId = await CreateAsync("/v1/accommodations", new { name = "Suíte 1", dailyRate = 150m });
         var tutorId = await CreateAsync("/v1/tutors", new { fullName = "Maria", email = "maria@nucleo.com", phone = "11999990000" });
 
         // LGPD: registra consentimentos e relê na ficha (valida wiring/validator + jsonb + projeção).
@@ -137,6 +138,12 @@ public sealed class CoreFlowTests : IAsyncLifetime
             checkIn,
             checkOut
         });
+
+        // Precificação: total = diária (150) × noites (2 = check-in+1 a check-in+3) = 300.
+        var created = await _client.GetFromJsonAsync<ReservationDto>($"/v1/reservations/{reservationId}");
+        Assert.Equal(2, created!.Nights);
+        Assert.Equal(150m, created.DailyRate);
+        Assert.Equal(300m, created.TotalAmount);
 
         // Confirmar SEM vacina → 409 (vaccine.expired).
         var blocked = await _client.PostAsync($"/v1/reservations/{reservationId}/confirm", null);
@@ -186,6 +193,56 @@ public sealed class CoreFlowTests : IAsyncLifetime
         // Id inexistente → 404.
         var missing = await _client.GetAsync($"/v1/reservations/{Guid.NewGuid()}");
         Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+
+        // Foto de chegada (multipart, reserva em estadia) → 200; aparece na ficha.
+        using (var form = new MultipartFormDataContent())
+        {
+            var img = new ByteArrayContent([1, 2, 3, 4]);
+            img.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+            form.Add(img, "file", "chegada.png");
+            var upload = await _client.PostAsync($"/v1/reservations/{reservationId}/arrival-photos", form);
+            Assert.Equal(HttpStatusCode.OK, upload.StatusCode);
+        }
+
+        var withPhoto = await _client.GetFromJsonAsync<ReservationDto>($"/v1/reservations/{reservationId}");
+        Assert.Single(withPhoto!.ArrivalPhotoUrls);
+
+        // Regressão (overbooking): uma reserva ENCERRADA libera a vaga — novo período
+        // sobreposto na mesma acomodação NÃO é mais bloqueado.
+        var checkOutResponse = await _client.PostAsync($"/v1/reservations/{reservationId}/check-out", null);
+        Assert.Equal(HttpStatusCode.NoContent, checkOutResponse.StatusCode);
+
+        var rebook = await _client.PostAsJsonAsync("/v1/reservations", new { petId, accommodationId, checkIn, checkOut });
+        Assert.Equal(HttpStatusCode.Created, rebook.StatusCode);
+
+        // Edição da acomodação (renomear + nova diária) → 204; reflete na listagem.
+        var editAcc = await _client.PutAsJsonAsync($"/v1/accommodations/{accommodationId}", new
+        {
+            name = "Suíte Master",
+            dailyRate = 200m,
+            active = true
+        });
+        Assert.Equal(HttpStatusCode.NoContent, editAcc.StatusCode);
+
+        var accommodations = await _client.GetFromJsonAsync<List<AccommodationDto>>("/v1/accommodations");
+        var edited = accommodations!.Single(a => a.Id == accommodationId);
+        Assert.Equal("Suíte Master", edited.Name);
+        Assert.Equal(200m, edited.DailyRate);
+
+        // Matilhas: cria com o pet (sem alerta), torna o pet reativo e relê (alerta de compatibilidade).
+        var packId = await CreateAsync("/v1/packs", new { name = "Matilha A", notes = (string?)null, memberPetIds = new[] { petId } });
+
+        var pack1 = await _client.GetFromJsonAsync<JsonElement>($"/v1/packs/{packId}");
+        Assert.False(pack1.GetProperty("needsAttention").GetBoolean());
+        Assert.Equal(1, pack1.GetProperty("members").GetArrayLength());
+
+        var setBehavior = await _client.PutAsJsonAsync($"/v1/pets/{petId}", new { name = "Rex", species = "Dog", reactivity = "High" });
+        Assert.Equal(HttpStatusCode.NoContent, setBehavior.StatusCode);
+
+        var pack2 = await _client.GetFromJsonAsync<JsonElement>($"/v1/packs/{packId}");
+        Assert.True(pack2.GetProperty("needsAttention").GetBoolean());
+        var flags = pack2.GetProperty("members")[0].GetProperty("flags").EnumerateArray().Select(f => f.GetString());
+        Assert.Contains("Reactive", flags);
     }
 
     private async Task<Guid> CreateAsync(string url, object body)

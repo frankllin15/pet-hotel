@@ -255,6 +255,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/packs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lista as matilhas do tenant corrente. */
+        get: operations["ListPacks"];
+        put?: never;
+        /** Cria uma matilha (grupo de pets compatíveis). */
+        post: operations["CreatePack"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/packs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Busca uma matilha por Id (com membros e alertas de compatibilidade). */
+        get: operations["GetPackById"];
+        /** Edita uma matilha (nome, observações e composição). */
+        put: operations["UpdatePack"];
+        post?: never;
+        /** Exclui uma matilha do tenant corrente. */
+        delete: operations["DeletePack"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pets/{petId}/vaccinations": {
         parameters: {
             query?: never;
@@ -405,6 +442,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/accommodations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edita uma acomodação (nome, diária, disponibilidade). */
+        put: operations["UpdateAccommodation"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reservations": {
         parameters: {
             query?: never;
@@ -477,6 +531,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reservations/{id}/arrival-photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Anexa uma foto de chegada à reserva (após o check-in).
+         * @description Multipart com o campo 'file'. JPEG, PNG ou WebP até o limite configurado.
+         */
+        post: operations["AddArrivalPhoto"];
+        /** Remove uma foto de chegada da reserva (chave via query). */
+        delete: operations["RemoveArrivalPhoto"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reservations/{id}/cancel": {
         parameters: {
             query?: never;
@@ -541,6 +616,8 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+            /** Format: double */
+            dailyRate: number | string;
             status: string;
         };
         AccommodationTypeDto: {
@@ -564,6 +641,9 @@ export interface components {
         };
         /** @enum {unknown} */
         ArrivalCondition: "Healthy" | "MinorIssues" | "NeedsAttention";
+        ArrivalPhotoResponse: {
+            photoUrl: string;
+        };
         ArrivalStateDto: {
             /** Format: double */
             weightKg: null | number | string;
@@ -631,10 +711,17 @@ export interface components {
         ConsentType: "ImageUse" | "Marketing" | "DataSharing";
         CreateAccommodation: {
             name: string;
+            /** Format: double */
+            dailyRate: number | string;
         };
         CreatedResponse: {
             /** Format: uuid */
             id: string;
+        };
+        CreatePack: {
+            name: string;
+            notes: null | string;
+            memberPetIds: string[];
         };
         CreateReservation: {
             /** Format: uuid */
@@ -715,6 +802,32 @@ export interface components {
             checkIn: string;
             /** Format: date */
             checkOut: string;
+        };
+        PackDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            notes: null | string;
+            members: components["schemas"]["PackMemberDto"][];
+            needsAttention: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PackMemberDto: {
+            /** Format: uuid */
+            petId: string;
+            name: string;
+            species: null | string;
+            found: boolean;
+            flags: string[];
+        };
+        PackSummaryDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            memberCount: number | string;
+            needsAttention: boolean;
         };
         ParasiteTreatmentDto: {
             /** Format: uuid */
@@ -845,7 +958,14 @@ export interface components {
             checkedInAt: null | string;
             /** Format: date-time */
             checkedOutAt: null | string;
+            /** Format: int32 */
+            nights: number | string;
+            /** Format: double */
+            dailyRate: number | string;
+            /** Format: double */
+            totalAmount: number | string;
             arrivalState: null | components["schemas"]["ArrivalStateDto"];
+            arrivalPhotoUrls: string[];
         };
         SetTutorConsents: {
             /** Format: uuid */
@@ -891,6 +1011,21 @@ export interface components {
             consents: components["schemas"]["ConsentDto"][];
             /** Format: date-time */
             createdAt: string;
+        };
+        UpdateAccommodation: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: double */
+            dailyRate: number | string;
+            active: boolean;
+        };
+        UpdatePack: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            notes: null | string;
+            memberPetIds: string[];
         };
         UpdatePet: {
             /** Format: uuid */
@@ -1795,6 +1930,170 @@ export interface operations {
             };
         };
     };
+    ListPacks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackSummaryDto"][];
+                };
+            };
+        };
+    };
+    CreatePack: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePack"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetPackById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdatePack: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePack"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeletePack: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     RegisterVaccination: {
         parameters: {
             query?: never;
@@ -2181,6 +2480,48 @@ export interface operations {
             };
         };
     };
+    UpdateAccommodation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateAccommodation"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     ListReservations: {
         parameters: {
             query?: {
@@ -2381,6 +2722,92 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    AddArrivalPhoto: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArrivalPhotoResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemoveArrivalPhoto: {
+        parameters: {
+            query: {
+                key: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

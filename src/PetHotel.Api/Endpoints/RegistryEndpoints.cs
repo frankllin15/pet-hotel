@@ -1,6 +1,12 @@
 using Microsoft.Extensions.Options;
 using PetHotel.Api.Http;
 using PetHotel.Api.Storage;
+using PetHotel.Registry.Application.Packs;
+using PetHotel.Registry.Application.Packs.CreatePack;
+using PetHotel.Registry.Application.Packs.DeletePack;
+using PetHotel.Registry.Application.Packs.GetPackById;
+using PetHotel.Registry.Application.Packs.ListPacks;
+using PetHotel.Registry.Application.Packs.UpdatePack;
 using PetHotel.Registry.Application.Pets;
 using PetHotel.Registry.Application.Pets.DeletePet;
 using PetHotel.Registry.Application.Pets.SetPetPhoto;
@@ -210,6 +216,58 @@ public static class RegistryEndpoints
             })
             .WithName("DeletePet")
             .WithSummary("Exclui um pet do tenant corrente (e a foto associada).")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        // --- Matilhas (grupos de pets) ---
+        group.MapPost("/packs", async (CreatePack command, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<Guid>>(command, ct);
+                return result.ToHttpResult(id => Results.Created($"/v1/packs/{id}", new CreatedResponse(id)));
+            })
+            .WithName("CreatePack")
+            .WithSummary("Cria uma matilha (grupo de pets compatíveis).")
+            .Produces<CreatedResponse>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden);
+
+        group.MapGet("/packs", async (IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<IReadOnlyList<PackSummaryDto>>>(new ListPacks(), ct);
+                return result.ToHttpResult(Results.Ok);
+            })
+            .WithName("ListPacks")
+            .WithSummary("Lista as matilhas do tenant corrente.")
+            .Produces<IReadOnlyList<PackSummaryDto>>(StatusCodes.Status200OK);
+
+        group.MapGet("/packs/{id:guid}", async (Guid id, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<PackDto>>(new GetPackById(id), ct);
+                return result.ToHttpResult(Results.Ok);
+            })
+            .WithName("GetPackById")
+            .WithSummary("Busca uma matilha por Id (com membros e alertas de compatibilidade).")
+            .Produces<PackDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPut("/packs/{id:guid}", async (Guid id, UpdatePack command, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(command with { Id = id }, ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("UpdatePack")
+            .WithSummary("Edita uma matilha (nome, observações e composição).")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/packs/{id:guid}", async (Guid id, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(new DeletePack(id), ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("DeletePack")
+            .WithSummary("Exclui uma matilha do tenant corrente.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound);
 

@@ -11,17 +11,39 @@ public class ReservationTests
     private static readonly PetReference Pet = new(Guid.NewGuid());
     private static readonly AccommodationId Accommodation = AccommodationId.New();
     private static DateRange Period => DateRange.Create(new DateOnly(2026, 6, 10), new DateOnly(2026, 6, 12)).Value;
+    private const decimal DailyRate = 150m;
 
-    private static Reservation NewRequested() => Reservation.Request(Tenant, Pet, Accommodation, Period).Value;
+    private static Reservation NewRequested() => Reservation.Request(Tenant, Pet, Accommodation, Period, DailyRate).Value;
 
     [Fact]
     public void Solicitar_reserva_valida_levanta_evento()
     {
-        var result = Reservation.Request(Tenant, Pet, Accommodation, Period);
+        var result = Reservation.Request(Tenant, Pet, Accommodation, Period, DailyRate);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(ReservationStatus.Requested, result.Value.Status);
         Assert.Contains(result.Value.DomainEvents, e => e is ReservationRequested);
+    }
+
+    [Fact]
+    public void Solicitar_reserva_calcula_total_por_diaria_e_noites()
+    {
+        // Período de 2 noites (10→12) × 150 = 300.
+        var result = Reservation.Request(Tenant, Pet, Accommodation, Period, DailyRate);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2, result.Value.Period.Nights);
+        Assert.Equal(150m, result.Value.DailyRate);
+        Assert.Equal(300m, result.Value.TotalAmount);
+    }
+
+    [Fact]
+    public void Solicitar_reserva_com_diaria_negativa_falha()
+    {
+        var result = Reservation.Request(Tenant, Pet, Accommodation, Period, -1m);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("reservation.daily_rate_invalid", result.Error.Code);
     }
 
     [Fact]
@@ -135,6 +157,30 @@ public class ReservationTests
 
         Assert.True(result.IsFailure);
         Assert.Equal("arrival_state.condition_invalid", result.Error.Code);
+    }
+
+    [Fact]
+    public void Anexar_foto_de_chegada_antes_do_checkin_bloqueia()
+    {
+        var reservation = NewConfirmed();
+
+        var result = reservation.AddArrivalPhoto("tenant/arrivals/x.png");
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("reservation.not_arrived", result.Error.Code);
+    }
+
+    [Fact]
+    public void Anexar_e_remover_foto_de_chegada_apos_checkin()
+    {
+        var reservation = NewConfirmed();
+        reservation.CheckIn(Now);
+
+        Assert.True(reservation.AddArrivalPhoto("k1").IsSuccess);
+        Assert.Single(reservation.ArrivalPhotoKeys);
+        Assert.True(reservation.RemoveArrivalPhoto("k1").IsSuccess);
+        Assert.Empty(reservation.ArrivalPhotoKeys);
+        Assert.True(reservation.RemoveArrivalPhoto("k1").IsFailure); // já removida
     }
 
     [Fact]

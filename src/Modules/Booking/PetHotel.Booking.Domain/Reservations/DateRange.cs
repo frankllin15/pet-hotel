@@ -8,6 +8,9 @@ public sealed record DateRange : ValueObject
     public DateOnly Start { get; }
     public DateOnly End { get; }
 
+    /// <summary>Número de diárias (noites) do período. Sempre >= 1 (End é posterior a Start).</summary>
+    public int Nights => End.DayNumber - Start.DayNumber;
+
     private DateRange(DateOnly start, DateOnly end)
     {
         Start = start;

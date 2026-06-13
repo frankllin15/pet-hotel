@@ -137,7 +137,7 @@ foreach (var tier in tiers)
             var accBatch = new List<Accommodation>(BatchSize);
             for (var a = 0; a < accommodationsTarget; a++)
             {
-                var acc = Accommodation.Create(new TenantId(tenantId), $"Box {a + 1}").Value;
+                var acc = Accommodation.Create(new TenantId(tenantId), $"Box {a + 1}", faker.Random.Int(80, 300)).Value;
                 accIds.Add(acc.Id);
                 accBatch.Add(acc);
                 if (accBatch.Count >= BatchSize) await FlushAsync(bk, accBatch);
@@ -153,7 +153,8 @@ foreach (var tier in tiers)
                     new TenantId(tenantId),
                     new BookingPetRef(faker.PickRandom(petIds)),
                     faker.PickRandom(accIds),
-                    period).Value;
+                    period,
+                    faker.Random.Int(80, 300)).Value;
                 reservation.Confirm(true); // ocupa o calendário (status != Requested/Cancelled)
                 if (faker.Random.Bool(0.3f))
                 {

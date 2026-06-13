@@ -77,7 +77,7 @@ public sealed class BookingQueriesTests : IAsyncLifetime
     private async Task<Guid> SeedAccommodationAsync(TenantId tenant, string name)
     {
         await using var context = CreateContext();
-        var accommodation = Accommodation.Create(tenant, name).Value;
+        var accommodation = Accommodation.Create(tenant, name, 100m).Value;
         context.Accommodations.Add(accommodation);
         await context.SaveChangesAsync();
         return accommodation.Id.Value;
@@ -88,7 +88,7 @@ public sealed class BookingQueriesTests : IAsyncLifetime
         await using var context = CreateContext();
         var period = DateRange.Create(new DateOnly(2026, 7, 1), new DateOnly(2026, 7, 5)).Value;
         var reservation = Reservation
-            .Request(tenant, new PetReference(Guid.NewGuid()), new AccommodationId(accommodationId), period)
+            .Request(tenant, new PetReference(Guid.NewGuid()), new AccommodationId(accommodationId), period, 100m)
             .Value;
 
         if (confirmed)

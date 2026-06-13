@@ -10,6 +10,8 @@ public sealed class Accommodation : AggregateRoot<AccommodationId>, IHasTenant, 
 {
     public TenantId TenantId { get; private set; }
     public string Name { get; private set; } = null!;
+    /// <summary>Valor da diária cobrada por esta acomodação (na moeda do hotel).</summary>
+    public decimal DailyRate { get; private set; }
     public AccommodationStatus Status { get; private set; }
 
     /// <summary>Última confirmação. Alterado a cada reserva confirmada para forçar o
@@ -23,14 +25,15 @@ public sealed class Accommodation : AggregateRoot<AccommodationId>, IHasTenant, 
 
     private Accommodation() { } // EF
 
-    private Accommodation(AccommodationId id, TenantId tenantId, string name) : base(id)
+    private Accommodation(AccommodationId id, TenantId tenantId, string name, decimal dailyRate) : base(id)
     {
         TenantId = tenantId;
         Name = name;
+        DailyRate = dailyRate;
         Status = AccommodationStatus.Available;
     }
 
-    public static Result<Accommodation> Create(TenantId tenantId, string? name)
+    public static Result<Accommodation> Create(TenantId tenantId, string? name, decimal dailyRate)
     {
         if (tenantId.Value == Guid.Empty)
         {
@@ -42,10 +45,33 @@ public sealed class Accommodation : AggregateRoot<AccommodationId>, IHasTenant, 
             return Error.Validation("accommodation.name_required", "Nome da acomodação é obrigatório.");
         }
 
-        return new Accommodation(AccommodationId.New(), tenantId, name.Trim());
+        if (dailyRate < 0)
+        {
+            return Error.Validation("accommodation.daily_rate_invalid", "Valor da diária não pode ser negativo.");
+        }
+
+        return new Accommodation(AccommodationId.New(), tenantId, name.Trim(), dailyRate);
     }
 
     public bool IsAvailable => Status == AccommodationStatus.Available;
+
+    /// <summary>Edita os dados editáveis (nome e diária); mesmas invariantes do cadastro.</summary>
+    public Result Update(string? name, decimal dailyRate)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return Error.Validation("accommodation.name_required", "Nome da acomodação é obrigatório.");
+        }
+
+        if (dailyRate < 0)
+        {
+            return Error.Validation("accommodation.daily_rate_invalid", "Valor da diária não pode ser negativo.");
+        }
+
+        Name = name.Trim();
+        DailyRate = dailyRate;
+        return Result.Success();
+    }
 
     public Result Deactivate()
     {
@@ -55,6 +81,17 @@ public sealed class Accommodation : AggregateRoot<AccommodationId>, IHasTenant, 
         }
 
         Status = AccommodationStatus.Inactive;
+        return Result.Success();
+    }
+
+    public Result Activate()
+    {
+        if (Status == AccommodationStatus.Available)
+        {
+            return Error.Conflict("accommodation.already_active", "Acomodação já está ativa.");
+        }
+
+        Status = AccommodationStatus.Available;
         return Result.Success();
     }
 

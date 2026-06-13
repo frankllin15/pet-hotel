@@ -1,8 +1,9 @@
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ApiError } from "@/shared/lib/problem-details";
+import { formatMoney } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
 import { Field } from "@/shared/ui/field";
 import { FormPage } from "@/shared/ui/archetypes/form-page";
@@ -27,11 +28,24 @@ export function ReservationFormPage() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<ReservationFormInput>({
     resolver: zodResolver(reservationFormSchema),
     defaultValues: { petId: "", accommodationId: "", checkIn: "", checkOut: "" },
   });
+
+  // Total estimado (diária da acomodação × noites) — atualiza conforme a seleção.
+  const [accommodationId, checkIn, checkOut] = useWatch({
+    control,
+    name: ["accommodationId", "checkIn", "checkOut"],
+  });
+  const selected = available.find((a) => a.id === accommodationId);
+  const nights =
+    checkIn && checkOut && checkOut > checkIn
+      ? Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86_400_000)
+      : 0;
+  const estimatedTotal = selected && nights > 0 ? Number(selected.dailyRate) * nights : null;
 
   const submit = handleSubmit((values) =>
     mutation.mutate(values, {
@@ -82,7 +96,7 @@ export function ReservationFormPage() {
           </option>
           {available.map((a) => (
             <option key={a.id} value={a.id}>
-              {a.name}
+              {a.name} — {formatMoney(a.dailyRate)}/diária
             </option>
           ))}
         </Select>
@@ -96,6 +110,15 @@ export function ReservationFormPage() {
           <Input id="checkOut" type="date" aria-invalid={!!errors.checkOut} {...register("checkOut")} />
         </Field>
       </div>
+
+      {estimatedTotal !== null && (
+        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm">
+          <span className="text-muted-foreground">
+            Total estimado · {nights} {nights === 1 ? "noite" : "noites"} × {formatMoney(selected!.dailyRate)}
+          </span>
+          <span className="font-display text-lg font-semibold">{formatMoney(estimatedTotal)}</span>
+        </div>
+      )}
 
       {formError && <p className="text-sm text-destructive">{formError}</p>}
     </FormPage>

@@ -17,12 +17,12 @@ public sealed class ReservationRepository(BookingDbContext dbContext) : IReserva
         ReservationId? excluding = null,
         CancellationToken cancellationToken = default)
     {
-        // Ocupa a acomodação tudo que não seja apenas solicitado nem cancelado
-        // (Confirmed / CheckedIn / CheckedOut) — evita overbooking mesmo após o check-in.
+        // Bloqueia o período apenas quem ainda DETÉM a acomodação: Confirmed (garantida)
+        // ou CheckedIn (em estadia). CheckedOut já liberou a vaga; Requested ainda não
+        // garante; Cancelled não conta. (EF não traduz método sobre enum → predicado inline.)
         var query = dbContext.Reservations.Where(r =>
             r.AccommodationId == accommodationId &&
-            r.Status != ReservationStatus.Requested &&
-            r.Status != ReservationStatus.Cancelled &&
+            (r.Status == ReservationStatus.Confirmed || r.Status == ReservationStatus.CheckedIn) &&
             r.Period.Start < period.End &&
             period.Start < r.Period.End);
 

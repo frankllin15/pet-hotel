@@ -7,8 +7,11 @@ namespace PetHotel.Booking.Infrastructure.Persistence;
 
 /// <summary>
 /// Calendário de ocupação: reservas que ocupam a acomodação no intervalo (docs/04).
-/// "Ocupa" = confirmada, em estadia ou já encerrada (tudo menos apenas solicitada/cancelada),
-/// para que reservas em check-in/check-out continuem visíveis no calendário.
+/// "Ocupa" aqui = confirmada, em estadia ou já encerrada (tudo menos apenas solicitada/cancelada),
+/// para manter o histórico de check-in/check-out visível no calendário. NOTA: este critério é de
+/// EXIBIÇÃO e é mais amplo que o de DISPONIBILIDADE — o bloqueio de overbooking
+/// (<see cref="Repositories.ReservationRepository.HasActiveOverlapAsync"/>) conta só Confirmed/CheckedIn,
+/// pois uma reserva encerrada (CheckedOut) já liberou a vaga.
 /// </summary>
 public sealed class OccupancyQueries(BookingDbContext dbContext) : IOccupancyQueries
 {

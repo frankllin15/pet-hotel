@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const accommodationFormSchema = z.object({
   name: z.string().min(1, "Informe o nome").max(120),
+  dailyRate: z.number({ message: "Informe a diária" }).min(0, "A diária não pode ser negativa"),
+  active: z.boolean(),
 });
 export type AccommodationFormInput = z.infer<typeof accommodationFormSchema>;
 

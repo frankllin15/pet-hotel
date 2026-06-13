@@ -8,5 +8,6 @@ public sealed class CreateAccommodationValidator : AbstractValidator<CreateAccom
     public CreateAccommodationValidator()
     {
         RuleFor(x => x.Name).NotEmpty().MaximumLength(120);
+        RuleFor(x => x.DailyRate).GreaterThanOrEqualTo(0);
     }
 }

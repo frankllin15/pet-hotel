@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using PetHotel.BuildingBlocks.Persistence;
 using PetHotel.Registry.Application.Abstractions;
+using PetHotel.Registry.Application.Packs.CreatePack;
+using PetHotel.Registry.Application.Packs.UpdatePack;
 using PetHotel.Registry.Application.Pets.RegisterPet;
 using PetHotel.Registry.Application.Pets.UpdatePet;
 using PetHotel.Registry.Application.Tutors.RegisterTutor;
@@ -33,14 +35,18 @@ public static class RegistryModuleExtensions
 
         services.AddScoped<ITutorRepository, TutorRepository>();
         services.AddScoped<IPetRepository, PetRepository>();
+        services.AddScoped<IPackRepository, PackRepository>();
         services.AddScoped<ITutorQueries, TutorQueries>();
         services.AddScoped<IPetQueries, PetQueries>();
+        services.AddScoped<IPackQueries, PackQueries>();
 
         services.AddScoped<IValidator<RegisterTutor>, RegisterTutorValidator>();
         services.AddScoped<IValidator<RegisterPet>, RegisterPetValidator>();
         services.AddScoped<IValidator<UpdateTutor>, UpdateTutorValidator>();
         services.AddScoped<IValidator<UpdatePet>, UpdatePetValidator>();
         services.AddScoped<IValidator<SetTutorConsents>, SetTutorConsentsValidator>();
+        services.AddScoped<IValidator<CreatePack>, CreatePackValidator>();
+        services.AddScoped<IValidator<UpdatePack>, UpdatePackValidator>();
 
         return services;
     }

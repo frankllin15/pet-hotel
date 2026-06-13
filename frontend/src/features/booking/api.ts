@@ -1,18 +1,26 @@
 import { apiClient, unwrap } from "@/shared/api/client";
+import { deleteResource, uploadFile } from "@/shared/api/files";
 import type { components } from "@/shared/api/schema";
 
 export type AccommodationDto = components["schemas"]["AccommodationDto"];
 export type ReservationDto = components["schemas"]["ReservationDto"];
+export type ArrivalPhotoResponse = components["schemas"]["ArrivalPhotoResponse"];
 export type OccupancyEntryDto = components["schemas"]["OccupancyEntryDto"];
 export type CreateReservationBody = components["schemas"]["CreateReservation"];
+export type CreateAccommodationBody = components["schemas"]["CreateAccommodation"];
+export type UpdateAccommodationBody = components["schemas"]["UpdateAccommodation"];
 export type ArrivalStateInput = components["schemas"]["ArrivalStateInput"];
 
 export async function listAccommodations(): Promise<AccommodationDto[]> {
   return unwrap(await apiClient.GET("/v1/accommodations"));
 }
 
-export async function createAccommodation(name: string): Promise<{ id: string }> {
-  return unwrap(await apiClient.POST("/v1/accommodations", { body: { name } }));
+export async function createAccommodation(body: CreateAccommodationBody): Promise<{ id: string }> {
+  return unwrap(await apiClient.POST("/v1/accommodations", { body }));
+}
+
+export async function updateAccommodation(id: string, body: UpdateAccommodationBody): Promise<void> {
+  unwrap(await apiClient.PUT("/v1/accommodations/{id}", { params: { path: { id } }, body }));
 }
 
 export async function listReservations(status?: string): Promise<ReservationDto[]> {
@@ -50,4 +58,12 @@ export async function cancelReservation(id: string): Promise<void> {
 
 export async function getOccupancy(from: string, to: string): Promise<OccupancyEntryDto[]> {
   return unwrap(await apiClient.GET("/v1/occupancy", { params: { query: { from, to } } }));
+}
+
+export async function uploadArrivalPhoto(reservationId: string, file: File): Promise<ArrivalPhotoResponse> {
+  return uploadFile<ArrivalPhotoResponse>(`/v1/reservations/${reservationId}/arrival-photos`, file);
+}
+
+export async function deleteArrivalPhoto(reservationId: string, key: string): Promise<void> {
+  return deleteResource(`/v1/reservations/${reservationId}/arrival-photos?key=${encodeURIComponent(key)}`);
 }

@@ -10,6 +10,9 @@ import { TutorDetailPage } from "@/features/registry/pages/tutor-detail-page";
 import { PetsListPage } from "@/features/registry/pages/pets-list-page";
 import { PetFormPage } from "@/features/registry/pages/pet-form-page";
 import { PetDetailPage } from "@/features/registry/pages/pet-detail-page";
+import { PacksListPage } from "@/features/packs/pages/packs-list-page";
+import { PackFormPage } from "@/features/packs/pages/pack-form-page";
+import { PackDetailPage } from "@/features/packs/pages/pack-detail-page";
 import { ReservationsPage } from "@/features/booking/pages/reservations-page";
 import { ReservationFormPage } from "@/features/booking/pages/reservation-form-page";
 import { ReservationDetailPage } from "@/features/booking/pages/reservation-detail-page";
@@ -37,6 +40,10 @@ export const routes: RouteObject[] = [
           { path: "registry/pets/new", element: <PetFormPage /> },
           { path: "registry/pets/:id", element: <PetDetailPage /> },
           { path: "registry/pets/:id/edit", element: <PetFormPage /> },
+          { path: "registry/packs", element: <PacksListPage /> },
+          { path: "registry/packs/new", element: <PackFormPage /> },
+          { path: "registry/packs/:id", element: <PackDetailPage /> },
+          { path: "registry/packs/:id/edit", element: <PackFormPage /> },
           { path: "booking/reservations", element: <ReservationsPage /> },
           { path: "booking/reservations/new", element: <ReservationFormPage /> },
           { path: "booking/reservations/:id", element: <ReservationDetailPage /> },

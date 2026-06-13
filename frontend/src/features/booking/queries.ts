@@ -5,13 +5,18 @@ import {
   checkOutReservation,
   confirmReservation,
   createAccommodation,
+  updateAccommodation,
   createReservation,
+  deleteArrivalPhoto,
   getOccupancy,
   getReservation,
+  uploadArrivalPhoto,
   listAccommodations,
   listReservations,
   type ArrivalStateInput,
+  type CreateAccommodationBody,
   type CreateReservationBody,
+  type UpdateAccommodationBody,
 } from "./api";
 
 export const bookingKeys = {
@@ -51,7 +56,15 @@ export function useOccupancy(from: string, to: string) {
 export function useCreateAccommodation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (name: string) => createAccommodation(name),
+    mutationFn: (body: CreateAccommodationBody) => createAccommodation(body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: bookingKeys.accommodations() }),
+  });
+}
+
+export function useUpdateAccommodation(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdateAccommodationBody) => updateAccommodation(id, body),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: bookingKeys.accommodations() }),
   });
 }
@@ -87,6 +100,17 @@ export function useCheckOutReservation() {
     mutationFn: (id: string) => checkOutReservation(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
   });
+}
+
+/** Upload e remoção de fotos de chegada, invalidando a ficha da reserva após cada operação. */
+export function useArrivalPhotos(reservationId: string) {
+  const queryClient = useQueryClient();
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: bookingKeys.reservation(reservationId) });
+
+  const upload = useMutation({ mutationFn: (file: File) => uploadArrivalPhoto(reservationId, file), onSuccess: invalidate });
+  const remove = useMutation({ mutationFn: (key: string) => deleteArrivalPhoto(reservationId, key), onSuccess: invalidate });
+
+  return { upload, remove };
 }
 
 export function useCancelReservation() {

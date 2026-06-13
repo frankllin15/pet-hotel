@@ -15,7 +15,7 @@ public sealed class AccommodationQueries(BookingDbContext dbContext) : IAccommod
             .ToListAsync(cancellationToken);
 
         return rows
-            .Select(a => new AccommodationDto(a.Id.Value, a.Name, a.Status.ToString()))
+            .Select(a => new AccommodationDto(a.Id.Value, a.Name, a.DailyRate, a.Status.ToString()))
             .ToList();
     }
 }

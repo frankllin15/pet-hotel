@@ -23,6 +23,44 @@ namespace PetHotel.Registry.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("PetHotel.Registry.Domain.Packs.Pack", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("packs", "registry");
+                });
+
             modelBuilder.Entity("PetHotel.Registry.Domain.Pets.Pet", b =>
                 {
                     b.Property<Guid>("Id")
@@ -160,6 +198,32 @@ namespace PetHotel.Registry.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("tutors", "registry");
+                });
+
+            modelBuilder.Entity("PetHotel.Registry.Domain.Packs.Pack", b =>
+                {
+                    b.OwnsMany("PetHotel.Registry.Domain.Packs.PackMember", "Members", b1 =>
+                        {
+                            b1.Property<Guid>("PackId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd();
+
+                            b1.Property<Guid>("PetId");
+
+                            b1.HasKey("PackId", "__synthesizedOrdinal");
+
+                            b1.ToTable("packs", "registry");
+
+                            b1
+                                .ToJson("Members")
+                                .HasColumnType("jsonb");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PackId");
+                        });
+
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("PetHotel.Registry.Domain.Pets.Pet", b =>
