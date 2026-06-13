@@ -11,6 +11,7 @@ using PetHotel.Booking.Application.Reservations;
 using PetHotel.Booking.Infrastructure.Persistence;
 using PetHotel.Health.Infrastructure.Persistence;
 using PetHotel.IntegrationTests.Support;
+using PetHotel.Notifications.Infrastructure.Persistence;
 using PetHotel.Operations.Infrastructure.Persistence;
 using PetHotel.Registry.Infrastructure.Persistence;
 using PetHotel.Tenancy.Application.Provisioning;
@@ -56,6 +57,7 @@ public sealed class CoreFlowTests : IAsyncLifetime
             await scope.ServiceProvider.GetRequiredService<HealthDbContext>().Database.MigrateAsync();
             await scope.ServiceProvider.GetRequiredService<BookingDbContext>().Database.MigrateAsync();
             await scope.ServiceProvider.GetRequiredService<OperationsDbContext>().Database.MigrateAsync();
+            await scope.ServiceProvider.GetRequiredService<NotificationsDbContext>().Database.MigrateAsync();
         }
 
         _client = _factory.CreateClient();
@@ -296,6 +298,28 @@ public sealed class CoreFlowTests : IAsyncLifetime
         // Regra de estadia vale também p/ medicação/incidente: reserva Solicitada → 409.
         var blockedMed = await _client.PostAsJsonAsync($"/v1/reservations/{rebookId}/medications", new { drug = "X", dose = "1" });
         Assert.Equal(HttpStatusCode.Conflict, blockedMed.StatusCode);
+
+        // Notifications: cria relatório do dia (rascunho), marca enviado, relê histórico por estadia e por tutor.
+        var reportId = await CreateAsync("/v1/reports", new
+        {
+            tutorId,
+            petId,
+            reservationId,
+            reportDate = today,
+            title = "Relatório do Rex",
+            content = "Comeu tudo; tomou Dipirona; brigou com outro pet."
+        });
+
+        var send = await _client.PostAsync($"/v1/reports/{reportId}/send", null);
+        Assert.Equal(HttpStatusCode.NoContent, send.StatusCode);
+
+        var stayReports = await _client.GetFromJsonAsync<JsonElement>($"/v1/reservations/{reservationId}/reports");
+        Assert.Equal(1, stayReports.GetArrayLength());
+        Assert.Equal("Sent", stayReports[0].GetProperty("status").GetString());
+
+        var tutorReports = await _client.GetFromJsonAsync<JsonElement>($"/v1/tutors/{tutorId}/reports");
+        Assert.Equal(1, tutorReports.GetArrayLength());
+        Assert.Equal("Relatório do Rex", tutorReports[0].GetProperty("title").GetString());
     }
 
     private async Task<Guid> CreateAsync(string url, object body)

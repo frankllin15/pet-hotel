@@ -9,7 +9,7 @@ namespace PetHotel.ArchitectureTests;
 /// </summary>
 public class DependencyRuleTests
 {
-    private static readonly string[] Modules = ["Tenancy", "Registry", "Health", "Booking", "Operations"];
+    private static readonly string[] Modules = ["Tenancy", "Registry", "Health", "Booking", "Operations", "Notifications"];
 
     private const string EfCore = "Microsoft.EntityFrameworkCore";
     private const string AspNetCore = "Microsoft.AspNetCore";

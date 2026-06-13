@@ -16,6 +16,7 @@ using PetHotel.BuildingBlocks.Multitenancy;
 using PetHotel.SharedKernel;
 using PetHotel.Booking.Infrastructure;
 using PetHotel.Health.Infrastructure;
+using PetHotel.Notifications.Infrastructure;
 using PetHotel.Operations.Infrastructure;
 using PetHotel.Registry.Infrastructure;
 using PetHotel.Tenancy.Infrastructure;
@@ -126,6 +127,7 @@ builder.Services.AddRegistryModule(dataSource);
 builder.Services.AddHealthModule(dataSource);
 builder.Services.AddBookingModule(dataSource);
 builder.Services.AddOperationsModule(dataSource);
+builder.Services.AddNotificationsModule(dataSource);
 
 // --- Wolverine: mediator + Outbox durável no Postgres (docs/05) ---
 builder.Host.UseWolverine(opts =>
@@ -141,6 +143,7 @@ builder.Host.UseWolverine(opts =>
     opts.Discovery.IncludeAssembly(typeof(PetHotel.Health.Application.AssemblyReference).Assembly);
     opts.Discovery.IncludeAssembly(typeof(PetHotel.Booking.Application.AssemblyReference).Assembly);
     opts.Discovery.IncludeAssembly(typeof(PetHotel.Operations.Application.AssemblyReference).Assembly);
+    opts.Discovery.IncludeAssembly(typeof(PetHotel.Notifications.Application.AssemblyReference).Assembly);
 });
 
 // --- Observabilidade (OpenTelemetry, docs/05) ---
@@ -191,6 +194,7 @@ app.MapRegistryEndpoints();
 app.MapHealthEndpoints();
 app.MapBookingEndpoints();
 app.MapOperationsEndpoints();
+app.MapNotificationsEndpoints();
 app.MapFilesEndpoints();
 
 app.Run();

@@ -6,6 +6,7 @@
     <ProjectReference Include="..\Modules\Health\PetHotel.Health.Infrastructure\PetHotel.Health.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Booking\PetHotel.Booking.Infrastructure\PetHotel.Booking.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Operations\PetHotel.Operations.Infrastructure\PetHotel.Operations.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\PetHotel.Notifications.Infrastructure\PetHotel.Notifications.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

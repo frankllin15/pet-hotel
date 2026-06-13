@@ -73,9 +73,9 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 - [x] Fluxo de incidente grave (auditável + notificação ao tutor) — _agregado Incident por estadia (gravidade/descrição/momento), levanta `IncidentReported`; **notificação ao tutor depende do Notifications/Outbox (futuro)**_
 
 ### Notifications (Comunicação)
-- [ ] Montagem de relatório diário (texto + mídia) a partir do diário
-- [ ] Envio exportável/compartilhável (sem WhatsApp ainda)
-- [ ] Histórico de envios por tutor
+- [x] Montagem de relatório diário (texto + mídia) a partir do diário — _módulo Notifications; `OutboundMessage`; "Montar a partir do diário" compõe o texto do dia (ocorrências/medicação/incidentes), editável; **mídia/anexos no relatório ainda pendente** (texto só)_
+- [x] Envio exportável/compartilhável (sem WhatsApp ainda) — _"Marcar como enviado" (status Draft→Sent) + "Copiar texto"; canal real (WhatsApp/e-mail) é futuro_
+- [x] Histórico de envios por tutor — _histórico por tutor (ficha do tutor) e por estadia (ficha da reserva)_
 
 ### Dashboards
 - [ ] Painel do dia consolidado (chegadas, saídas, medicações)

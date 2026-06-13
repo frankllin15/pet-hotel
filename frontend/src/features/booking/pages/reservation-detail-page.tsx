@@ -7,6 +7,7 @@ import { DetailPage } from "@/shared/ui/archetypes/detail-page";
 import { CareLogPanel } from "@/features/operations/components/care-log-panel";
 import { MedicationPanel } from "@/features/operations/components/medication-panel";
 import { IncidentPanel } from "@/features/operations/components/incident-panel";
+import { ReportPanel } from "@/features/notifications/components/report-panel";
 import { ArrivalPhotos } from "../components/arrival-photos";
 import { PetName } from "../components/pet-name";
 import {
@@ -161,6 +162,14 @@ export function ReservationDetailPage() {
                   reservationId={r.id}
                   canManage={r.status === "CheckedIn" || r.status === "CheckedOut"}
                 />
+              </CardContent>
+            </Card>
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle className="text-sm">Relatório ao tutor</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ReportPanel reservationId={r.id} petId={r.petId} />
               </CardContent>
             </Card>
           </DetailPage>

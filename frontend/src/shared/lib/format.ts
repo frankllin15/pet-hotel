@@ -8,6 +8,14 @@ export function formatMoney(value: number | string | null | undefined): string {
   return Number.isNaN(amount) ? "—" : moneyFormatter.format(amount);
 }
 const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" });
+const timeFormatter = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+/** Formata só a hora (HH:mm) de um instante ISO em pt-BR; vazio para nulo/inválido. */
+export function formatTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "—" : timeFormatter.format(date);
+}
 
 /** Formata uma data ISO (date ou date-time) em pt-BR; vazio para nulo/ inválido. */
 export function formatDate(iso: string | null | undefined): string {
