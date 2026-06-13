@@ -8,6 +8,7 @@ using PetHotel.Registry.Application.Abstractions;
 using PetHotel.Registry.Application.Pets.RegisterPet;
 using PetHotel.Registry.Application.Pets.UpdatePet;
 using PetHotel.Registry.Application.Tutors.RegisterTutor;
+using PetHotel.Registry.Application.Tutors.SetTutorConsents;
 using PetHotel.Registry.Application.Tutors.UpdateTutor;
 using PetHotel.Registry.Domain.Ports;
 using PetHotel.Registry.Infrastructure.Persistence;
@@ -39,6 +40,7 @@ public static class RegistryModuleExtensions
         services.AddScoped<IValidator<RegisterPet>, RegisterPetValidator>();
         services.AddScoped<IValidator<UpdateTutor>, UpdateTutorValidator>();
         services.AddScoped<IValidator<UpdatePet>, UpdatePetValidator>();
+        services.AddScoped<IValidator<SetTutorConsents>, SetTutorConsentsValidator>();
 
         return services;
     }

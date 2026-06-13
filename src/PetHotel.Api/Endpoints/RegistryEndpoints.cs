@@ -13,6 +13,7 @@ using PetHotel.Registry.Application.Tutors.DeleteTutor;
 using PetHotel.Registry.Application.Tutors.GetTutorById;
 using PetHotel.Registry.Application.Tutors.ListTutors;
 using PetHotel.Registry.Application.Tutors.RegisterTutor;
+using PetHotel.Registry.Application.Tutors.SetTutorConsents;
 using PetHotel.Registry.Application.Tutors.UpdateTutor;
 using PetHotel.SharedKernel;
 using Wolverine;
@@ -76,6 +77,18 @@ public static class RegistryEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
+
+        group.MapPut("/tutors/{id:guid}/consents", async (Guid id, SetTutorConsents command, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(command with { TutorId = id }, ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("SetTutorConsents")
+            .WithSummary("Registra os consentimentos LGPD do tutor.")
+            .WithDescription("Uso de imagem, marketing e compartilhamento. Carimba data e versão dos termos; decisão inalterada preserva o registro.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
 
         group.MapDelete("/tutors/{id:guid}", async (Guid id, IMessageBus bus, CancellationToken ct) =>
             {

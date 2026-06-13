@@ -9,7 +9,15 @@ public sealed record TutorDto(
     IReadOnlyList<EmergencyContactDto> EmergencyContacts,
     IReadOnlyList<AuthorizedPickupDto> AuthorizedPickups,
     BillingInfoDto? Billing,
+    IReadOnlyList<ConsentDto> Consents,
     DateTimeOffset CreatedAt);
+
+/// <summary>Decisão de consentimento LGPD (leitura).</summary>
+public sealed record ConsentDto(
+    string Type,
+    bool Granted,
+    DateTimeOffset DecidedAt,
+    string TermsVersion);
 
 /// <summary>Dados de faturamento (leitura).</summary>
 public sealed record BillingInfoDto(

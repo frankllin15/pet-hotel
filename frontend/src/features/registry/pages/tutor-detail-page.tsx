@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { DetailPage } from "@/shared/ui/archetypes/detail-page";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { TutorConsentsCard } from "../components/tutor-consents-card";
 import { SPECIES_LABELS } from "../schemas";
 import { useDeleteTutor, usePets, useTutor } from "../queries";
 
@@ -146,6 +147,10 @@ export function TutorDetailPage() {
               </Card>
             </div>
           )}
+
+          <div className="mb-6">
+            <TutorConsentsCard tutorId={tutor.id} consents={tutor.consents} />
+          </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">

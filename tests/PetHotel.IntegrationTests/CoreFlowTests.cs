@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -108,6 +109,24 @@ public sealed class CoreFlowTests : IAsyncLifetime
         // Cadastros: acomodação, tutor, pet.
         var accommodationId = await CreateAsync("/v1/accommodations", new { name = "Suíte 1" });
         var tutorId = await CreateAsync("/v1/tutors", new { fullName = "Maria", email = "maria@nucleo.com", phone = "11999990000" });
+
+        // LGPD: registra consentimentos e relê na ficha (valida wiring/validator + jsonb + projeção).
+        var consents = await _client.PutAsJsonAsync($"/v1/tutors/{tutorId}/consents", new
+        {
+            consents = new[]
+            {
+                new { type = "ImageUse", granted = true },
+                new { type = "Marketing", granted = false },
+            }
+        });
+        Assert.Equal(HttpStatusCode.NoContent, consents.StatusCode);
+
+        var tutorJson = await _client.GetFromJsonAsync<JsonElement>($"/v1/tutors/{tutorId}");
+        var consentArray = tutorJson.GetProperty("consents");
+        Assert.Equal(2, consentArray.GetArrayLength());
+        var imageUse = consentArray.EnumerateArray().Single(c => c.GetProperty("type").GetString() == "ImageUse");
+        Assert.True(imageUse.GetProperty("granted").GetBoolean());
+        Assert.Equal("1.0", imageUse.GetProperty("termsVersion").GetString());
         var petId = await CreateAsync("/v1/pets", new { tutorId, name = "Rex", species = "Dog", breed = (string?)null, birthDate = (DateOnly?)null, notes = (string?)null });
 
         // Criar reserva.

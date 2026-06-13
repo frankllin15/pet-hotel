@@ -171,6 +171,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tutors/{id}/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Registra os consentimentos LGPD do tutor.
+         * @description Uso de imagem, marketing e compartilhamento. Carimba data e versão dos termos; decisão inalterada preserva o registro.
+         */
+        put: operations["SetTutorConsents"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/pets": {
         parameters: {
             query?: never;
@@ -596,6 +616,19 @@ export interface components {
             state: null | string;
             postalCode: null | string;
         };
+        ConsentDecisionInput: {
+            type: components["schemas"]["ConsentType"];
+            granted: boolean;
+        };
+        ConsentDto: {
+            type: string;
+            granted: boolean;
+            /** Format: date-time */
+            decidedAt: string;
+            termsVersion: string;
+        };
+        /** @enum {unknown} */
+        ConsentType: "ImageUse" | "Marketing" | "DataSharing";
         CreateAccommodation: {
             name: string;
         };
@@ -814,6 +847,11 @@ export interface components {
             checkedOutAt: null | string;
             arrivalState: null | components["schemas"]["ArrivalStateDto"];
         };
+        SetTutorConsents: {
+            /** Format: uuid */
+            tutorId: string;
+            consents: components["schemas"]["ConsentDecisionInput"][];
+        };
         SetVetContactRequest: {
             name: string;
             phone: string;
@@ -850,6 +888,7 @@ export interface components {
             emergencyContacts: components["schemas"]["EmergencyContactDto"][];
             authorizedPickups: components["schemas"]["AuthorizedPickupDto"][];
             billing: null | components["schemas"]["BillingInfoDto"];
+            consents: components["schemas"]["ConsentDto"][];
             /** Format: date-time */
             createdAt: string;
         };
@@ -1443,6 +1482,48 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetTutorConsents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetTutorConsents"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

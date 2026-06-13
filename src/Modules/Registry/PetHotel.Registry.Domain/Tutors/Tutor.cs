@@ -18,6 +18,8 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
     public List<AuthorizedPickup> AuthorizedPickups { get; private set; } = [];
     /// <summary>Dados de faturamento (opcional; preenchido quando o tutor informa).</summary>
     public BillingInfo? Billing { get; private set; }
+    /// <summary>Decisões de consentimento LGPD (uma por finalidade já decidida).</summary>
+    public List<Consent> Consents { get; private set; } = [];
 
     public DateTimeOffset CreatedAt { get; private set; }
     public string? CreatedBy { get; private set; }
@@ -107,6 +109,34 @@ public sealed class Tutor : AggregateRoot<TutorId>, IHasTenant, IAuditable
         EmergencyContacts = emergencyContacts?.ToList() ?? [];
         AuthorizedPickups = authorizedPickups?.ToList() ?? [];
         Billing = billing;
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Registra a decisão de consentimento para uma finalidade (LGPD). Se a decisão for
+    /// igual à atual, preserva o carimbo original (a data relevante é a da decisão real);
+    /// se mudar (ou for nova), grava o novo estado com o momento e a versão dos termos.
+    /// </summary>
+    public Result SetConsent(ConsentType type, bool granted, DateTimeOffset now, string? termsVersion)
+    {
+        var existing = Consents.FirstOrDefault(c => c.Type == type);
+        if (existing is not null && existing.Granted == granted)
+        {
+            return Result.Success();
+        }
+
+        var consent = Consent.Create(type, granted, now, termsVersion);
+        if (consent.IsFailure)
+        {
+            return consent.Error;
+        }
+
+        if (existing is not null)
+        {
+            Consents.Remove(existing);
+        }
+
+        Consents.Add(consent.Value);
         return Result.Success();
     }
 

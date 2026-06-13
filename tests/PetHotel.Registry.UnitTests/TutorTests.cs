@@ -99,6 +99,65 @@ public class TutorTests
     }
 
     [Fact]
+    public void Definir_consentimento_registra_decisao_com_carimbo()
+    {
+        var tutor = Tutor.Register(Tenant, "Maria", "m@b.com", "11999998888").Value;
+        var now = DateTimeOffset.Parse("2026-06-13T10:00:00Z");
+
+        var result = tutor.SetConsent(ConsentType.ImageUse, granted: true, now, "1.0");
+
+        Assert.True(result.IsSuccess);
+        var consent = Assert.Single(tutor.Consents);
+        Assert.Equal(ConsentType.ImageUse, consent.Type);
+        Assert.True(consent.Granted);
+        Assert.Equal(now, consent.DecidedAt);
+        Assert.Equal("1.0", consent.TermsVersion);
+    }
+
+    [Fact]
+    public void Reafirmar_mesma_decisao_preserva_o_carimbo_original()
+    {
+        var tutor = Tutor.Register(Tenant, "Maria", "m@b.com", "11999998888").Value;
+        var first = DateTimeOffset.Parse("2026-06-13T10:00:00Z");
+        tutor.SetConsent(ConsentType.Marketing, granted: true, first, "1.0");
+
+        // Reafirma a MESMA decisão num momento posterior → não re-carimba.
+        var later = first.AddDays(5);
+        tutor.SetConsent(ConsentType.Marketing, granted: true, later, "2.0");
+
+        var consent = Assert.Single(tutor.Consents);
+        Assert.Equal(first, consent.DecidedAt);
+        Assert.Equal("1.0", consent.TermsVersion);
+    }
+
+    [Fact]
+    public void Revogar_consentimento_atualiza_estado_e_carimbo()
+    {
+        var tutor = Tutor.Register(Tenant, "Maria", "m@b.com", "11999998888").Value;
+        var granted = DateTimeOffset.Parse("2026-06-13T10:00:00Z");
+        tutor.SetConsent(ConsentType.DataSharing, granted: true, granted, "1.0");
+
+        var revoked = granted.AddDays(10);
+        tutor.SetConsent(ConsentType.DataSharing, granted: false, revoked, "1.0");
+
+        var consent = Assert.Single(tutor.Consents);
+        Assert.False(consent.Granted);
+        Assert.Equal(revoked, consent.DecidedAt);
+    }
+
+    [Fact]
+    public void Definir_consentimento_com_finalidade_invalida_falha()
+    {
+        var tutor = Tutor.Register(Tenant, "Maria", "m@b.com", "11999998888").Value;
+
+        var result = tutor.SetConsent((ConsentType)99, granted: true, DateTimeOffset.UtcNow, "1.0");
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("consent.type_invalid", result.Error.Code);
+        Assert.Empty(tutor.Consents);
+    }
+
+    [Fact]
     public void Criar_faturamento_normaliza_campos()
     {
         var result = BillingInfo.Create(

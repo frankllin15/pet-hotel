@@ -11,6 +11,8 @@ export type RegisterTutorBody = components["schemas"]["RegisterTutor"];
 export type RegisterPetBody = components["schemas"]["RegisterPet"];
 export type UpdateTutorBody = components["schemas"]["UpdateTutor"];
 export type UpdatePetBody = components["schemas"]["UpdatePet"];
+export type ConsentDto = components["schemas"]["ConsentDto"];
+export type ConsentDecisionInput = components["schemas"]["ConsentDecisionInput"];
 type TutorPage = components["schemas"]["CursorPageOfTutorDto"];
 type PetPage = components["schemas"]["CursorPageOfPetDto"];
 
@@ -45,6 +47,10 @@ export async function updateTutor(id: string, body: UpdateTutorBody): Promise<vo
 
 export async function deleteTutor(id: string): Promise<void> {
   unwrap(await apiClient.DELETE("/v1/tutors/{id}", { params: { path: { id } } }));
+}
+
+export async function setTutorConsents(id: string, consents: ConsentDecisionInput[]): Promise<void> {
+  unwrap(await apiClient.PUT("/v1/tutors/{id}/consents", { params: { path: { id } }, body: { tutorId: id, consents } }));
 }
 
 export async function listPets(params: ListPetsParams): Promise<PetPage> {

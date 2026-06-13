@@ -14,9 +14,11 @@ import {
   listTutors,
   registerPet,
   registerTutor,
+  setTutorConsents,
   updatePet,
   updateTutor,
   uploadPetPhoto,
+  type ConsentDecisionInput,
   type ListPetsParams,
   type RegisterPetBody,
   type RegisterTutorBody,
@@ -105,6 +107,14 @@ export function useUpdatePet(id: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: registryKeys.all });
     },
+  });
+}
+
+export function useSetTutorConsents(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (consents: ConsentDecisionInput[]) => setTutorConsents(id, consents),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: registryKeys.tutor(id) }),
   });
 }
 

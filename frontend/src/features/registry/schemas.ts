@@ -86,6 +86,19 @@ export const BEHAVIOR_TRAITS = [
   { key: "destructiveness", label: "Destrutividade" },
 ] as const;
 
+/** Finalidades de consentimento LGPD (valores batem com ConsentType do backend). */
+export const CONSENT_TYPES = ["ImageUse", "Marketing", "DataSharing"] as const;
+export const CONSENT_TYPE_LABELS: Record<(typeof CONSENT_TYPES)[number], string> = {
+  ImageUse: "Uso de imagem",
+  Marketing: "Comunicações de marketing",
+  DataSharing: "Compartilhamento com parceiros",
+};
+export const CONSENT_TYPE_DESCRIPTIONS: Record<(typeof CONSENT_TYPES)[number], string> = {
+  ImageUse: "Fotos do pet em redes sociais e materiais de divulgação.",
+  Marketing: "Promoções, novidades e campanhas por e-mail ou mensagem.",
+  DataSharing: "Compartilhar dados com parceiros (ex.: pet shop, seguradora).",
+};
+
 export const FOOD_SOURCES = ["TutorProvided", "HotelProvided"] as const;
 
 /** Rótulos pt-BR da origem da ração (valores batem com o enum FoodSource do backend). */

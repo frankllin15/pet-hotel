@@ -72,5 +72,8 @@ public sealed class TutorQueries(RegistryDbContext dbContext) : ITutorQueries
                     billing.State,
                     billing.PostalCode)
                 : null,
+            tutor.Consents
+                .Select(c => new ConsentDto(c.Type.ToString(), c.Granted, c.DecidedAt, c.TermsVersion))
+                .ToList(),
             tutor.CreatedAt);
 }

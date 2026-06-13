@@ -44,6 +44,9 @@ public sealed class TutorEntityConfiguration : IEntityTypeConfiguration<Tutor>
         // Faturamento persistido como JSON dentro da linha.
         builder.OwnsOne(t => t.Billing, owned => owned.ToJson());
 
+        // Consentimentos LGPD persistidos como JSON dentro da linha (coleção owned).
+        builder.OwnsMany(t => t.Consents, owned => owned.ToJson());
+
         builder.Property(t => t.CreatedAt).IsRequired();
         builder.Property(t => t.CreatedBy).HasMaxLength(200);
         builder.Property(t => t.UpdatedBy).HasMaxLength(200);
