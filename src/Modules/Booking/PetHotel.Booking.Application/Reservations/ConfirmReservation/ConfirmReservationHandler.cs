@@ -36,16 +36,17 @@ public static class ConfirmReservationHandler
             return Error.NotFound("reservation.not_found", "Reserva não encontrada.");
         }
 
-        if (await reservations.HasActiveOverlapAsync(
-                reservation.AccommodationId, reservation.Period, reservation.Id, cancellationToken))
-        {
-            return Error.Conflict("accommodation.unavailable", "Já há reserva confirmada para o período nessa acomodação.");
-        }
-
         var accommodation = await accommodations.FindAsync(reservation.AccommodationId, cancellationToken);
         if (accommodation is null)
         {
             return Error.NotFound("accommodation.not_found", "Acomodação não encontrada.");
+        }
+
+        if (await reservations.CountActiveOverlapsAsync(
+                reservation.AccommodationId, reservation.Period, reservation.Id, cancellationToken)
+            >= accommodation.Capacity)
+        {
+            return Error.Conflict("accommodation.unavailable", "Acomodação sem vaga para o período.");
         }
 
         var cleared = await healthClearance.IsPetClearedAsync(

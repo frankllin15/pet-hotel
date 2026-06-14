@@ -10,8 +10,8 @@ namespace PetHotel.Booking.Infrastructure.Persistence;
 /// "Ocupa" aqui = confirmada, em estadia ou já encerrada (tudo menos apenas solicitada/cancelada),
 /// para manter o histórico de check-in/check-out visível no calendário. NOTA: este critério é de
 /// EXIBIÇÃO e é mais amplo que o de DISPONIBILIDADE — o bloqueio de overbooking
-/// (<see cref="Repositories.ReservationRepository.HasActiveOverlapAsync"/>) conta só Confirmed/CheckedIn,
-/// pois uma reserva encerrada (CheckedOut) já liberou a vaga.
+/// (<see cref="Repositories.ReservationRepository.CountActiveOverlapsAsync"/>) conta só Confirmed/CheckedIn
+/// vs. a capacidade da acomodação, pois uma reserva encerrada (CheckedOut) já liberou a vaga.
 /// </summary>
 public sealed class OccupancyQueries(BookingDbContext dbContext) : IOccupancyQueries
 {

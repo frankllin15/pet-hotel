@@ -20,4 +20,22 @@ public sealed class MedicationQueries(OperationsDbContext dbContext) : IMedicati
             .Select(m => new MedicationDto(m.Id.Value, m.Drug, m.Dose, m.AdministeredAt, m.CreatedBy))
             .ToList();
     }
+
+    public async Task<IReadOnlyList<DayMedicationDto>> GetByDateAsync(
+        DateOnly date, CancellationToken cancellationToken = default)
+    {
+        // Janela [00:00, 24:00) em UTC do dia informado (AdministeredAt é timestamptz).
+        var start = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
+        var end = start.AddDays(1);
+
+        var rows = await dbContext.Medications
+            .AsNoTracking()
+            .Where(m => m.AdministeredAt >= start && m.AdministeredAt < end)
+            .OrderBy(m => m.AdministeredAt)
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .Select(m => new DayMedicationDto(m.Id.Value, m.ContextId, m.Drug, m.Dose, m.AdministeredAt))
+            .ToList();
+    }
 }

@@ -195,6 +195,7 @@ app.MapHealthEndpoints();
 app.MapBookingEndpoints();
 app.MapOperationsEndpoints();
 app.MapNotificationsEndpoints();
+app.MapDashboardEndpoints();
 app.MapFilesEndpoints();
 
 app.Run();

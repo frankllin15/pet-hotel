@@ -112,7 +112,7 @@ public sealed class CoreFlowTests : IAsyncLifetime
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         // Cadastros: acomodação, tutor, pet.
-        var accommodationId = await CreateAsync("/v1/accommodations", new { name = "Suíte 1", dailyRate = 150m });
+        var accommodationId = await CreateAsync("/v1/accommodations", new { name = "Suíte 1", dailyRate = 150m, capacity = 1 });
         var tutorId = await CreateAsync("/v1/tutors", new { fullName = "Maria", email = "maria@nucleo.com", phone = "11999990000" });
 
         // LGPD: registra consentimentos e relê na ficha (valida wiring/validator + jsonb + projeção).
@@ -172,6 +172,11 @@ public sealed class CoreFlowTests : IAsyncLifetime
         Assert.NotNull(occupancy);
         Assert.Contains(occupancy!, e => e.ReservationId == reservationId && e.PetId == petId);
 
+        // Painel do dia na data de chegada: a reserva confirmada aparece como chegada prevista.
+        var arrivalBoard = await _client.GetFromJsonAsync<JsonElement>($"/v1/dashboard?date={checkIn:yyyy-MM-dd}");
+        var arrivals = arrivalBoard.GetProperty("board").GetProperty("arrivals");
+        Assert.Contains(arrivals.EnumerateArray(), r => r.GetProperty("id").GetString() == reservationId.ToString());
+
         // Check-in com estado de chegada (corpo opcional) → 204; estado persiste e volta na leitura.
         var checkInResponse = await _client.PostAsJsonAsync($"/v1/reservations/{reservationId}/check-in", new
         {
@@ -225,6 +230,7 @@ public sealed class CoreFlowTests : IAsyncLifetime
         {
             name = "Suíte Master",
             dailyRate = 200m,
+            capacity = 2,
             active = true
         });
         Assert.Equal(HttpStatusCode.NoContent, editAcc.StatusCode);
@@ -233,6 +239,7 @@ public sealed class CoreFlowTests : IAsyncLifetime
         var edited = accommodations!.Single(a => a.Id == accommodationId);
         Assert.Equal("Suíte Master", edited.Name);
         Assert.Equal(200m, edited.DailyRate);
+        Assert.Equal(2, edited.Capacity);
 
         // Matilhas: cria com o pet (sem alerta), torna o pet reativo e relê (alerta de compatibilidade).
         var packId = await CreateAsync("/v1/packs", new { name = "Matilha A", notes = (string?)null, memberPetIds = new[] { petId } });
@@ -283,6 +290,14 @@ public sealed class CoreFlowTests : IAsyncLifetime
         Assert.Equal(1, meds.GetArrayLength());
         Assert.Equal("Dipirona", meds[0].GetProperty("drug").GetString());
 
+        // Painel do dia (hoje): a medicação recém-registrada aparece nas medicações do dia.
+        var dashboard = await _client.GetFromJsonAsync<JsonElement>($"/v1/dashboard?date={today:yyyy-MM-dd}");
+        Assert.True(dashboard.GetProperty("board").GetProperty("totalSlots").GetInt32() >= 1);
+        Assert.Contains(
+            dashboard.GetProperty("medications").EnumerateArray(),
+            m => m.GetProperty("reservationId").GetString() == reservationId.ToString()
+                && m.GetProperty("drug").GetString() == "Dipirona");
+
         // Diretório de usuários resolve a autoria (givenBy → nome de exibição).
         var givenBy = meds[0].GetProperty("givenBy").GetString();
         var users = await _client.GetFromJsonAsync<JsonElement>("/v1/users");
@@ -320,6 +335,45 @@ public sealed class CoreFlowTests : IAsyncLifetime
         var tutorReports = await _client.GetFromJsonAsync<JsonElement>($"/v1/tutors/{tutorId}/reports");
         Assert.Equal(1, tutorReports.GetArrayLength());
         Assert.Equal("Relatório do Rex", tutorReports[0].GetProperty("title").GetString());
+
+        // Capacidade (multi-pet): a acomodação foi editada p/ capacidade 2 — duas reservas confirmadas
+        // no mesmo período cabem, a terceira é barrada por falta de vaga.
+        var capIn = today.AddDays(40);
+        var capOut = today.AddDays(42);
+
+        async Task<Guid> VaccinatedPet(string name)
+        {
+            var pid = await CreateAsync("/v1/pets", new { tutorId, name, species = "Dog", breed = (string?)null, birthDate = (DateOnly?)null, notes = (string?)null });
+            var vac = await _client.PostAsJsonAsync($"/v1/pets/{pid}/vaccinations", new { type = "Rabies", appliedOn = today, expiresOn = today.AddYears(1) });
+            Assert.Equal(HttpStatusCode.Created, vac.StatusCode);
+            return pid;
+        }
+
+        Task<Guid> SharedReservation(Guid pid) =>
+            CreateAsync("/v1/reservations", new { petId = pid, accommodationId, checkIn = capIn, checkOut = capOut });
+
+        var petA = await VaccinatedPet("Pet A");
+        var petB = await VaccinatedPet("Pet B");
+        var petC = await VaccinatedPet("Pet C");
+        var resA = await SharedReservation(petA);
+        var resB = await SharedReservation(petB);
+        var resC = await SharedReservation(petC);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.PostAsync($"/v1/reservations/{resA}/confirm", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.PostAsync($"/v1/reservations/{resB}/confirm", null)).StatusCode);
+        var thirdConfirm = await _client.PostAsync($"/v1/reservations/{resC}/confirm", null);
+        Assert.Equal(HttpStatusCode.Conflict, thirdConfirm.StatusCode); // capacidade 2 esgotada
+
+        // Alerta de compatibilidade: torna o Pet B reativo e consulta o compartilhamento p/ o Pet C.
+        var makeReactive = await _client.PutAsJsonAsync($"/v1/pets/{petB}", new { name = "Pet B", species = "Dog", reactivity = "High" });
+        Assert.Equal(HttpStatusCode.NoContent, makeReactive.StatusCode);
+
+        var compat = await _client.GetFromJsonAsync<JsonElement>(
+            $"/v1/reservations/compatibility?accommodationId={accommodationId}&checkIn={capIn:yyyy-MM-dd}&checkOut={capOut:yyyy-MM-dd}&petId={petC}");
+        Assert.True(compat.GetProperty("shared").GetBoolean());
+        Assert.Contains(
+            compat.GetProperty("conflicts").EnumerateArray(),
+            c => c.GetProperty("petId").GetString() == petB.ToString());
     }
 
     private async Task<Guid> CreateAsync(string url, object body)

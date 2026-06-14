@@ -137,7 +137,7 @@ foreach (var tier in tiers)
             var accBatch = new List<Accommodation>(BatchSize);
             for (var a = 0; a < accommodationsTarget; a++)
             {
-                var acc = Accommodation.Create(new TenantId(tenantId), $"Box {a + 1}", faker.Random.Int(80, 300)).Value;
+                var acc = Accommodation.Create(new TenantId(tenantId), $"Box {a + 1}", faker.Random.Int(80, 300), faker.Random.Int(1, 4)).Value;
                 accIds.Add(acc.Id);
                 accBatch.Add(acc);
                 if (accBatch.Count >= BatchSize) await FlushAsync(bk, accBatch);

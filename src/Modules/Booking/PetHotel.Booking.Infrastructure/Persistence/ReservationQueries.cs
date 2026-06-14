@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PetHotel.Booking.Application.Abstractions;
 using PetHotel.Booking.Application.Reservations;
+using PetHotel.Booking.Domain.Accommodations;
 using PetHotel.Booking.Domain.Reservations;
 
 namespace PetHotel.Booking.Infrastructure.Persistence;
@@ -36,7 +37,27 @@ public sealed class ReservationQueries(BookingDbContext dbContext) : IReservatio
         return reservation is null ? null : ToDto(reservation);
     }
 
-    private static ReservationDto ToDto(Reservation r) =>
+    public async Task<IReadOnlyList<Guid>> GetActiveOverlapPetIdsAsync(
+        Guid accommodationId, DateOnly checkIn, DateOnly checkOut, CancellationToken cancellationToken = default)
+    {
+        var accId = new AccommodationId(accommodationId);
+
+        // Mesmo critério de posse de vaga do overbooking: Confirmed/CheckedIn que sobrepõem [checkIn, checkOut).
+        var petIds = await dbContext.Reservations
+            .AsNoTracking()
+            .Where(r =>
+                r.AccommodationId == accId &&
+                (r.Status == ReservationStatus.Confirmed || r.Status == ReservationStatus.CheckedIn) &&
+                r.Period.Start < checkOut &&
+                checkIn < r.Period.End)
+            .Select(r => r.Pet.Value)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        return petIds;
+    }
+
+    internal static ReservationDto ToDto(Reservation r) =>
         new(
             r.Id.Value,
             r.Pet.Value,

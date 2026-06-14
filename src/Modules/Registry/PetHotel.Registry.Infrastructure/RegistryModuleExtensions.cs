@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using PetHotel.BuildingBlocks.Persistence;
 using PetHotel.Registry.Application.Abstractions;
+using PetHotel.Registry.Application.Contracts;
 using PetHotel.Registry.Application.Packs.CreatePack;
 using PetHotel.Registry.Application.Packs.UpdatePack;
 using PetHotel.Registry.Application.Pets.RegisterPet;
@@ -39,6 +40,9 @@ public static class RegistryModuleExtensions
         services.AddScoped<ITutorQueries, TutorQueries>();
         services.AddScoped<IPetQueries, PetQueries>();
         services.AddScoped<IPackQueries, PackQueries>();
+
+        // Contrato público consumido por outros módulos (ex.: Booking, p/ alerta de compartilhamento).
+        services.AddScoped<IPetCompatibilityContract, PetCompatibilityContract>();
 
         services.AddScoped<IValidator<RegisterTutor>, RegisterTutorValidator>();
         services.AddScoped<IValidator<RegisterPet>, RegisterPetValidator>();

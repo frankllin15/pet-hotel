@@ -10,5 +10,6 @@ public sealed class UpdateAccommodationValidator : AbstractValidator<UpdateAccom
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Name).NotEmpty().MaximumLength(120);
         RuleFor(x => x.DailyRate).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Capacity).GreaterThanOrEqualTo(1);
     }
 }

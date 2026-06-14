@@ -77,7 +77,7 @@ public sealed class BookingQueriesTests : IAsyncLifetime
     private async Task<Guid> SeedAccommodationAsync(TenantId tenant, string name)
     {
         await using var context = CreateContext();
-        var accommodation = Accommodation.Create(tenant, name, 100m).Value;
+        var accommodation = Accommodation.Create(tenant, name, 100m, 1).Value;
         context.Accommodations.Add(accommodation);
         await context.SaveChangesAsync();
         return accommodation.Id.Value;

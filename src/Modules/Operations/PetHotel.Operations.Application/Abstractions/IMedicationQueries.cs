@@ -7,4 +7,7 @@ public interface IMedicationQueries
 {
     /// <summary>Medicações de uma estadia, mais recentes primeiro.</summary>
     Task<IReadOnlyList<MedicationDto>> GetByContextAsync(Guid contextId, CancellationToken cancellationToken = default);
+
+    /// <summary>Medicações administradas no dia informado (todas as estadias do tenant), por horário.</summary>
+    Task<IReadOnlyList<DayMedicationDto>> GetByDateAsync(DateOnly date, CancellationToken cancellationToken = default);
 }

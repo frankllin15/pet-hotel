@@ -40,7 +40,7 @@ public sealed class BookingConcurrencyTests : IAsyncLifetime
 
         await using (var context = CreateContext())
         {
-            var accommodation = Accommodation.Create(_tenant.Current, "Box concorrência", 100m).Value;
+            var accommodation = Accommodation.Create(_tenant.Current, "Box concorrência", 100m, 1).Value;
             var first = Reservation.Request(_tenant.Current, new PetReference(Guid.NewGuid()), accommodation.Id, period1, 100m).Value;
             var second = Reservation.Request(_tenant.Current, new PetReference(Guid.NewGuid()), accommodation.Id, period2, 100m).Value;
 

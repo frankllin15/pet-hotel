@@ -12,6 +12,8 @@ public sealed class Accommodation : AggregateRoot<AccommodationId>, IHasTenant, 
     public string Name { get; private set; } = null!;
     /// <summary>Valor da diária cobrada por esta acomodação (na moeda do hotel).</summary>
     public decimal DailyRate { get; private set; }
+    /// <summary>Quantos pets a acomodação comporta ao mesmo tempo (>= 1). 1 = uso exclusivo.</summary>
+    public int Capacity { get; private set; }
     public AccommodationStatus Status { get; private set; }
 
     /// <summary>Última confirmação. Alterado a cada reserva confirmada para forçar o
@@ -25,15 +27,16 @@ public sealed class Accommodation : AggregateRoot<AccommodationId>, IHasTenant, 
 
     private Accommodation() { } // EF
 
-    private Accommodation(AccommodationId id, TenantId tenantId, string name, decimal dailyRate) : base(id)
+    private Accommodation(AccommodationId id, TenantId tenantId, string name, decimal dailyRate, int capacity) : base(id)
     {
         TenantId = tenantId;
         Name = name;
         DailyRate = dailyRate;
+        Capacity = capacity;
         Status = AccommodationStatus.Available;
     }
 
-    public static Result<Accommodation> Create(TenantId tenantId, string? name, decimal dailyRate)
+    public static Result<Accommodation> Create(TenantId tenantId, string? name, decimal dailyRate, int capacity)
     {
         if (tenantId.Value == Guid.Empty)
         {
@@ -50,13 +53,18 @@ public sealed class Accommodation : AggregateRoot<AccommodationId>, IHasTenant, 
             return Error.Validation("accommodation.daily_rate_invalid", "Valor da diária não pode ser negativo.");
         }
 
-        return new Accommodation(AccommodationId.New(), tenantId, name.Trim(), dailyRate);
+        if (capacity < 1)
+        {
+            return Error.Validation("accommodation.capacity_invalid", "Capacidade deve ser de pelo menos 1 pet.");
+        }
+
+        return new Accommodation(AccommodationId.New(), tenantId, name.Trim(), dailyRate, capacity);
     }
 
     public bool IsAvailable => Status == AccommodationStatus.Available;
 
-    /// <summary>Edita os dados editáveis (nome e diária); mesmas invariantes do cadastro.</summary>
-    public Result Update(string? name, decimal dailyRate)
+    /// <summary>Edita os dados editáveis (nome, diária e capacidade); mesmas invariantes do cadastro.</summary>
+    public Result Update(string? name, decimal dailyRate, int capacity)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -68,8 +76,14 @@ public sealed class Accommodation : AggregateRoot<AccommodationId>, IHasTenant, 
             return Error.Validation("accommodation.daily_rate_invalid", "Valor da diária não pode ser negativo.");
         }
 
+        if (capacity < 1)
+        {
+            return Error.Validation("accommodation.capacity_invalid", "Capacidade deve ser de pelo menos 1 pet.");
+        }
+
         Name = name.Trim();
         DailyRate = dailyRate;
+        Capacity = capacity;
         return Result.Success();
     }
 

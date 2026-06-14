@@ -33,11 +33,15 @@ public static class BookingModuleExtensions
         services.AddScoped<IAccommodationRepository, AccommodationRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IOccupancyQueries, OccupancyQueries>();
+        services.AddScoped<IDayBoardQueries, DayBoardQueries>();
         services.AddScoped<IAccommodationQueries, AccommodationQueries>();
         services.AddScoped<IReservationQueries, ReservationQueries>();
 
         // Adaptador do gateway sobre o contrato público do Health.
         services.AddScoped<IHealthClearanceGateway, BookingHealthClearanceGateway>();
+
+        // Gateway sobre o contrato público do Registry (alerta de compatibilidade ao compartilhar).
+        services.AddScoped<IPetCompatibilityGateway, BookingPetCompatibilityGateway>();
 
         // Contrato público de estadia (consumido pelo Operations p/ vincular o diário).
         services.AddScoped<IStayContract, StayContract>();

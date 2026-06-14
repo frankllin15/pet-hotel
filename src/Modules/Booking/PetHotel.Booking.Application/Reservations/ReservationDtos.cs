@@ -29,3 +29,16 @@ public sealed record OccupancyEntryDto(
     Guid PetId,
     DateOnly CheckIn,
     DateOnly CheckOut);
+
+/// <summary>
+/// Painel do dia do Booking: chegadas e saídas previstas, pets em estadia e ocupação por vaga.
+/// "Chegadas" = confirmadas com check-in no dia (ainda não chegaram). "Saídas" = em estadia
+/// com check-out no dia. "EmEstadia" = todas em CheckedIn. Ocupação = vagas ocupadas (reservas
+/// ativas cobrindo o dia) sobre a capacidade total das acomodações disponíveis.
+/// </summary>
+public sealed record DayBoardDto(
+    IReadOnlyList<ReservationDto> Arrivals,
+    IReadOnlyList<ReservationDto> Departures,
+    IReadOnlyList<ReservationDto> InHouse,
+    int OccupiedSlots,
+    int TotalSlots);

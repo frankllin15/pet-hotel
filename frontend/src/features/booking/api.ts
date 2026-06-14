@@ -10,6 +10,15 @@ export type CreateReservationBody = components["schemas"]["CreateReservation"];
 export type CreateAccommodationBody = components["schemas"]["CreateAccommodation"];
 export type UpdateAccommodationBody = components["schemas"]["UpdateAccommodation"];
 export type ArrivalStateInput = components["schemas"]["ArrivalStateInput"];
+export type SharingCompatibilityDto = components["schemas"]["SharingCompatibilityDto"];
+export type PetCompatibilityDto = components["schemas"]["PetCompatibilityDto"];
+
+export interface SharingCompatibilityParams {
+  accommodationId: string;
+  checkIn: string;
+  checkOut: string;
+  petId: string;
+}
 
 export async function listAccommodations(): Promise<AccommodationDto[]> {
   return unwrap(await apiClient.GET("/v1/accommodations"));
@@ -58,6 +67,10 @@ export async function cancelReservation(id: string): Promise<void> {
 
 export async function getOccupancy(from: string, to: string): Promise<OccupancyEntryDto[]> {
   return unwrap(await apiClient.GET("/v1/occupancy", { params: { query: { from, to } } }));
+}
+
+export async function getSharingCompatibility(params: SharingCompatibilityParams): Promise<SharingCompatibilityDto> {
+  return unwrap(await apiClient.GET("/v1/reservations/compatibility", { params: { query: params } }));
 }
 
 export async function uploadArrivalPhoto(reservationId: string, file: File): Promise<ArrivalPhotoResponse> {

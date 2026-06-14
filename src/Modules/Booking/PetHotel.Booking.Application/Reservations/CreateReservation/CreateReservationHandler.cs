@@ -54,9 +54,10 @@ public static class CreateReservationHandler
             return Error.Conflict("accommodation.inactive", "Acomodação indisponível.");
         }
 
-        if (await reservations.HasActiveOverlapAsync(accommodationId, period, null, cancellationToken))
+        if (await reservations.CountActiveOverlapsAsync(accommodationId, period, null, cancellationToken)
+            >= accommodation.Capacity)
         {
-            return Error.Conflict("accommodation.unavailable", "Já há reserva para o período nessa acomodação.");
+            return Error.Conflict("accommodation.unavailable", "Acomodação sem vaga para o período.");
         }
 
         var result = Reservation.Request(

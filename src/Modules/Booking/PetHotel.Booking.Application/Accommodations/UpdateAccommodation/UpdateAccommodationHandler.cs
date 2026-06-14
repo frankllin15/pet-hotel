@@ -35,7 +35,7 @@ public static class UpdateAccommodationHandler
             return Error.NotFound("accommodation.not_found", "Acomodação não encontrada.");
         }
 
-        var update = accommodation.Update(command.Name, command.DailyRate);
+        var update = accommodation.Update(command.Name, command.DailyRate, command.Capacity);
         if (update.IsFailure)
         {
             return update.Error;

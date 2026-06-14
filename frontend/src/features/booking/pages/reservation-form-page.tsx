@@ -11,7 +11,8 @@ import { Input } from "@/shared/ui/input";
 import { Select } from "@/shared/ui/select";
 import { listPets } from "@/features/registry/api";
 import { registryKeys } from "@/features/registry/queries";
-import { useAccommodations, useCreateReservation } from "../queries";
+import { useAccommodations, useCreateReservation, useSharingCompatibility } from "../queries";
+import { SharingCompatibilityWarning } from "../components/sharing-compatibility-warning";
 import { reservationFormSchema, type ReservationFormInput } from "../schemas";
 
 export function ReservationFormPage() {
@@ -36,9 +37,9 @@ export function ReservationFormPage() {
   });
 
   // Total estimado (diária da acomodação × noites) — atualiza conforme a seleção.
-  const [accommodationId, checkIn, checkOut] = useWatch({
+  const [petId, accommodationId, checkIn, checkOut] = useWatch({
     control,
-    name: ["accommodationId", "checkIn", "checkOut"],
+    name: ["petId", "accommodationId", "checkIn", "checkOut"],
   });
   const selected = available.find((a) => a.id === accommodationId);
   const nights =
@@ -46,6 +47,9 @@ export function ReservationFormPage() {
       ? Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86_400_000)
       : 0;
   const estimatedTotal = selected && nights > 0 ? Number(selected.dailyRate) * nights : null;
+
+  // Alerta (não-bloqueante) de compatibilidade ao dividir a acomodação no período.
+  const compatibility = useSharingCompatibility({ accommodationId, checkIn, checkOut, petId });
 
   const submit = handleSubmit((values) =>
     mutation.mutate(values, {
@@ -96,7 +100,7 @@ export function ReservationFormPage() {
           </option>
           {available.map((a) => (
             <option key={a.id} value={a.id}>
-              {a.name} — {formatMoney(a.dailyRate)}/diária
+              {a.name} — {formatMoney(a.dailyRate)}/diária · até {Number(a.capacity)} {Number(a.capacity) === 1 ? "pet" : "pets"}
             </option>
           ))}
         </Select>
@@ -119,6 +123,8 @@ export function ReservationFormPage() {
           <span className="font-display text-lg font-semibold">{formatMoney(estimatedTotal)}</span>
         </div>
       )}
+
+      <SharingCompatibilityWarning data={compatibility.data} />
 
       {formError && <p className="text-sm text-destructive">{formError}</p>}
     </FormPage>

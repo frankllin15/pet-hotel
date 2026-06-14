@@ -3,6 +3,7 @@ import { z } from "zod";
 export const accommodationFormSchema = z.object({
   name: z.string().min(1, "Informe o nome").max(120),
   dailyRate: z.number({ message: "Informe a diária" }).min(0, "A diária não pode ser negativa"),
+  capacity: z.number({ message: "Informe a capacidade" }).int().min(1, "A capacidade deve ser de pelo menos 1 pet"),
   active: z.boolean(),
 });
 export type AccommodationFormInput = z.infer<typeof accommodationFormSchema>;
@@ -34,6 +35,12 @@ export const RESERVATION_STATUS_LABELS: Record<string, string> = {
   CheckedIn: "Em estadia",
   CheckedOut: "Finalizada",
   Cancelled: "Cancelada",
+};
+
+/** Rótulos pt-BR dos sinais de compatibilidade (valores batem com PackCompatibilityFlag do backend). */
+export const COMPATIBILITY_FLAG_LABELS: Record<string, string> = {
+  Reactive: "reatividade alta",
+  LowSociability: "baixa sociabilidade",
 };
 
 /** Condições de chegada (valores batem com ArrivalCondition do backend). */

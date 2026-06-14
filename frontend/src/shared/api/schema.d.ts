@@ -603,6 +603,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reservations/compatibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Alerta de compatibilidade ao colocar um pet numa acomodação compartilhada no período.
+         * @description Não bloqueia: retorna os pets do grupo (co-ocupantes + candidato) com sinais comportamentais de atenção.
+         */
+        get: operations["GetSharingCompatibility"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/occupancy": {
         parameters: {
             query?: never;
@@ -674,54 +694,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/reports": {
-        parameters: { query?: never; header?: never; path?: never; cookie?: never };
-        get?: never;
-        put?: never;
-        /** Cria (rascunho) um relatório ao tutor a partir do diário de uma estadia/dia. */
-        post: operations["CreateReport"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/reports/{id}/send": {
-        parameters: { query?: never; header?: never; path?: never; cookie?: never };
-        get?: never;
-        put?: never;
-        /** Marca um relatório como enviado/compartilhado. */
-        post: operations["SendReport"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/reservations/{reservationId}/reports": {
-        parameters: { query?: never; header?: never; path?: never; cookie?: never };
-        /** Histórico de relatórios de uma estadia. */
-        get: operations["GetStayReports"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/tutors/{tutorId}/reports": {
-        parameters: { query?: never; header?: never; path?: never; cookie?: never };
-        /** Histórico de relatórios enviados a um tutor. */
-        get: operations["GetTutorReports"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/reservations/{reservationId}/incidents": {
         parameters: {
             query?: never;
@@ -734,6 +706,94 @@ export interface paths {
         put?: never;
         /** Registra um incidente na estadia (auditável). */
         post: operations["ReportIncident"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cria (rascunho) um relatório ao tutor a partir do diário de uma estadia/dia. */
+        post: operations["CreateReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reports/{id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marca um relatório como enviado/compartilhado. */
+        post: operations["SendReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reservations/{reservationId}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Histórico de relatórios de uma estadia. */
+        get: operations["GetStayReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tutors/{tutorId}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Histórico de relatórios enviados a um tutor. */
+        get: operations["GetTutorReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Painel do dia: chegadas/saídas, ocupação, medicações e vacinas vencendo.
+         * @description Parâmetro 'date' opcional (default = hoje, UTC). Compõe fatias de Booking, Operations e Health.
+         */
+        get: operations["GetDashboard"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -755,6 +815,8 @@ export interface components {
             name: string;
             /** Format: double */
             dailyRate: number | string;
+            /** Format: int32 */
+            capacity: number | string;
             status: string;
         };
         AccommodationTypeDto: {
@@ -869,6 +931,8 @@ export interface components {
             name: string;
             /** Format: double */
             dailyRate: number | string;
+            /** Format: int32 */
+            capacity: number | string;
         };
         CreatedResponse: {
             /** Format: uuid */
@@ -878,6 +942,18 @@ export interface components {
             name: string;
             notes: null | string;
             memberPetIds: string[];
+        };
+        CreateReport: {
+            /** Format: uuid */
+            tutorId: string;
+            /** Format: uuid */
+            petId: string;
+            /** Format: uuid */
+            reservationId: string;
+            /** Format: date */
+            reportDate: string;
+            title: string;
+            content: string;
         };
         CreateReservation: {
             /** Format: uuid */
@@ -901,6 +977,32 @@ export interface components {
             items: components["schemas"]["TutorDto"][];
             nextCursor: null | string;
         };
+        DashboardResponse: {
+            /** Format: date */
+            date: string;
+            board: components["schemas"]["DayBoardDto"];
+            medications: components["schemas"]["DayMedicationDto"][];
+            expiringVaccinations: components["schemas"]["ExpiringVaccinationDto"][];
+        };
+        DayBoardDto: {
+            arrivals: components["schemas"]["ReservationDto"][];
+            departures: components["schemas"]["ReservationDto"][];
+            inHouse: components["schemas"]["ReservationDto"][];
+            /** Format: int32 */
+            occupiedSlots: number | string;
+            /** Format: int32 */
+            totalSlots: number | string;
+        };
+        DayMedicationDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            reservationId: string;
+            drug: string;
+            dose: string;
+            /** Format: date-time */
+            administeredAt: string;
+        };
         DirectoryUser: {
             /** Format: uuid */
             id: string;
@@ -918,6 +1020,13 @@ export interface components {
             name: string;
             phone: string;
             relationship: null | string;
+        };
+        ExpiringVaccinationDto: {
+            /** Format: uuid */
+            petId: string;
+            vaccineType: string;
+            /** Format: date */
+            expiresOn: string;
         };
         FeedingRoutineDto: {
             foodName: string;
@@ -937,38 +1046,6 @@ export interface components {
         FoodSource: "TutorProvided" | "HotelProvided";
         /** Format: binary */
         IFormFile: string;
-        OutboundMessageDto: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            tutorId: string;
-            /** Format: uuid */
-            petId: string;
-            /** Format: uuid */
-            reservationId: string;
-            /** Format: date */
-            reportDate: string;
-            title: string;
-            content: string;
-            status: string;
-            /** Format: date-time */
-            sentAt: null | string;
-            createdBy: null | string;
-            /** Format: date-time */
-            createdAt: string;
-        };
-        CreateReport: {
-            /** Format: uuid */
-            tutorId: string;
-            /** Format: uuid */
-            petId: string;
-            /** Format: uuid */
-            reservationId: string;
-            /** Format: date */
-            reportDate: string;
-            title: string;
-            content: string;
-        };
         IncidentDto: {
             /** Format: uuid */
             id: string;
@@ -1025,6 +1102,26 @@ export interface components {
             /** Format: date */
             checkOut: string;
         };
+        OutboundMessageDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tutorId: string;
+            /** Format: uuid */
+            petId: string;
+            /** Format: uuid */
+            reservationId: string;
+            /** Format: date */
+            reportDate: string;
+            title: string;
+            content: string;
+            status: string;
+            /** Format: date-time */
+            sentAt: null | string;
+            createdBy: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         PackDto: {
             /** Format: uuid */
             id: string;
@@ -1064,6 +1161,12 @@ export interface components {
         };
         /** @enum {unknown} */
         ParasiteTreatmentType: "FleaTick" | "Dewormer";
+        PetCompatibilityDto: {
+            /** Format: uuid */
+            petId: string;
+            name: string;
+            flags: string[];
+        };
         PetDto: {
             /** Format: uuid */
             id: string;
@@ -1217,6 +1320,10 @@ export interface components {
         };
         /** @enum {unknown} */
         Sex: "Male" | "Female" | null;
+        SharingCompatibilityDto: {
+            shared: boolean;
+            conflicts: components["schemas"]["PetCompatibilityDto"][];
+        };
         /** @enum {unknown} */
         Species: "Dog" | "Cat" | "Other";
         TenantConfigurationDto: {
@@ -1256,6 +1363,8 @@ export interface components {
             name: string;
             /** Format: double */
             dailyRate: number | string;
+            /** Format: int32 */
+            capacity: number | string;
             active: boolean;
         };
         UpdatePack: {
@@ -3149,6 +3258,40 @@ export interface operations {
             };
         };
     };
+    GetSharingCompatibility: {
+        parameters: {
+            query: {
+                accommodationId: string;
+                checkIn: string;
+                checkOut: string;
+                petId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SharingCompatibilityDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetOccupancy: {
         parameters: {
             query: {
@@ -3429,38 +3572,6 @@ export interface operations {
             };
         };
     };
-    CreateReport: {
-        parameters: { query?: never; header?: never; path?: never; cookie?: never };
-        requestBody: { content: { "application/json": components["schemas"]["CreateReport"] } };
-        responses: {
-            201: { headers: { [name: string]: unknown }; content: { "application/json": components["schemas"]["CreatedResponse"] } };
-            400: { headers: { [name: string]: unknown }; content: { "application/problem+json": components["schemas"]["ProblemDetails"] } };
-            403: { headers: { [name: string]: unknown }; content: { "application/problem+json": components["schemas"]["ProblemDetails"] } };
-        };
-    };
-    SendReport: {
-        parameters: { query?: never; header?: never; path: { id: string }; cookie?: never };
-        requestBody?: never;
-        responses: {
-            204: { headers: { [name: string]: unknown }; content?: never };
-            404: { headers: { [name: string]: unknown }; content: { "application/problem+json": components["schemas"]["ProblemDetails"] } };
-            409: { headers: { [name: string]: unknown }; content: { "application/problem+json": components["schemas"]["ProblemDetails"] } };
-        };
-    };
-    GetStayReports: {
-        parameters: { query?: never; header?: never; path: { reservationId: string }; cookie?: never };
-        requestBody?: never;
-        responses: {
-            200: { headers: { [name: string]: unknown }; content: { "application/json": components["schemas"]["OutboundMessageDto"][] } };
-        };
-    };
-    GetTutorReports: {
-        parameters: { query?: never; header?: never; path: { tutorId: string }; cookie?: never };
-        requestBody?: never;
-        responses: {
-            200: { headers: { [name: string]: unknown }; content: { "application/json": components["schemas"]["OutboundMessageDto"][] } };
-        };
-    };
     GetStayIncidents: {
         parameters: {
             query?: never;
@@ -3532,6 +3643,152 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CreateReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateReport"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SendReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetStayReports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboundMessageDto"][];
+                };
+            };
+        };
+    };
+    GetTutorReports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tutorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OutboundMessageDto"][];
+                };
+            };
+        };
+    };
+    GetDashboard: {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardResponse"];
                 };
             };
         };

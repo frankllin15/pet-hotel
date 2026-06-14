@@ -10,13 +10,14 @@ import { IncidentPanel } from "@/features/operations/components/incident-panel";
 import { ReportPanel } from "@/features/notifications/components/report-panel";
 import { ArrivalPhotos } from "../components/arrival-photos";
 import { PetName } from "../components/pet-name";
+import { SharingCompatibilityWarning } from "../components/sharing-compatibility-warning";
 import {
   ReservationActionButtons,
   ReservationActionError,
   useReservationActions,
 } from "../components/reservation-actions";
 import { ReservationStatusBadge } from "../components/reservation-status-badge";
-import { useAccommodations, useReservation } from "../queries";
+import { useAccommodations, useReservation, useSharingCompatibility } from "../queries";
 import { ARRIVAL_CONDITION_LABELS } from "../schemas";
 
 export function ReservationDetailPage() {
@@ -25,6 +26,15 @@ export function ReservationDetailPage() {
   const query = useReservation(id);
   const accommodations = useAccommodations();
   const actions = useReservationActions();
+
+  // Alerta de compartilhamento só faz sentido antes/na confirmação (Requested/Confirmed).
+  const r0 = query.data;
+  const prestay = r0?.status === "Requested" || r0?.status === "Confirmed";
+  const compatibility = useSharingCompatibility(
+    prestay && r0
+      ? { accommodationId: r0.accommodationId, checkIn: r0.checkIn, checkOut: r0.checkOut, petId: r0.petId }
+      : {},
+  );
 
   const accommodationName = (accId: string) =>
     accommodations.data?.find((a) => a.id === accId)?.name ?? "—";
@@ -85,6 +95,11 @@ export function ReservationDetailPage() {
           >
             {actions.actionError && (
               <ReservationActionError message={actions.actionError} onClose={actions.clearError} />
+            )}
+            {compatibility.data && (
+              <div className="mb-6">
+                <SharingCompatibilityWarning data={compatibility.data} />
+              </div>
             )}
             <Card>
               <CardHeader>

@@ -52,10 +52,12 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 
 ### Booking (Reservas — hotelagem)
 - [ ] Tipos de acomodação configuráveis por tenant — _parcial: `AccommodationType` no wizard + CRUD de acomodações; vínculo tipo→acomodação a amadurecer_
+- [x] **Acomodação com capacidade (multi-pet)** — _`Accommodation.Capacity` (>=1, default 1) no Booking; overbooking conta reservas ativas (Confirmed/CheckedIn) sobrepostas vs. capacidade; ocupação do painel por vaga (`OccupiedSlots`/`TotalSlots`)_
 - [x] Calendário visual de ocupação (com virtualização) `[F]` — _calendário pronto (estilo Google Agenda); **virtualização pendente** (docs/08 só exige em escala)_
 - [ ] Criar reserva (pet, período, acomodação, serviços adicionais) — _parcial: pet/período/acomodação prontos; serviços adicionais pendentes_
 - [x] **Bloqueio/alerta por vacina vencida** no fluxo de reserva
-- [x] Concorrência otimista (xmin) contra overbooking `[B]`
+- [x] Concorrência otimista (xmin) contra overbooking `[B]` — _o xmin na acomodação serializa confirmações; o bloqueio compara ocupação (contagem) com a capacidade_
+- [x] **Alerta de compatibilidade ao compartilhar acomodação** — _Booking→Registry (contrato `IPetCompatibilityContract`); `GET /v1/reservations/compatibility` avisa (não bloqueia) se há pet reativo/pouco-sociável dividindo a vaga; aviso no form e na ficha da reserva_
 - [x] Gestão de matilhas (compatibilidade comportamental) — _matilha = grupo de pets (no Registry); compatibilidade objetiva pela avaliação comportamental: alerta se membro `Reatividade=Alta` ou `Sociabilidade=Baixa`; CRUD + multi-select de pets + ficha com alertas por membro_
 - [ ] Precificação por porte/necessidade/feriado/alta temporada — _base pronta: diária por acomodação + total da reserva (diária×noites, snapshot no momento da reserva); **variação por porte/feriado/alta temporada pendente**_
 - [x] Check-in / check-out — _ciclo `Confirmed→CheckedIn→CheckedOut` com horários reais carimbados; **regra de diária/late-checkout pendente**_
@@ -78,9 +80,9 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 - [x] Histórico de envios por tutor — _histórico por tutor (ficha do tutor) e por estadia (ficha da reserva)_
 
 ### Dashboards
-- [ ] Painel do dia consolidado (chegadas, saídas, medicações)
-- [ ] Alertas consolidados (vacinas vencendo, medicações, estoque baixo)
-- [ ] Taxa de ocupação por período/acomodação
+- [x] Painel do dia consolidado (chegadas, saídas, medicações) — _`GET /v1/dashboard?date=` compõe (estilo BFF) fatias de Booking (chegadas/saídas/em estadia), Operations (medicações do dia) e Health (vacinas), cada módulo com sua query; tela "Painel do dia" com cards + listas clicáveis_
+- [x] Alertas consolidados (vacinas vencendo, medicações, estoque baixo) — _vacinas vencidas/a vencer em 30 dias (Health; só a dose de maior validade por pet+tipo) + medicações do dia; **estoque baixo pendente** (depende de Inventory, Fase 3)_
+- [x] Taxa de ocupação por período/acomodação — _ocupação do dia (acomodações ativas com reserva cobrindo o dia / total disponível) no painel; **série por período/gráfico pendente** (calendário visual já cobre a visão por acomodação)_
 
 ---
 

@@ -9,11 +9,11 @@ public interface IReservationRepository
     Task<Reservation?> FindAsync(ReservationId id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Existe reserva que ocupa a acomodação (confirmada, em estadia ou já encerrada — ou seja,
-    /// qualquer estado que não seja apenas solicitado nem cancelado) e conflita com o período?
-    /// (opcionalmente ignorando uma reserva).
+    /// Quantas reservas DETÊM a acomodação (Confirmed ou CheckedIn) e conflitam com o período
+    /// (opcionalmente ignorando uma reserva). Comparado à capacidade da acomodação para decidir
+    /// overbooking — bloqueia só quando a ocupação atinge a capacidade.
     /// </summary>
-    Task<bool> HasActiveOverlapAsync(
+    Task<int> CountActiveOverlapsAsync(
         AccommodationId accommodationId,
         DateRange period,
         ReservationId? excluding = null,

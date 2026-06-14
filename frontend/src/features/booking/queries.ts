@@ -10,12 +10,14 @@ import {
   deleteArrivalPhoto,
   getOccupancy,
   getReservation,
+  getSharingCompatibility,
   uploadArrivalPhoto,
   listAccommodations,
   listReservations,
   type ArrivalStateInput,
   type CreateAccommodationBody,
   type CreateReservationBody,
+  type SharingCompatibilityParams,
   type UpdateAccommodationBody,
 } from "./api";
 
@@ -25,6 +27,7 @@ export const bookingKeys = {
   reservations: (status?: string) => ["booking", "reservations", { status: status || undefined }] as const,
   reservation: (id: string) => ["booking", "reservation", id] as const,
   occupancy: (from: string, to: string) => ["booking", "occupancy", { from, to }] as const,
+  compatibility: (params: SharingCompatibilityParams) => ["booking", "compatibility", params] as const,
 };
 
 export function useAccommodations() {
@@ -50,6 +53,25 @@ export function useOccupancy(from: string, to: string) {
   return useQuery({
     queryKey: bookingKeys.occupancy(from, to),
     queryFn: () => getOccupancy(from, to),
+  });
+}
+
+/**
+ * Alerta de compatibilidade ao compartilhar a acomodação. Só consulta quando todos os campos
+ * estão preenchidos e o período é válido; não bloqueia a reserva (é só aviso).
+ */
+export function useSharingCompatibility(params: Partial<SharingCompatibilityParams>) {
+  const ready =
+    !!params.accommodationId &&
+    !!params.petId &&
+    !!params.checkIn &&
+    !!params.checkOut &&
+    params.checkOut > params.checkIn;
+
+  return useQuery({
+    queryKey: bookingKeys.compatibility(params as SharingCompatibilityParams),
+    queryFn: () => getSharingCompatibility(params as SharingCompatibilityParams),
+    enabled: ready,
   });
 }
 

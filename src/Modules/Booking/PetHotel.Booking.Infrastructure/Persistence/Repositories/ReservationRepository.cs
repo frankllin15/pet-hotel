@@ -11,15 +11,16 @@ public sealed class ReservationRepository(BookingDbContext dbContext) : IReserva
     public Task<Reservation?> FindAsync(ReservationId id, CancellationToken cancellationToken = default) =>
         dbContext.Reservations.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
-    public Task<bool> HasActiveOverlapAsync(
+    public Task<int> CountActiveOverlapsAsync(
         AccommodationId accommodationId,
         DateRange period,
         ReservationId? excluding = null,
         CancellationToken cancellationToken = default)
     {
-        // Bloqueia o período apenas quem ainda DETÉM a acomodação: Confirmed (garantida)
-        // ou CheckedIn (em estadia). CheckedOut já liberou a vaga; Requested ainda não
-        // garante; Cancelled não conta. (EF não traduz método sobre enum → predicado inline.)
+        // Conta quem ainda DETÉM a acomodação no período: Confirmed (garantida) ou CheckedIn
+        // (em estadia). CheckedOut já liberou a vaga; Requested ainda não garante; Cancelled não
+        // conta. O chamador compara com a capacidade da acomodação. (EF não traduz método sobre
+        // enum → predicado inline.)
         var query = dbContext.Reservations.Where(r =>
             r.AccommodationId == accommodationId &&
             (r.Status == ReservationStatus.Confirmed || r.Status == ReservationStatus.CheckedIn) &&
@@ -31,7 +32,7 @@ public sealed class ReservationRepository(BookingDbContext dbContext) : IReserva
             query = query.Where(r => r.Id != exclude);
         }
 
-        return query.AnyAsync(cancellationToken);
+        return query.CountAsync(cancellationToken);
     }
 
     public void Add(Reservation reservation) => dbContext.Reservations.Add(reservation);

@@ -32,6 +32,7 @@ public static class HealthModuleExtensions
 
         services.AddScoped<IUnitOfWork, HealthUnitOfWork>();
         services.AddScoped<IHealthRecordRepository, HealthRecordRepository>();
+        services.AddScoped<IVaccinationAlertQueries, VaccinationAlertQueries>();
 
         // Contrato público consumido por outros módulos (ex.: Booking).
         services.AddScoped<IHealthClearanceContract, HealthClearanceContract>();

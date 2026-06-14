@@ -15,6 +15,7 @@ using PetHotel.Booking.Application.Reservations.CreateReservation;
 using PetHotel.Booking.Application.Reservations.AddArrivalPhoto;
 using PetHotel.Booking.Application.Reservations.GetOccupancy;
 using PetHotel.Booking.Application.Reservations.GetReservationById;
+using PetHotel.Booking.Application.Reservations.GetSharingCompatibility;
 using PetHotel.Booking.Application.Reservations.RemoveArrivalPhoto;
 using PetHotel.Booking.Application.Reservations.ListReservations;
 using PetHotel.Booking.Domain.Ports;
@@ -197,6 +198,21 @@ public static class BookingEndpoints
             .WithSummary("Busca uma reserva por Id no tenant corrente.")
             .Produces<ReservationDto>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status404NotFound);
+
+        // Cross-módulo (Booking leitura + gateway p/ Registry) → invocado direto via DI, fora do Wolverine.
+        group.MapGet("/reservations/compatibility", async (
+                Guid accommodationId, DateOnly checkIn, DateOnly checkOut, Guid petId,
+                IReservationQueries reservations, IPetCompatibilityGateway compatibility, CancellationToken ct) =>
+            {
+                var result = await GetSharingCompatibilityHandler.Handle(
+                    new GetSharingCompatibility(accommodationId, checkIn, checkOut, petId), reservations, compatibility, ct);
+                return result.ToHttpResult(Results.Ok);
+            })
+            .WithName("GetSharingCompatibility")
+            .WithSummary("Alerta de compatibilidade ao colocar um pet numa acomodação compartilhada no período.")
+            .WithDescription("Não bloqueia: retorna os pets do grupo (co-ocupantes + candidato) com sinais comportamentais de atenção.")
+            .Produces<SharingCompatibilityDto>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapGet("/occupancy", async (DateOnly from, DateOnly to, IMessageBus bus, CancellationToken ct) =>
             {
