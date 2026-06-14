@@ -483,7 +483,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Lista reservas do tenant corrente (filtro opcional por status). */
+        /** Lista reservas do tenant (paginada; filtros por status, acomodação e período). */
         get: operations["ListReservations"];
         put?: never;
         /** Solicita uma reserva (estado Requested). */
@@ -1101,6 +1101,17 @@ export interface components {
             checkIn: string;
             /** Format: date */
             checkOut: string;
+        };
+        OffsetPageOfReservationDto: {
+            items: components["schemas"]["ReservationDto"][];
+            /** Format: int32 */
+            total: number | string;
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            totalPages?: number | string;
         };
         OutboundMessageDto: {
             /** Format: uuid */
@@ -2898,6 +2909,11 @@ export interface operations {
         parameters: {
             query?: {
                 status?: string;
+                accommodationId?: string;
+                from?: string;
+                to?: string;
+                page?: number | string;
+                pageSize?: number | string;
             };
             header?: never;
             path?: never;
@@ -2911,7 +2927,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReservationDto"][];
+                    "application/json": components["schemas"]["OffsetPageOfReservationDto"];
                 };
             };
             /** @description Bad Request */

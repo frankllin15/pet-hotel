@@ -14,6 +14,7 @@ using PetHotel.IntegrationTests.Support;
 using PetHotel.Notifications.Infrastructure.Persistence;
 using PetHotel.Operations.Infrastructure.Persistence;
 using PetHotel.Registry.Infrastructure.Persistence;
+using PetHotel.SharedKernel;
 using PetHotel.Tenancy.Application.Provisioning;
 using PetHotel.Tenancy.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
@@ -186,8 +187,8 @@ public sealed class CoreFlowTests : IAsyncLifetime
         });
         Assert.Equal(HttpStatusCode.NoContent, checkInResponse.StatusCode);
 
-        var reservations = await _client.GetFromJsonAsync<List<ReservationDto>>("/v1/reservations");
-        var checkedIn = reservations!.Single(r => r.Id == reservationId);
+        var reservations = await _client.GetFromJsonAsync<OffsetPage<ReservationDto>>("/v1/reservations");
+        var checkedIn = reservations!.Items.Single(r => r.Id == reservationId);
         Assert.Equal("CheckedIn", checkedIn.Status);
         Assert.NotNull(checkedIn.ArrivalState);
         Assert.Equal(9.2m, checkedIn.ArrivalState!.WeightKg);

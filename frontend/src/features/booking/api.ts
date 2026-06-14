@@ -32,8 +32,19 @@ export async function updateAccommodation(id: string, body: UpdateAccommodationB
   unwrap(await apiClient.PUT("/v1/accommodations/{id}", { params: { path: { id } }, body }));
 }
 
-export async function listReservations(status?: string): Promise<ReservationDto[]> {
-  return unwrap(await apiClient.GET("/v1/reservations", { params: { query: { status } } }));
+export type ReservationsPage = components["schemas"]["OffsetPageOfReservationDto"];
+
+export interface ReservationFilters {
+  status?: string;
+  accommodationId?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export async function listReservations(filters: ReservationFilters = {}): Promise<ReservationsPage> {
+  return unwrap(await apiClient.GET("/v1/reservations", { params: { query: filters } }));
 }
 
 export async function getReservation(id: string): Promise<ReservationDto> {

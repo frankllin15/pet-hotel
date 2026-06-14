@@ -3,14 +3,20 @@ using PetHotel.Booking.Application.Abstractions;
 using PetHotel.Booking.Application.Reservations;
 using PetHotel.Booking.Domain.Accommodations;
 using PetHotel.Booking.Domain.Reservations;
+using PetHotel.SharedKernel;
 
 namespace PetHotel.Booking.Infrastructure.Persistence;
 
 /// <summary>Lado de leitura de reservas (AsNoTracking + query filter de tenant, docs/04).</summary>
 public sealed class ReservationQueries(BookingDbContext dbContext) : IReservationQueries
 {
-    public async Task<IReadOnlyList<ReservationDto>> ListAsync(
+    public async Task<OffsetPage<ReservationDto>> ListAsync(
         ReservationStatus? status,
+        AccommodationId? accommodationId,
+        DateOnly? from,
+        DateOnly? to,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default)
     {
         var query = dbContext.Reservations.AsNoTracking();
@@ -20,12 +26,33 @@ public sealed class ReservationQueries(BookingDbContext dbContext) : IReservatio
             query = query.Where(r => r.Status == value);
         }
 
+        if (accommodationId is { } accId)
+        {
+            query = query.Where(r => r.AccommodationId == accId);
+        }
+
+        // Janela de período: reservas que se sobrepõem a [from, to] (limites inclusivos por dia).
+        if (from is { } start)
+        {
+            query = query.Where(r => start <= r.Period.End);
+        }
+
+        if (to is { } end)
+        {
+            query = query.Where(r => r.Period.Start <= end);
+        }
+
+        var total = await query.CountAsync(cancellationToken);
+
         var rows = await query
             .OrderBy(r => r.Period.Start)
             .ThenBy(r => r.Period.End)
+            .ThenBy(r => r.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return rows.Select(ToDto).ToList();
+        return new OffsetPage<ReservationDto>(rows.Select(ToDto).ToList(), total, page, pageSize);
     }
 
     public async Task<ReservationDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

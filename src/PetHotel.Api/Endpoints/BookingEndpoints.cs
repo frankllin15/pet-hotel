@@ -179,14 +179,17 @@ public static class BookingEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
-        group.MapGet("/reservations", async (string? status, IMessageBus bus, CancellationToken ct) =>
+        group.MapGet("/reservations", async (
+                string? status, Guid? accommodationId, DateOnly? from, DateOnly? to, int? page, int? pageSize,
+                IMessageBus bus, CancellationToken ct) =>
             {
-                var result = await bus.InvokeAsync<Result<IReadOnlyList<ReservationDto>>>(new ListReservations(status), ct);
+                var query = new ListReservations(status, accommodationId, from, to, page ?? 1, pageSize ?? 20);
+                var result = await bus.InvokeAsync<Result<OffsetPage<ReservationDto>>>(query, ct);
                 return result.ToHttpResult(Results.Ok);
             })
             .WithName("ListReservations")
-            .WithSummary("Lista reservas do tenant corrente (filtro opcional por status).")
-            .Produces<IReadOnlyList<ReservationDto>>(StatusCodes.Status200OK)
+            .WithSummary("Lista reservas do tenant (paginada; filtros por status, acomodação e período).")
+            .Produces<OffsetPage<ReservationDto>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
         group.MapGet("/reservations/{id:guid}", async (Guid id, IMessageBus bus, CancellationToken ct) =>

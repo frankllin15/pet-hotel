@@ -67,11 +67,22 @@ public sealed class BookingQueriesTests : IAsyncLifetime
         await using var context = CreateContext();
         var queries = new ReservationQueries(context);
 
-        Assert.Equal(2, (await queries.ListAsync(null)).Count);
-        Assert.Single(await queries.ListAsync(ReservationStatus.Requested));
-        var confirmed = await queries.ListAsync(ReservationStatus.Confirmed);
-        Assert.Single(confirmed);
-        Assert.Equal("Confirmed", confirmed[0].Status);
+        var all = await queries.ListAsync(null, null, null, null, 1, 20);
+        Assert.Equal(2, all.Total);
+        Assert.Equal(2, all.Items.Count);
+        Assert.Single((await queries.ListAsync(ReservationStatus.Requested, null, null, null, 1, 20)).Items);
+        var confirmed = await queries.ListAsync(ReservationStatus.Confirmed, null, null, null, 1, 20);
+        Assert.Single(confirmed.Items);
+        Assert.Equal("Confirmed", confirmed.Items[0].Status);
+
+        // Paginação por offset: página 1 com tamanho 1 traz 1 item, mas o total reflete os 2.
+        var firstPage = await queries.ListAsync(null, null, null, null, 1, 1);
+        Assert.Single(firstPage.Items);
+        Assert.Equal(2, firstPage.Total);
+        Assert.Equal(2, firstPage.TotalPages);
+        var secondPage = await queries.ListAsync(null, null, null, null, 2, 1);
+        Assert.Single(secondPage.Items);
+        Assert.NotEqual(firstPage.Items[0].Id, secondPage.Items[0].Id);
     }
 
     private async Task<Guid> SeedAccommodationAsync(TenantId tenant, string name)

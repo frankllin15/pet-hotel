@@ -17,6 +17,7 @@ import {
   type ArrivalStateInput,
   type CreateAccommodationBody,
   type CreateReservationBody,
+  type ReservationFilters,
   type SharingCompatibilityParams,
   type UpdateAccommodationBody,
 } from "./api";
@@ -24,7 +25,7 @@ import {
 export const bookingKeys = {
   all: ["booking"] as const,
   accommodations: () => ["booking", "accommodations"] as const,
-  reservations: (status?: string) => ["booking", "reservations", { status: status || undefined }] as const,
+  reservations: (filters: ReservationFilters) => ["booking", "reservations", filters] as const,
   reservation: (id: string) => ["booking", "reservation", id] as const,
   occupancy: (from: string, to: string) => ["booking", "occupancy", { from, to }] as const,
   compatibility: (params: SharingCompatibilityParams) => ["booking", "compatibility", params] as const,
@@ -34,10 +35,11 @@ export function useAccommodations() {
   return useQuery({ queryKey: bookingKeys.accommodations(), queryFn: listAccommodations });
 }
 
-export function useReservations(status?: string) {
+export function useReservations(filters: ReservationFilters = {}) {
   return useQuery({
-    queryKey: bookingKeys.reservations(status),
-    queryFn: () => listReservations(status),
+    queryKey: bookingKeys.reservations(filters),
+    queryFn: () => listReservations(filters),
+    placeholderData: (prev) => prev, // mantém a página atual visível ao trocar de página/filtro
   });
 }
 
