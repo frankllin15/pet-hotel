@@ -160,6 +160,48 @@ Seção `Sentry` no `appsettings.json` (sobrescrevível por env `Sentry__*`):
 
 ---
 
+## Visualização local — Aspire Dashboard (Fase 1)
+
+Para **ver** a telemetria OTel (traces, métricas e logs) sem montar a stack Grafana, o `docker-compose.yml` traz o **.NET Aspire Dashboard**: um container único que recebe OTLP e mostra tudo numa UI, com correlação trace ↔ logs ↔ métricas.
+
+### Subir e usar
+
+```bash
+# 1. Sobe o dashboard (e o Postgres, se ainda não estiver de pé)
+docker compose up -d aspire-dashboard postgres
+
+# 2. Roda a API no profile de dev (já aponta o OTLP para localhost:4317)
+dotnet run --project src/PetHotel.Api --launch-profile http
+
+# 3. Gera tráfego (Swagger em http://localhost:5131/swagger) e abra a UI:
+#    http://localhost:18888
+```
+
+### Portas e fluxo
+
+| Porta (host) | Para | Observação |
+|---|---|---|
+| `18888` | UI do dashboard | `http://localhost:18888` (modo anônimo, sem login em dev) |
+| `4317` | OTLP/gRPC | Mapeada para a `18889` do container — é o **endpoint padrão** do exportador .NET |
+
+O profile `http`/`https` define `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317`, então:
+- **Traces/métricas** — o `AddOtlpExporter()` do OpenTelemetry exporta automaticamente.
+- **Logs** — o Serilog também exporta via OTLP (sink condicional no `Program.cs`, só quando o endpoint está definido), aparecendo no dashboard correlacionados ao trace.
+
+### O que você vê
+
+- **Traces** — cada request com seus spans: HTTP → handler (Wolverine) → query (Npgsql). Útil para achar onde o tempo é gasto (lembrando os hotspots de banco do teste de carga).
+- **Structured logs** — logs da request, com o `correlation_id` e o trace id; dá para pular de um span para os logs daquela operação.
+- **Metrics** — contadores/histogramas do ASP.NET Core e do runtime (.NET GC, threads, etc.).
+
+### Limites (é dev-only)
+
+- **Dados em memória**: o dashboard **perde tudo ao reiniciar** o container — é para inspeção ao vivo, não histórico. Para retenção/alertas, é a Fase 2/3 (Grafana Cloud ou LGTM self-host).
+- **Sem auth**: `DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true` é só para local — **nunca** expor assim.
+- O profile **`loadtest` desliga o OTel** (`OTEL_SDK_DISABLED=true`) e não exporta logs por OTLP de propósito: telemetria a ~1500 req/s distorce a medição.
+
+---
+
 ## Resumo operacional
 
 - **Ligar o Sentry no front:** definir `VITE_SENTRY_DSN` no build. Sem isso, desligado (esperado em dev).

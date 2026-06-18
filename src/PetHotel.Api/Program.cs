@@ -23,6 +23,7 @@ using PetHotel.Registry.Infrastructure;
 using PetHotel.Tenancy.Infrastructure;
 using PetHotel.Tenancy.Infrastructure.Auth;
 using Serilog;
+using Serilog.Sinks.OpenTelemetry;
 using Wolverine;
 using Wolverine.EntityFrameworkCore;
 using Wolverine.Postgresql;
@@ -47,9 +48,30 @@ var dataSource = new NpgsqlDataSourceBuilder(connectionString).Build();
 builder.Services.AddSingleton(dataSource);
 
 // --- Logging estruturado (docs/05) ---
-builder.Host.UseSerilog((context, loggerConfig) => loggerConfig
-    .ReadFrom.Configuration(context.Configuration)
-    .Enrich.FromLogContext());
+builder.Host.UseSerilog((context, loggerConfig) =>
+{
+    loggerConfig
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext();
+
+    // Com um coletor OTLP de pé (OTEL_EXPORTER_OTLP_ENDPOINT definido, ex.: o Aspire
+    // Dashboard em dev), os logs também vão por OTLP — assim aparecem no painel
+    // correlacionados ao trace pelo trace id / correlation id (docs/10). Sem o
+    // endpoint (prod sem coletor), só o Console.
+    var otlpEndpoint = context.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+    if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+    {
+        loggerConfig.WriteTo.OpenTelemetry(options =>
+        {
+            options.Endpoint = otlpEndpoint;
+            options.Protocol = OtlpProtocol.Grpc;
+            options.ResourceAttributes = new Dictionary<string, object>
+            {
+                ["service.name"] = "PetHotel.Api"
+            };
+        });
+    }
+});
 
 // --- Contexto transversal (tenant + usuário, docs/04) ---
 builder.Services.AddHttpContextAccessor();

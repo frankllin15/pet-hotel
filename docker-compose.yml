@@ -18,5 +18,19 @@ services:
     restart: unless-stopped
     command: postgres -c shared_preload_libraries=pg_stat_statements
 
+  # Aspire Dashboard: recebe OTLP (traces, métricas e logs) e mostra numa UI local.
+  # Fase 1 de observabilidade (docs/10) — valida a instrumentação OTel sem montar
+  # a stack Grafana. Suba com `docker compose up -d aspire-dashboard`.
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13.4
+    container_name: pethotel-aspire
+    environment:
+      # Dev local: sem token de login na UI nem chave de API no OTLP.
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "18888:18888" # UI do dashboard (http://localhost:18888)
+      - "4317:18889"  # OTLP/gRPC — host 4317 é o endpoint padrão do exportador .NET
+    restart: unless-stopped
+
 volumes:
   pethotel-pgdata:
