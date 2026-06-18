@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "./button";
+import { captureBoundaryError } from "@/shared/observability/sentry";
 
 interface Props {
   children: ReactNode;
@@ -25,8 +26,9 @@ export class FeatureErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    // TODO: enviar para Sentry com a tag da feature.
-    console.error(`[${this.props.feature ?? "app"}]`, error, info.componentStack);
+    const feature = this.props.feature ?? "app";
+    captureBoundaryError(error, feature, info.componentStack);
+    console.error(`[${feature}]`, error, info.componentStack);
   }
 
   private reset = () => this.setState({ error: null });

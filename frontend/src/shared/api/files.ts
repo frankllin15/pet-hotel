@@ -1,6 +1,7 @@
 import { getStoredToken, setStoredToken } from "@/shared/auth/token";
 import { AUTH_SIGNOUT_EVENT } from "@/shared/auth/auth-context";
 import { newCorrelationId } from "@/shared/lib/correlation";
+import { setCorrelationContext } from "@/shared/observability/sentry";
 import { toApiError } from "@/shared/lib/problem-details";
 
 /**
@@ -15,7 +16,9 @@ export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 function authHeaders(): Record<string, string> {
-  const headers: Record<string, string> = { "X-Correlation-Id": newCorrelationId() };
+  const correlationId = newCorrelationId();
+  setCorrelationContext(correlationId); // casa com o tracing do backend (Sentry ↔ Serilog/OTel)
+  const headers: Record<string, string> = { "X-Correlation-Id": correlationId };
   const token = getStoredToken();
   if (token) headers.Authorization = `Bearer ${token}`;
   return headers;

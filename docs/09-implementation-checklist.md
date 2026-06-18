@@ -18,7 +18,7 @@ Legenda: `[B]` backend · `[F]` frontend · sem marca = ambos.
 - [x] App Vite + React + TS, shell, router, providers, TanStack Query (`docs/08`) `[F]`
 - [x] Geração do client TS a partir do OpenAPI `[F]`
 - [x] Design tokens, `AsyncBoundary`, arquétipos de tela base, shadcn/ui `[F]`
-- [ ] Observabilidade: Serilog + OpenTelemetry + correlation id; Sentry no front — _Serilog+OTel+correlation id no back e `X-Correlation-Id` no front prontos; **Sentry no front pendente**_
+- [x] Observabilidade: Serilog + OpenTelemetry + correlation id; Sentry no front — _Serilog+OTel+correlation id no back e `X-Correlation-Id` no front; **Sentry no front** (`@sentry/react`): erros (plugado no `FeatureErrorBoundary`) + Web Vitals (browserTracing) + **Session Replay** com mascaramento total de texto/inputs e bloqueio de mídia (LGPD); correlation id propagado ao escopo do Sentry e usuário (id+tenant, sem PII) associado no login. Tudo "gated" por `VITE_SENTRY_DSN` (no-op sem DSN)_
 - [x] Health checks `/health` (liveness) e `/ready` (readiness) `[B]`
 - [x] Storage de arquivos tenant-scoped (`IFileStorage` + adapter em disco; download autenticado `/v1/files/{key}`) — _trocável por S3/Blob; reutilizável por estado de chegada, diário etc._
 

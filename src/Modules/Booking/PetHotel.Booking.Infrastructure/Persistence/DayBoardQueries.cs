@@ -52,6 +52,7 @@ public sealed class DayBoardQueries(BookingDbContext dbContext) : IDayBoardQueri
             .AsNoTracking()
             .Where(a => a.Status == AccommodationStatus.Available)
             .SumAsync(a => a.Capacity, cancellationToken);
+        
 
         return new DayBoardDto(
             arrivals,

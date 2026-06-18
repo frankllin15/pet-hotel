@@ -15,6 +15,7 @@ import {
   isExpired,
   type AuthClaims,
 } from "./token";
+import { setObservabilityUser } from "@/shared/observability/sentry";
 
 interface AuthState {
   token: string | null;
@@ -60,6 +61,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.addEventListener(AUTH_SIGNOUT_EVENT, signOut);
     return () => window.removeEventListener(AUTH_SIGNOUT_EVENT, signOut);
   }, [signOut]);
+
+  // Associa (ou limpa) o usuário nos eventos de observabilidade — só id/tenant,
+  // sem PII (e-mail/nome). No-op se o Sentry não estiver inicializado.
+  useEffect(() => {
+    setObservabilityUser(claims ? { id: claims.sub, tenantId: claims.tenantId } : null);
+  }, [claims]);
 
   const hasRole = useCallback(
     (...roles: Role[]) => !!claims && roles.some((r) => claims.roles.includes(r)),

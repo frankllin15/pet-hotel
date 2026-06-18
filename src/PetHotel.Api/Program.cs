@@ -11,6 +11,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using PetHotel.Api.Adapters;
 using PetHotel.Api.Endpoints;
+using PetHotel.Api.Observability;
 using PetHotel.Api.Storage;
 using PetHotel.BuildingBlocks.Multitenancy;
 using PetHotel.SharedKernel;
@@ -27,6 +28,12 @@ using Wolverine.EntityFrameworkCore;
 using Wolverine.Postgresql;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// --- Sentry: rastreamento de erro de ponta a ponta (docs/10) ---
+// Lê a seção "Sentry" do appsettings. Sem 'Sentry:Dsn' (default), o SDK fica
+// desligado (no-op) — mesmo "gate" do front. Captura exceções não tratadas;
+// erros de negócio usam Result<T> (não viram exceção), então não geram ruído.
+builder.WebHost.UseSentry();
 
 var connectionString = builder.Configuration.GetConnectionString("Postgres")
     ?? throw new InvalidOperationException("ConnectionStrings:Postgres não configurada.");
@@ -151,6 +158,8 @@ builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService("PetHotel.Api"))
     .WithTracing(tracing => tracing
         .AddAspNetCoreInstrumentation()
+        .AddSource("Wolverine") // spans dos handlers e da mensageria/Outbox (docs/05)
+        .AddSource("Npgsql")    // spans das queries no Postgres (visibilidade do banco)
         .AddOtlpExporter())
     .WithMetrics(metrics => metrics
         .AddAspNetCoreInstrumentation()
@@ -158,10 +167,15 @@ builder.Services.AddOpenTelemetry()
         .AddOtlpExporter());
 
 // --- Health checks: liveness vs readiness (docs/05) ---
-builder.Services.AddHealthChecks();
+// Readiness checa o Postgres (e, por tabela, o Outbox do Wolverine) — tag "ready".
+builder.Services.AddHealthChecks()
+    .AddCheck<PostgresHealthCheck>("postgres", tags: ["ready"]);
 
 var app = builder.Build();
 
+// Antes do request logging: o correlation id enriquece a linha de log da request
+// (e todo log emitido durante ela), o trace e o escopo do Sentry.
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 

@@ -39,6 +39,7 @@ Documento raiz lido automaticamente pelo Claude Code. Contém as **decisões tra
 | `docs/05-messaging-reliability.md` | Wolverine, Outbox, eventos, resiliência, idempotência, observabilidade. |
 | `docs/06-testing.md` | Estratégia de testes: unit, integração (Testcontainers), arquitetura. |
 | `docs/07-getting-started.md` | Passo a passo para criar a solução e os primeiros módulos. |
+| `docs/10-observability.md` | Observabilidade: Sentry no front (configs/envs, privacidade/LGPD) + Serilog/OpenTelemetry no back e o elo via correlation id. |
 
 ## Módulos (bounded contexts)
 
