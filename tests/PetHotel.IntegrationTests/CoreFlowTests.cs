@@ -375,6 +375,34 @@ public sealed class CoreFlowTests : IAsyncLifetime
         Assert.Contains(
             compat.GetProperty("conflicts").EnumerateArray(),
             c => c.GetProperty("petId").GetString() == petB.ToString());
+
+        // Tarefas operacionais do dia: cria (com responsável), lista, marca feita, edita e exclui.
+        var directory = await _client.GetFromJsonAsync<JsonElement>("/v1/users");
+        var someUser = directory.EnumerateArray().First().GetProperty("id").GetString();
+
+        var taskId = await CreateAsync("/v1/tasks", new { title = "Limpar ala A", date = today, category = "Cleaning", assignedTo = someUser });
+
+        var dayTasks = await _client.GetFromJsonAsync<JsonElement>($"/v1/tasks?date={today:yyyy-MM-dd}");
+        var task = dayTasks.EnumerateArray().Single(t => t.GetProperty("id").GetString() == taskId.ToString());
+        Assert.Equal("Limpar ala A", task.GetProperty("title").GetString());
+        Assert.Equal("Cleaning", task.GetProperty("category").GetString());
+        Assert.Equal(someUser, task.GetProperty("assignedTo").GetString());
+        Assert.False(task.GetProperty("done").GetBoolean());
+
+        var markDone = await _client.PostAsJsonAsync($"/v1/tasks/{taskId}/done", new { done = true });
+        Assert.Equal(HttpStatusCode.NoContent, markDone.StatusCode);
+        var afterDone = await _client.GetFromJsonAsync<JsonElement>($"/v1/tasks?date={today:yyyy-MM-dd}");
+        Assert.True(afterDone.EnumerateArray()
+            .Single(t => t.GetProperty("id").GetString() == taskId.ToString())
+            .GetProperty("done").GetBoolean());
+
+        var editTask = await _client.PutAsJsonAsync($"/v1/tasks/{taskId}", new { title = "Alimentação manhã", category = "Feeding", assignedTo = (string?)null });
+        Assert.Equal(HttpStatusCode.NoContent, editTask.StatusCode);
+
+        var deleteTask = await _client.DeleteAsync($"/v1/tasks/{taskId}");
+        Assert.Equal(HttpStatusCode.NoContent, deleteTask.StatusCode);
+        var afterDelete = await _client.GetFromJsonAsync<JsonElement>($"/v1/tasks?date={today:yyyy-MM-dd}");
+        Assert.DoesNotContain(afterDelete.EnumerateArray(), t => t.GetProperty("id").GetString() == taskId.ToString());
     }
 
     private async Task<Guid> CreateAsync(string url, object body)

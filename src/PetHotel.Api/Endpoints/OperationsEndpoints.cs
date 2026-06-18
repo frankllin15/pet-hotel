@@ -14,6 +14,12 @@ using PetHotel.Operations.Application.Incidents.ReportIncident;
 using PetHotel.Operations.Application.Medications;
 using PetHotel.Operations.Application.Medications.GetStayMedications;
 using PetHotel.Operations.Application.Medications.RecordMedication;
+using PetHotel.Operations.Application.Tasks;
+using PetHotel.Operations.Application.Tasks.CreateTask;
+using PetHotel.Operations.Application.Tasks.DeleteTask;
+using PetHotel.Operations.Application.Tasks.ListTasks;
+using PetHotel.Operations.Application.Tasks.SetTaskDone;
+using PetHotel.Operations.Application.Tasks.UpdateTask;
 using PetHotel.Operations.Domain.Ports;
 using PetHotel.SharedKernel;
 using Wolverine;
@@ -166,9 +172,63 @@ public static class OperationsEndpoints
             .WithSummary("Incidentes registrados na estadia.")
             .Produces<IReadOnlyList<IncidentDto>>(StatusCodes.Status200OK);
 
+        // --- Tarefas operacionais do dia (por tenant, não por estadia; contexto único → via bus) ---
+        group.MapGet("/tasks", async (DateOnly date, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<IReadOnlyList<OperationalTaskDto>>>(new ListTasks(date), ct);
+                return result.ToHttpResult(Results.Ok);
+            })
+            .WithName("ListTasks")
+            .WithSummary("Tarefas operacionais de um dia (parâmetro 'date').")
+            .Produces<IReadOnlyList<OperationalTaskDto>>(StatusCodes.Status200OK);
+
+        group.MapPost("/tasks", async (CreateTask command, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result<Guid>>(command, ct);
+                return result.ToHttpResult(id => Results.Created($"/v1/tasks/{id}", new CreatedResponse(id)));
+            })
+            .WithName("CreateTask")
+            .WithSummary("Cria uma tarefa operacional para um dia.")
+            .Produces<CreatedResponse>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
+
+        group.MapPut("/tasks/{id:guid}", async (Guid id, UpdateTask command, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(command with { Id = id }, ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("UpdateTask")
+            .WithSummary("Edita título, categoria e responsável de uma tarefa.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("/tasks/{id:guid}/done", async (Guid id, SetTaskDoneRequest body, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(new SetTaskDone(id, body.Done), ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("SetTaskDone")
+            .WithSummary("Marca a tarefa como feita/não-feita.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/tasks/{id:guid}", async (Guid id, IMessageBus bus, CancellationToken ct) =>
+            {
+                var result = await bus.InvokeAsync<Result>(new DeleteTask(id), ct);
+                return result.ToHttpResult(Results.NoContent());
+            })
+            .WithName("DeleteTask")
+            .WithSummary("Exclui uma tarefa operacional.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         return app;
     }
 
     /// <summary>Resposta do upload de foto de ocorrência: URL relativa para o endpoint de arquivos.</summary>
     public sealed record CarePhotoResponse(string PhotoUrl);
+
+    /// <summary>Corpo do toggle de conclusão de tarefa.</summary>
+    public sealed record SetTaskDoneRequest(bool Done);
 }

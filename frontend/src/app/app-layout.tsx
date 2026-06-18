@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { BedDouble, CalendarCheck, CalendarDays, LayoutDashboard, LogOut, PawPrint, Users, Users2 } from "lucide-react";
+import { BedDouble, CalendarCheck, CalendarDays, LayoutDashboard, ListChecks, LogOut, PawPrint, Users, Users2 } from "lucide-react";
 import { useAuth } from "@/shared/auth/auth-context";
 import { type Role } from "@/shared/auth/roles";
 import { FeatureErrorBoundary } from "@/shared/ui/error-boundary";
@@ -22,6 +22,7 @@ const NAV: NavItem[] = [
   { to: "/booking/reservations", label: "Reservas", icon: CalendarCheck },
   { to: "/booking/accommodations", label: "Acomodações", icon: BedDouble },
   { to: "/booking/occupancy", label: "Ocupação", icon: CalendarDays },
+  { to: "/operations/tasks", label: "Tarefas", icon: ListChecks },
 ];
 
 /** Shell raiz: sidebar "couro" de navegação + área de conteúdo em papel. */

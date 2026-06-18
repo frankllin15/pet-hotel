@@ -4,6 +4,7 @@ using PetHotel.Operations.Application.Abstractions;
 using PetHotel.Operations.Domain.CareLog;
 using PetHotel.Operations.Domain.Incidents;
 using PetHotel.Operations.Domain.Medications;
+using PetHotel.Operations.Domain.Tasks;
 using PetHotel.SharedKernel;
 
 namespace PetHotel.Operations.Infrastructure.Persistence;
@@ -17,6 +18,7 @@ public sealed class OperationsDbContext(DbContextOptions<OperationsDbContext> op
     public DbSet<CareLogEntry> CareLogEntries => Set<CareLogEntry>();
     public DbSet<MedicationAdministration> Medications => Set<MedicationAdministration>();
     public DbSet<Incident> Incidents => Set<Incident>();
+    public DbSet<OperationalTask> Tasks => Set<OperationalTask>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

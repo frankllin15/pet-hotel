@@ -67,10 +67,10 @@ Entrega o ciclo "cadastrar → validar saúde → reservar → check-in/out" par
 ## Fase 2 — Operação e Comunicação
 
 ### Operations (Diário de bordo)
-- [ ] Checklist de tarefas (limpeza, alimentação, recreação)
+- [x] Checklist de tarefas (limpeza, alimentação, recreação) — _agregado `OperationalTask` por **dia** (não por pet): título, categoria (Cleaning/Feeding/Recreation/Other), responsável, feito/não-feito; CRUD em `/v1/tasks` + toggle `/v1/tasks/{id}/done`; tela "Tarefas do dia" com seletor de data_
 - [x] Registro rápido de ocorrências (comeu, fezes, comportamento) — _módulo Operations; `CareLogEntry` **vinculado à estadia** (contexto genérico estadia/creche); só registra com check-in feito (409 se não); `POST /v1/reservations/{id}/care-log`_
 - [x] Timeline por estadia com fotos/vídeos (com virtualização) `[F]` — _timeline no card "Diário de bordo" (cursor, "carregar mais") com **fotos por ocorrência** (upload/remoção, reusa IFileStorage); **vídeos e virtualização ainda pendentes**_
-- [ ] Atribuição de responsável / escala do dia
+- [x] Atribuição de responsável / escala do dia — _responsável por tarefa (usuário do diretório `/v1/users`); **escala de turnos/plantão** (manhã/tarde/noite) fica para depois — não exigida pelo MVP_
 - [x] Log de administração de medicamento (quem, quando, dose) — _agregado MedicationAdministration por estadia (medicamento/dose/momento; "quem" = auditoria); seção "Medicação" na ficha da reserva_
 - [x] Fluxo de incidente grave (auditável + notificação ao tutor) — _agregado Incident por estadia (gravidade/descrição/momento), levanta `IncidentReported`; **notificação ao tutor depende do Notifications/Outbox (futuro)**_
 

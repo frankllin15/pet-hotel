@@ -17,6 +17,7 @@ import { ReservationsPage } from "@/features/booking/pages/reservations-page";
 import { ReservationFormPage } from "@/features/booking/pages/reservation-form-page";
 import { ReservationDetailPage } from "@/features/booking/pages/reservation-detail-page";
 import { AccommodationsPage } from "@/features/booking/pages/accommodations-page";
+import { TasksPage } from "@/features/tasks/pages/tasks-page";
 import { OccupancyPage } from "@/features/booking/pages/occupancy-page";
 
 /**
@@ -49,6 +50,7 @@ export const routes: RouteObject[] = [
           { path: "booking/reservations/:id", element: <ReservationDetailPage /> },
           { path: "booking/accommodations", element: <AccommodationsPage /> },
           { path: "booking/occupancy", element: <OccupancyPage /> },
+          { path: "operations/tasks", element: <TasksPage /> },
           { path: "*", element: <PlaceholderPage title="Página não encontrada" /> },
         ],
       },

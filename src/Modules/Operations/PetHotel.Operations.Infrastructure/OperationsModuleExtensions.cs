@@ -8,6 +8,8 @@ using PetHotel.Operations.Application.Abstractions;
 using PetHotel.Operations.Application.CareLog.LogCareEntry;
 using PetHotel.Operations.Application.Incidents.ReportIncident;
 using PetHotel.Operations.Application.Medications.RecordMedication;
+using PetHotel.Operations.Application.Tasks.CreateTask;
+using PetHotel.Operations.Application.Tasks.UpdateTask;
 using PetHotel.Operations.Domain.Ports;
 using PetHotel.Operations.Infrastructure.Adapters;
 using PetHotel.Operations.Infrastructure.Persistence;
@@ -35,11 +37,15 @@ public static class OperationsModuleExtensions
         services.AddScoped<IMedicationQueries, MedicationQueries>();
         services.AddScoped<IIncidentRepository, IncidentRepository>();
         services.AddScoped<IIncidentQueries, IncidentQueries>();
+        services.AddScoped<IOperationalTaskRepository, OperationalTaskRepository>();
+        services.AddScoped<IOperationalTaskQueries, OperationalTaskQueries>();
         services.AddScoped<IStayGateway, OperationsStayGateway>();
 
         services.AddScoped<IValidator<LogCareEntry>, LogCareEntryValidator>();
         services.AddScoped<IValidator<RecordMedication>, RecordMedicationValidator>();
         services.AddScoped<IValidator<ReportIncident>, ReportIncidentValidator>();
+        services.AddScoped<IValidator<CreateTask>, CreateTaskValidator>();
+        services.AddScoped<IValidator<UpdateTask>, UpdateTaskValidator>();
 
         return services;
     }

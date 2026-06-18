@@ -712,6 +712,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tarefas operacionais de um dia (parâmetro 'date'). */
+        get: operations["ListTasks"];
+        put?: never;
+        /** Cria uma tarefa operacional para um dia. */
+        post: operations["CreateTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tasks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Edita título, categoria e responsável de uma tarefa. */
+        put: operations["UpdateTask"];
+        post?: never;
+        /** Exclui uma tarefa operacional. */
+        delete: operations["DeleteTask"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tasks/{id}/done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marca a tarefa como feita/não-feita. */
+        post: operations["SetTaskDone"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reports": {
         parameters: {
             query?: never;
@@ -965,6 +1018,14 @@ export interface components {
             /** Format: date */
             checkOut: string;
         };
+        CreateTask: {
+            title: string;
+            /** Format: date */
+            date: string;
+            category: components["schemas"]["TaskCategory"];
+            /** Format: uuid */
+            assignedTo: null | string;
+        };
         CursorPageOfCareLogEntryDto: {
             items: components["schemas"]["CareLogEntryDto"][];
             nextCursor: null | string;
@@ -1112,6 +1173,19 @@ export interface components {
             pageSize: number | string;
             /** Format: int32 */
             totalPages?: number | string;
+        };
+        OperationalTaskDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date */
+            date: string;
+            category: string;
+            /** Format: uuid */
+            assignedTo: null | string;
+            done: boolean;
+            /** Format: date-time */
+            completedAt: null | string;
         };
         OutboundMessageDto: {
             /** Format: uuid */
@@ -1319,6 +1393,9 @@ export interface components {
             arrivalState: null | components["schemas"]["ArrivalStateDto"];
             arrivalPhotoUrls: string[];
         };
+        SetTaskDoneRequest: {
+            done: boolean;
+        };
         SetTutorConsents: {
             /** Format: uuid */
             tutorId: string;
@@ -1337,6 +1414,8 @@ export interface components {
         };
         /** @enum {unknown} */
         Species: "Dog" | "Cat" | "Other";
+        /** @enum {unknown} */
+        TaskCategory: "Cleaning" | "Feeding" | "Recreation" | "Other";
         TenantConfigurationDto: {
             accommodationTypes: components["schemas"]["AccommodationTypeDto"][];
             requiredVaccines: string[];
@@ -1405,6 +1484,14 @@ export interface components {
             behaviorNotes?: null | string;
             feedingRoutine?: null | components["schemas"]["FeedingRoutineInput"];
             belongings?: null | components["schemas"]["BelongingInput"][];
+        };
+        UpdateTask: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            category: components["schemas"]["TaskCategory"];
+            /** Format: uuid */
+            assignedTo: null | string;
         };
         UpdateTenantConfiguration: {
             accommodationTypes: components["schemas"]["AccommodationTypeInput"][];
@@ -3654,6 +3741,165 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ListTasks: {
+        parameters: {
+            query: {
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationalTaskDto"][];
+                };
+            };
+        };
+    };
+    CreateTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTask"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTask"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetTaskDone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetTaskDoneRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
